@@ -7,12 +7,18 @@ interface VideoPlayerProps {
   poster?: string;
 }
 
+function isYouTubeUrl(url: string) {
+  // Accept both www.youtube.com/embed and youtube.com/embed and youtu.be links
+  return /youtube\.com\/embed\/.+|youtu\.be\/.+/.test(url);
+}
+
 const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
 
+  // Native video controls
   const togglePlay = () => {
     if (videoRef.current) {
       if (isPlaying) {
@@ -40,6 +46,20 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
       }
     }
   };
+
+  if (isYouTubeUrl(src)) {
+    return (
+      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+        <iframe
+          src={src}
+          title="YouTube video player"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="w-full h-full rounded-lg border-0"
+        />
+      </div>
+    );
+  }
 
   return (
     <div

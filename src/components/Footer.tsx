@@ -10,21 +10,21 @@ const Footer = () => {
     {
       name: 'YouTube',
       icon: Youtube,
-      url: '#',
+      url: 'https://youtube.com/@tony_shotit?si=BDPpqC8dbZIHAARQ',
       color: 'hover:text-red-500',
       description: 'Long-form content & reels',
     },
     {
       name: 'Instagram',
       icon: Instagram,
-      url: '#',
+      url: 'https://www.instagram.com/_tonyshotit?igsh=MXY0cm9sZzM1eWs5bg%3D%3D&utm_source=qr',
       color: 'hover:text-pink-500',
       description: 'Behind-the-scenes & stories',
     },
     {
       name: 'TikTok',
       icon: Music,
-      url: '#',
+      url: 'https://www.tiktok.com/@_tonyshotit?_r=1&_t=ZS-93ZWYqnhTzY',
       color: 'hover:text-cyan-500',
       description: 'Short-form video content',
     },
@@ -54,7 +54,7 @@ const Footer = () => {
               directing opportunities.
             </p>
             <a
-              href="mailto:contact@example.com"
+              href="mailto:anthony.ibuzo@gmail.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105"
             >
               <Mail className="w-5 h-5" />
