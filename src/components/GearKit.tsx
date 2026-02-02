@@ -12,21 +12,21 @@ interface GearItem {
 const gearItems: GearItem[] = [
   {
     id: 1,
-    name: 'Canon C300 Mark II',
-    category: 'Cinema Camera',
+    name: 'Canon Cameras',
+    category: 'Production Cameras',
     icon: Camera,
-    description: '4K cinema camera with excellent color science and low-light performance',
+    description: 'Canon C300 Mark II, Canon 80D, Canon RP, Canon R6',
   },
   {
     id: 2,
-    name: 'Sony A7III',
-    category: 'Mirrorless Camera',
+    name: 'Sony Cameras',
+    category: 'Production Cameras',
     icon: Camera,
-    description: 'Versatile full-frame camera for hybrid photo/video production',
+    description: 'Sony A7III, Sony A7IV, Sony PXY-Z150, Sony FX6',
   },
   {
     id: 3,
-    name: 'RED Komodo 6K',
+    name: 'Blackmagic Pocket Cinema Camera 6K',
     category: 'Cinema Camera',
     icon: Camera,
     description: 'Compact 6K cinema camera for high-end commercial work',
@@ -54,7 +54,7 @@ const gearItems: GearItem[] = [
   },
   {
     id: 7,
-    name: 'DJI Ronin',
+    name: 'DJI RS3, RS3 Mini & RS4',
     category: 'Stabilizer',
     icon: Video,
     description: '3-axis gimbal for smooth cinematic camera movements',
@@ -68,10 +68,10 @@ const gearItems: GearItem[] = [
   },
   {
     id: 9,
-    name: 'Aputure 600D',
-    category: 'Lighting',
+    name: 'Hollyland Transmission Systems',
+    category: 'Wireless Transmission Systems',
     icon: Monitor,
-    description: 'High-output LED light for large-scale productions',
+    description: 'Hollyland Pyro s & Hollyland Pyro H',
   },
 ];
 

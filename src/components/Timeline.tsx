@@ -12,9 +12,9 @@ interface Experience {
 const experiences: Experience[] = [
   {
     id: 1,
-    year: '2023 - Present',
-    title: 'Lead Technical Director',
-    company: 'LiveStream Productions',
+    year: '2022 - Present',
+    title: 'Lead Vision Mixer',
+    company: 'St. Agnes Catholic Church, Lagos.',
     responsibilities: [
       'Managing multi-camera live broadcasts for corporate events and conferences',
       'Operating ATEM switchers and coordinating camera operators',
@@ -24,21 +24,21 @@ const experiences: Experience[] = [
   },
   {
     id: 2,
-    year: '2021 - 2023',
-    title: 'Video Production Specialist',
-    company: 'Creative Media House',
+    year: '2021 - Present',
+    title: 'Freelance Video Editor',
+    company: 'Independent',
     responsibilities: [
       'Shooting and editing branded content for Fortune 500 clients',
-      'Operating cinema cameras including RED and Canon C-series',
-      'Color grading in DaVinci Resolve and Adobe Premiere Pro',
-      'Managing lighting setups for interviews and product shoots',
+      'Editing & Color grading in DaVinci Resolve',
+      'Creating highlight reels and delivering final products on tight deadlines',
+      'Developing skills across multiple editing platforms',
     ],
   },
   {
     id: 3,
-    year: '2019 - 2021',
+    year: '2023 - Present',
     title: 'Camera Operator & Stream Manager',
-    company: 'Esports Broadcasting Network',
+    company: 'Pan-Atlantic University',
     responsibilities: [
       'Operating PTZ and manual cameras for live gaming tournaments',
       'Managing OBS Studio for multi-stream outputs to Twitch and YouTube',
@@ -48,14 +48,15 @@ const experiences: Experience[] = [
   },
   {
     id: 4,
-    year: '2018 - 2019',
-    title: 'Freelance Videographer',
+    year: '2019 - Present',
+    title: 'Freelance Cinematographer',
     company: 'Independent',
     responsibilities: [
       'Shooting weddings, events, and corporate videos',
+      'Managing lighting setups for interviews and product shoots',
       'Building client relationships and managing project workflows',
-      'Developing skills across multiple camera systems and editing platforms',
-      'Creating highlight reels and delivering final products on tight deadlines',
+      'Developing skills across multiple camera systems',
+      'Operating cinema cameras including RED and Canon C-series & R-series',
     ],
   },
 ];

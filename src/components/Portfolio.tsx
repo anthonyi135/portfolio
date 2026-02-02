@@ -17,13 +17,13 @@ interface Project {
 const projects: Project[] = [
   {
     id: 1,
-    title: 'Corporate Documentary',
+    title: 'REDBULL ENCOURAGED BMX SHOWCASE',
     category: 'video',
     videoSrc: 'https://www.youtube.com/embed/uWK228UPDSw',
     poster: 'https://images.pexels.com/photos/2608517/pexels-photo-2608517.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750',
     role: 'Director of Photography, Editor',
-    equipment: ['Canon C300 Mark II', 'DJI Ronin', 'Sennheiser MKH 416'],
-    description: 'A cinematic documentary showcasing corporate innovation and team dynamics. Shot over 3 days with multiple interview setups and B-roll sequences.',
+    equipment: ['iPhone 15 Pro', 'DJI Mini 3', 'Davinci Resolve Studio'],
+    description: 'A high-octane showcase of the Red Bull Encouraged tour at Pan-Atlantic University. This project captured the raw energy of top BMX talent as they performed gravity-defying stunts, documenting the intense atmosphere and crowd engagement through dynamic, fast-paced cinematography.',
   },
   {
     id: 2,
@@ -37,23 +37,23 @@ const projects: Project[] = [
   },
   {
     id: 3,
-    title: 'Brand Commercial',
+    title: 'THE PAU PROJECT',
+    category: 'video',
+    videoSrc: "https://www.youtube.com/embed/jTgaBulzXic?si=5q_FhFOmkm-nLLgr",
+    poster: 'https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750',
+    role: 'Director of Photography, Editor',
+    equipment: ['DJI Mini 3', 'Davinci Resolve Studio'],
+    description: 'A sweeping aerial tour of the Pan-Atlantic University campus. This project utilizes cinematic drone movements to capture the architectural beauty and serene landscape of the university, highlighting the scale and design of the institution from a unique perspective.',
+  },
+    {
+    id: 5,
+    title: 'Se o gbo Yoruba ',
     category: 'video',
     videoSrc: 'https://www.youtube.com/embed/uWK228UPDSw',
     poster: 'https://images.pexels.com/photos/3062541/pexels-photo-3062541.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750',
     role: 'Cinematographer, Colorist',
     equipment: ['RED Komodo 6K', 'Sigma Art Lenses', 'Aputure 600D'],
     description: '30-second high-end commercial spot featuring product cinematography and lifestyle sequences. Full post-production workflow including color grading.',
-  },
-  {
-    id: 4,
-    title: 'Esports Tournament Broadcast',
-    category: 'live',
-    videoSrc: 'https://www.youtube.com/embed/uWK228UPDSw',
-    poster: 'https://images.pexels.com/photos/3945683/pexels-photo-3945683.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750',
-    role: 'Stream Manager, Technical Director',
-    equipment: ['Blackmagic ATEM 2 M/E', 'OBS Studio', 'NDI Cameras (5x)'],
-    description: '8-hour live esports tournament with commentary, player cams, game capture, and sponsor integrations. Managed technical workflows for seamless streaming.',
   },
 ];
 
