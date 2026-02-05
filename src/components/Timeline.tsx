@@ -67,8 +67,20 @@ const experiences: Experience[] = [
       'Troubleshooting technical issues in real-time broadcast scenarios',
     ],
   },
-     {
+    {
     id: 6,
+    year: '2023 - Present',
+    title: 'Drone Pilot',
+    company: 'Independent',
+    responsibilities: [
+      'Flying drones for aerial photography and videography',
+      'Planning and executing drone flight paths for optimal shots',
+      'Ensuring compliance with local regulations and safety guidelines',
+      'Editing aerial footage and integrating it into final projects',
+    ],
+  },
+     {
+    id: 7,
     year: 'Nov 2024',
     title: 'Head, Videography and Photography',
     company: 'TEDxPan-Atlantic University',
