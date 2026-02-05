@@ -10,19 +10,20 @@ interface Experience {
 }
 
 const experiences: Experience[] = [
-  {
+    {
     id: 1,
-    year: '2022 - Present',
-    title: 'Lead Vision Mixer',
-    company: 'St. Agnes Catholic Church, Lagos.',
+    year: '2019 - Present',
+    title: 'Freelance Cinematographer',
+    company: 'Independent',
     responsibilities: [
-      'Managing multi-camera live broadcasts for corporate events and conferences',
-      'Operating ATEM switchers and coordinating camera operators',
-      'Implementing NDI workflows for IP-based video production',
-      'Training junior operators on broadcast equipment and protocols',
+      'Shooting weddings, events, and corporate videos',
+      'Managing lighting setups for interviews and product shoots',
+      'Building client relationships and managing project workflows',
+      'Developing skills across multiple camera systems',
+      'Operating cinema cameras including RED and Canon C-series & R-series',
     ],
   },
-  {
+    {
     id: 2,
     year: '2021 - Present',
     title: 'Freelance Video Editor',
@@ -36,6 +37,26 @@ const experiences: Experience[] = [
   },
   {
     id: 3,
+    year: '2022 - Present',
+    title: 'Lead Vision Mixer',
+    company: 'St. Agnes Catholic Church, Lagos.',
+    responsibilities: [
+      'Managing multi-camera live broadcasts for corporate events and conferences',
+      'Operating ATEM switchers and coordinating camera operators',
+      'Implementing NDI workflows for IP-based video production',
+      'Training junior operators on broadcast equipment and protocols',
+    ],
+  },
+    {
+    id: 4,
+    year: '2022 - Present',
+    title: 'Lead Vision Mixer',
+    company: 'St. Agnes Catholic Church, Lagos.',
+    responsibilities: [
+    ],
+  },
+  {
+    id: 5,
     year: '2023 - Present',
     title: 'Camera Operator & Stream Manager',
     company: 'Pan-Atlantic University',
@@ -46,26 +67,12 @@ const experiences: Experience[] = [
       'Troubleshooting technical issues in real-time broadcast scenarios',
     ],
   },
-  {
-    id: 4,
-    year: '2019 - Present',
-    title: 'Freelance Cinematographer',
-    company: 'Independent',
+     {
+    id: 6,
+    year: 'Nov 2024',
+    title: 'Head, Videography and Photography',
+    company: 'TEDxPan-Atlantic University',
     responsibilities: [
-      'Shooting weddings, events, and corporate videos',
-      'Managing lighting setups for interviews and product shoots',
-      'Building client relationships and managing project workflows',
-      'Developing skills across multiple camera systems',
-      'Operating cinema cameras including RED and Canon C-series & R-series',
-    ],
-  },
-   {
-    id: 5,
-    year: '2022 - Present',
-    title: 'Lead Vision Mixer',
-    company: 'St. Agnes Catholic Church, Lagos.',
-    responsibilities: [
-   
     ],
   },
 ];
