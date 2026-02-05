@@ -30,7 +30,7 @@ const projects: Project[] = [
     title: 'PAN-ATLANTIC UNIVERSITY 12TH MATRICULATION CEREMONY',
     category: 'live',
     videoSrc: '',
-    poster: '',
+    poster: '/tony_youtube.png',
     role: 'Technical Director, Camera Operator',
     equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
     description: 'Multi-camera live broadcast for a 2000+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
