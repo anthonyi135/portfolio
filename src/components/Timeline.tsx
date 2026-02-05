@@ -59,6 +59,15 @@ const experiences: Experience[] = [
       'Operating cinema cameras including RED and Canon C-series & R-series',
     ],
   },
+   {
+    id: 5,
+    year: '2022 - Present',
+    title: 'Lead Vision Mixer',
+    company: 'St. Agnes Catholic Church, Lagos.',
+    responsibilities: [
+   
+    ],
+  },
 ];
 
 const Timeline = () => {

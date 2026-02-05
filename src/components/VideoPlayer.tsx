@@ -17,10 +17,13 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [showCustomThumb, setShowCustomThumb] = useState(true);
 
   // Native video controls
   const togglePlay = () => {
-    if (videoRef.current) {
+    if (isYouTubeUrl(src)) {
+      setShowCustomThumb(false);
+    } else if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
@@ -48,6 +51,20 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
   };
 
   if (isYouTubeUrl(src)) {
+    // If showCustomThumb is true and poster is provided, show custom thumbnail overlay
+    if (showCustomThumb && poster) {
+      return (
+        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden cursor-pointer" onClick={togglePlay}>
+          <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover" />
+          <button className="absolute inset-0 flex items-center justify-center">
+            <span className="bg-blue-600 rounded-full p-6 shadow-2xl hover:bg-blue-500 transition-colors">
+              <Play className="w-10 h-10 text-white ml-1" />
+            </span>
+          </button>
+        </div>
+      );
+    }
+    // Otherwise, show YouTube iframe
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
         <iframe

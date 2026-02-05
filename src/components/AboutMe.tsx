@@ -21,7 +21,7 @@ const AboutMe = () => {
           className="text-xl text-gray-400 max-w-2xl mx-auto leading-relaxed"
         >
           {/* Add your writeup here! Example: */}
-          I am a passionate video production and live broadcast specialist with over 6 yearsof experience in creating compelling visual stories. My expertise spans technical directing, camera operation, and seamless live production for a variety of clients and events.
+          I am a passionate video production and live broadcast specialist with over 6 years of experience in creating compelling visual stories. My expertise spans technical directing, camera operation, and seamless live production for a variety of clients and events.
         </motion.p>
       </div>
     </section>
