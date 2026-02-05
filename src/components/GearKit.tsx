@@ -72,6 +72,13 @@ const gearItems: GearItem[] = [
     category: 'Wireless Transmission Systems',
     icon: Monitor,
     description: 'Hollyland Pyro s & Hollyland Pyro H',
+  },  
+  {
+    id: 10,
+    name: 'DJI MINI 3, DJI MAVIC 2 PRO, DJI MAVIC 3 PRO',
+    category: 'Drones',
+    icon: Camera,
+    description: 'Compact and versatile drones for aerial cinematography',
   },
 ];
 
