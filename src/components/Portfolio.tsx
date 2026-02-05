@@ -27,13 +27,13 @@ const projects: Project[] = [
   },
   {
     id: 2,
-    title: 'Live Concert Stream',
+    title: 'PAN-ATLANTIC UNIVERSITY 12TH MATRICULATION CEREMONY',
     category: 'live',
-    videoSrc: 'https://www.youtube.com/embed/uWK228UPDSw',
+    videoSrc: '',
     poster: '',
     role: 'Technical Director, Camera Operator',
-    equipment: ['ATEM Mini Pro', 'Sony A7III (3x)', 'Osee GoStream Duet'],
-    description: 'Multi-camera live broadcast for a 500+ viewer concert. Managed 4 camera angles, audio mixing, and real-time graphics overlay.',
+    equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
+    description: 'Multi-camera live broadcast for a 2000+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
   },
   {
     id: 3,
@@ -52,8 +52,8 @@ const projects: Project[] = [
     videoSrc: 'https://www.youtube.com/embed/uFE9vXopZqs',
     poster: '/tony_youtube.png',
     role: 'Cinematographer, Colorist',
-    equipment: ['RED Komodo 6K', 'Sigma Art Lenses', 'Aputure 600D'],
-    description: '30-second high-end commercial spot featuring product cinematography and lifestyle sequences. Full post-production workflow including color grading.',
+    equipment: ['Canon 80D', 'Davinci Resolve Studio', 'DJI Mini 3'],
+    description: '"Se o gbo Yoruba" addresses the "othering" experienced by those unable to speak their mother tongue. This visual commentary uses intimate lifestyle sequences to highlight the tension between modern identity and cultural expectations.',
   },
 ];
 
