@@ -19,6 +19,18 @@ interface Project {
   director_notes?: string;
 }
 
+// Helper to extract Google Drive File ID from any Drive link format
+const getDriveEmbedUrl = (url: string): string | null => {
+  if (!url || !url.includes('drive.google.com')) return null;
+
+  // Match /file/d/FILE_ID/ or id=FILE_ID
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/file/d/${match[1]}/preview`;
+  }
+  return null;
+};
+
 export const ClientPortal: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [project, setProject] = useState<Project | null>(null);
@@ -135,6 +147,7 @@ export const ClientPortal: React.FC = () => {
       : [{ title: 'Main Stream', url: project.video_url || '' }];
 
   const currentVideo = videoList[selectedVideoIndex] || videoList[0];
+  const driveEmbedUrl = currentVideo?.url ? getDriveEmbedUrl(currentVideo.url) : null;
 
   return (
     <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px', color: '#fff' }}>
@@ -206,31 +219,22 @@ export const ClientPortal: React.FC = () => {
           aspectRatio: '16 / 9',
         }}
       >
-        {currentVideo?.url ? (
-          currentVideo.url.includes('drive.google.com') ? (
-            <iframe
-              key={currentVideo.url}
-              src={
-                currentVideo.url.includes('/preview')
-                  ? currentVideo.url
-                  : `https://drive.google.com/file/d/${
-                      currentVideo.url.match(/\/d\/([^\/]+)/)?.[1] ||
-                      currentVideo.url.match(/id=([^&]+)/)?.[1]
-                    }/preview`
-              }
-              style={{ width: '100%', height: '100%', border: 'none' }}
-              allow="autoplay; fullscreen"
-            />
-          ) : (
-            <video
-              key={currentVideo.url}
-              controls
-              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-            >
-              <source src={currentVideo.url} type="video/mp4" />
-              Your browser does not support playing this video directly.
-            </video>
-          )
+        {driveEmbedUrl ? (
+          <iframe
+            key={driveEmbedUrl}
+            src={driveEmbedUrl}
+            style={{ width: '100%', height: '100%', border: 'none' }}
+            allow="autoplay; fullscreen"
+          />
+        ) : currentVideo?.url ? (
+          <video
+            key={currentVideo.url}
+            controls
+            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+          >
+            <source src={currentVideo.url} type="video/mp4" />
+            Your browser does not support playing this video directly.
+          </video>
         ) : (
           <div style={{ padding: '60px', textAlign: 'center', color: '#666' }}>
             No valid video stream URL available for this selection.
