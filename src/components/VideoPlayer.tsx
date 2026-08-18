@@ -29,12 +29,9 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [showIframe, setShowIframe] = useState(false);
 
   const togglePlay = () => {
-    if (isYouTubeUrl(src) || isGoogleDriveUrl(src)) {
-      setShowIframe(true);
-    } else if (videoRef.current) {
+    if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
@@ -61,37 +58,19 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     }
   };
 
-  // 1. GOOGLE DRIVE EMBED
+  // 1. GOOGLE DRIVE EMBED (MOBILE RESPONSIVE WORKAROUND)
   if (isGoogleDriveUrl(src)) {
-    if (!showIframe) {
-      return (
-        <div 
-          className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden cursor-pointer group border border-gray-800" 
-          onClick={togglePlay}
-        >
-          {poster ? (
-            <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
-              <span className="text-gray-600 text-xs tracking-widest uppercase">Click To Play Stream</span>
-            </div>
-          )}
-          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-            <span className="bg-blue-600 rounded-full p-4 sm:p-5 shadow-2xl group-hover:scale-110 transition-transform">
-              <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
-            </span>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
         <iframe
           src={getGoogleDriveEmbedUrl(src)}
           title="Google Drive video player"
           allow="autoplay; fullscreen"
-          className="w-full h-full rounded-lg border-0"
+          className="w-full h-full rounded-lg border-0 min-w-full"
+          style={{
+            objectFit: 'contain',
+            pointerEvents: 'auto',
+          }}
         />
       </div>
     );
@@ -99,22 +78,6 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
 
   // 2. YOUTUBE EMBED
   if (isYouTubeUrl(src)) {
-    if (!showIframe && poster) {
-      return (
-        <div 
-          className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden cursor-pointer group border border-gray-800" 
-          onClick={togglePlay}
-        >
-          <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-            <span className="bg-blue-600 rounded-full p-4 sm:p-5 shadow-2xl group-hover:scale-110 transition-transform">
-              <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
-            </span>
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
         <iframe
