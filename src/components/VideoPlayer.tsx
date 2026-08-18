@@ -46,7 +46,7 @@ const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
     }
   };
 
-  // 1. YOUTUBE EMBED (For Live Broadcasts)
+  // 1. YOUTUBE EMBED
   if (isYouTubeUrl(src)) {
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
@@ -61,7 +61,7 @@ const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
     );
   }
 
-  // 2. HTML5 NATIVE VIDEO PLAYER (Supports 9:16 Vertical & 16:9 Horizontal)
+  // 2. HTML5 NATIVE VIDEO PLAYER
   return (
     <div
       className={`relative w-full ${
@@ -76,6 +76,7 @@ const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
         src={src}
         poster={poster}
         playsInline
+        controls
         preload="metadata"
         className="w-full h-full object-contain"
         onEnded={() => setIsPlaying(false)}

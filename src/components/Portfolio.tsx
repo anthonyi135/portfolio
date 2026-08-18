@@ -12,6 +12,7 @@ interface Project {
   role: string;
   equipment: string[];
   description: string;
+  isVertical?: boolean;
 }
 
 const projects: Project[] = [
@@ -19,11 +20,12 @@ const projects: Project[] = [
     id: 1,
     title: 'WHAT A FINALIST FEELS LIKE',
     category: 'video',
-    videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/FINALIST%20EP%201%20FINAL.mp4',
+    videoSrc: 'https://basingnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/FINALIST%20EP%201%20FINAL.mp4',
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['SONY A7III', 'Davinci Resolve Studio'],
     description: 'This is what it feels like to be a Final Year Student in University. The project captures the essence of the final year experience, highlighting the emotions, challenges, and triumphs of students as they navigate their last year of academic life.',
+    isVertical: true,
   },
   {
     id: 2,
@@ -36,36 +38,6 @@ const projects: Project[] = [
     description: 'Multi-camera live broadcast for a 1000+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
   },
   {
-    id: 3,
-    title: 'THE PAU PROJECT',
-    category: 'video',
-    videoSrc: 'https://basingnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/pau-project.mp4',
-    poster: '',
-    role: 'Director of Photography, Editor',
-    equipment: ['DJI Mini 3', 'Davinci Resolve Studio'],
-    description: 'A sweeping aerial tour of the Pan-Atlantic University campus. This project utilizes cinematic drone movements to capture the architectural beauty and serene landscape of the university, highlighting the scale and design of the institution from a unique perspective.',
-  },
-    {
-    id: 4,
-    title: 'PAN-ATLANTIC UNIVERSITY NOSTALGIA CONCERT',
-    category: 'live',
-    videoSrc: 'https://www.youtube.com/embed/LjIgZi8yz1s?si=dTRXEfO7GtaSXURy&start=17343',
-    poster: '/tony_youtube.png',
-    role: 'Technical Director',
-    equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
-    description: 'Multi-camera live broadcast for a 1000+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
-  },
-    {
-    id: 5,
-    title: 'PAN-ATLANTIC UNIVERSITY NOSTALGIA CONCERT',
-    category: 'live',
-    videoSrc: 'https://www.youtube.com/embed/LjIgZi8yz1s?si=dTRXEfO7GtaSXURy&start=17343',
-    poster: '/tony_youtube.png',
-    role: 'Technical Director',
-    equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
-    description: 'Multi-camera live broadcast for a 1000+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
-  },
-    {
     id: 3,
     title: 'THE PAU PROJECT',
     category: 'video',
@@ -140,7 +112,7 @@ const Portfolio = () => {
         <div className="grid grid-cols-1 gap-8 sm:gap-12">
           {filteredProjects.map((project, index) => (
             <motion.div
-              key={project.id}
+              key={`${project.id}-${index}`}
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -149,7 +121,11 @@ const Portfolio = () => {
             >
               <div className="grid md:grid-cols-2 gap-6 md:gap-8 p-4 sm:p-6 md:p-8">
                 <div className="w-full">
-                  <VideoPlayer src={project.videoSrc} poster={project.poster} />
+                  <VideoPlayer 
+                    src={project.videoSrc} 
+                    poster={project.poster} 
+                    isVertical={project.isVertical}
+                  />
                 </div>
 
                 <div className="flex flex-col justify-center mt-2 md:mt-0">
