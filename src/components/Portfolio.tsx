@@ -19,7 +19,7 @@ const projects: Project[] = [
     id: 1,
     title: 'REDBULL ENCOURAGED BMX SHOWCASE',
     category: 'video',
-    videoSrc: 'https://www.youtube.com/embed/uWK228UPDSw',
+    videoSrc: 'https://drive.google.com/file/d/1hg2uGXxH9kKcOWGyH3ihAYZDO7LOWT8J/view?usp=sharing', // Standard Google Drive Link
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['iPhone 15 Pro', 'DJI Mini 3', 'Davinci Resolve Studio'],
@@ -29,7 +29,7 @@ const projects: Project[] = [
     id: 2,
     title: 'PAN-ATLANTIC UNIVERSITY 12TH MATRICULATION CEREMONY',
     category: 'live',
-    videoSrc: '',
+    videoSrc: 'https://www.youtube.com/embed/YOUR_YOUTUBE_LIVE_ID', // Kept for Live Broadcasts
     poster: '/tony_youtube.png',
     role: 'Technical Director, Camera Operator',
     equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
@@ -39,17 +39,17 @@ const projects: Project[] = [
     id: 3,
     title: 'THE PAU PROJECT',
     category: 'video',
-    videoSrc: "https://www.youtube.com/embed/jTgaBulzXic?si=5q_FhFOmkm-nLLgr",
-    poster:'',
+    videoSrc: 'https://drive.google.com/file/d/YOUR_PAU_PROJECT_DRIVE_ID/view?usp=sharing', // Standard Google Drive Link
+    poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['DJI Mini 3', 'Davinci Resolve Studio'],
     description: 'A sweeping aerial tour of the Pan-Atlantic University campus. This project utilizes cinematic drone movements to capture the architectural beauty and serene landscape of the university, highlighting the scale and design of the institution from a unique perspective.',
   },
-    {
+  {
     id: 5,
-    title: 'Se o gbo Yoruba ',
+    title: 'Se o gbo Yoruba',
     category: 'video',
-    videoSrc: 'https://www.youtube.com/embed/uFE9vXopZqs',
+    videoSrc: 'https://drive.google.com/file/d/YOUR_YORUBA_DRIVE_ID/view?usp=sharing', // Standard Google Drive Link
     poster: '/tony_youtube.png',
     role: 'Cinematographer, Colorist',
     equipment: ['Canon 80D', 'Davinci Resolve Studio', 'DJI Mini 3'],
