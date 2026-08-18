@@ -15,11 +15,11 @@ function isGoogleDriveUrl(url: string) {
   return /drive\.google\.com/.test(url);
 }
 
-function getGoogleDriveEmbedUrl(url: string) {
-  if (url.includes('/preview')) return url;
+// Convert Drive link to direct media stream URL
+function getGoogleDriveDirectStream(url: string) {
   const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
   if (match && match[1]) {
-    return `https://drive.google.com/file/d/${match[1]}/preview`;
+    return `https://lh3.googleusercontent.com/u/0/d/${match[1]}`;
   }
   return url;
 }
@@ -29,6 +29,8 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
+
+  const videoStreamUrl = isGoogleDriveUrl(src) ? getGoogleDriveDirectStream(src) : src;
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -58,25 +60,7 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     }
   };
 
-  // 1. GOOGLE DRIVE EMBED (MOBILE RESPONSIVE WORKAROUND)
-  if (isGoogleDriveUrl(src)) {
-    return (
-      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
-        <iframe
-          src={getGoogleDriveEmbedUrl(src)}
-          title="Google Drive video player"
-          allow="autoplay; fullscreen"
-          className="w-full h-full rounded-lg border-0 min-w-full"
-          style={{
-            objectFit: 'contain',
-            pointerEvents: 'auto',
-          }}
-        />
-      </div>
-    );
-  }
-
-  // 2. YOUTUBE EMBED
+  // YOUTUBE EMBED (For Live Streams)
   if (isYouTubeUrl(src)) {
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
@@ -91,7 +75,7 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     );
   }
 
-  // 3. DIRECT MP4 / NATIVE VIDEO FALLBACK
+  // NATIVE HTML5 VIDEO (Fixes Mobile Scaling & Pillarboxes for Google Drive & MP4s)
   return (
     <div
       className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group cursor-pointer border border-gray-800"
@@ -101,8 +85,10 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     >
       <video
         ref={videoRef}
-        src={src}
+        src={videoStreamUrl}
         poster={poster}
+        playsInline
+        preload="metadata"
         className="w-full h-full object-cover"
         onEnded={() => setIsPlaying(false)}
       />
@@ -121,21 +107,21 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                 animate={{ scale: 1 }}
                 whileHover={{ scale: 1.1 }}
                 onClick={togglePlay}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-2xl hover:bg-blue-500 transition-colors active:scale-95"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-2xl hover:bg-blue-500 transition-colors"
               >
                 <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
               </motion.button>
             )}
 
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
+            <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-3">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   togglePlay();
                 }}
-                className="p-2 text-white hover:text-blue-400 transition-colors active:bg-blue-500/30 rounded"
+                className="text-white hover:text-blue-400 transition-colors"
               >
-                {isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6" />}
+                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
               </button>
 
               <button
@@ -143,9 +129,9 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                   e.stopPropagation();
                   toggleMute();
                 }}
-                className="p-2 text-white hover:text-blue-400 transition-colors active:bg-blue-500/30 rounded"
+                className="text-white hover:text-blue-400 transition-colors"
               >
-                {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
+                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
               </button>
 
               <div className="flex-1"></div>
@@ -155,9 +141,9 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                   e.stopPropagation();
                   toggleFullscreen();
                 }}
-                className="p-2 text-white hover:text-blue-400 transition-colors active:bg-blue-500/30 rounded"
+                className="text-white hover:text-blue-400 transition-colors"
               >
-                <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Maximize className="w-6 h-6" />
               </button>
             </div>
           </motion.div>
