@@ -5,32 +5,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface VideoPlayerProps {
   src: string;
   poster?: string;
+  isVertical?: boolean;
 }
 
 function isYouTubeUrl(url: string) {
   return /youtube\.com|youtu\.be/.test(url);
 }
 
-function isGoogleDriveUrl(url: string) {
-  return /drive\.google\.com/.test(url);
-}
-
-// Convert Drive link to direct media stream URL
-function getGoogleDriveDirectStream(url: string) {
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
-  if (match && match[1]) {
-    return `https://lh3.googleusercontent.com/u/0/d/${match[1]}`;
-  }
-  return url;
-}
-
-const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
+const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
-
-  const videoStreamUrl = isGoogleDriveUrl(src) ? getGoogleDriveDirectStream(src) : src;
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -60,7 +46,7 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     }
   };
 
-  // YOUTUBE EMBED (For Live Streams)
+  // 1. YOUTUBE EMBED (For Live Broadcasts)
   if (isYouTubeUrl(src)) {
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
@@ -75,21 +61,23 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     );
   }
 
-  // NATIVE HTML5 VIDEO (Fixes Mobile Scaling & Pillarboxes for Google Drive & MP4s)
+  // 2. HTML5 NATIVE VIDEO PLAYER (Supports 9:16 Vertical & 16:9 Horizontal)
   return (
     <div
-      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group cursor-pointer border border-gray-800"
+      className={`relative w-full ${
+        isVertical ? 'aspect-[9/16] max-h-[500px]' : 'aspect-video'
+      } bg-black/90 rounded-lg overflow-hidden group cursor-pointer border border-gray-800 flex items-center justify-center`}
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(isPlaying ? false : true)}
       onClick={togglePlay}
     >
       <video
         ref={videoRef}
-        src={videoStreamUrl}
+        src={src}
         poster={poster}
         playsInline
         preload="metadata"
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
         onEnded={() => setIsPlaying(false)}
       />
 
