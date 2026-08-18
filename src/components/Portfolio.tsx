@@ -19,7 +19,7 @@ const projects: Project[] = [
     id: 1,
     title: 'WHAT A FINALIST FEELS LIKE',
     category: 'video',
-    videoSrc: 'https://drive.google.com/file/d/1hg2uGXxH9kKcOWGyH3ihAYZDO7LOWT8J/view?usp=sharing', // Standard Google Drive Link
+    videoSrc: 'https://drive.google.com/file/d/1hg2uGXxH9kKcOWGyH3ihAYZDO7LOWT8J/view?usp=sharing',
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['SONY A7III', 'Davinci Resolve Studio'],
@@ -29,7 +29,7 @@ const projects: Project[] = [
     id: 2,
     title: 'PAN-ATLANTIC UNIVERSITY 12TH MATRICULATION CEREMONY',
     category: 'live',
-    videoSrc: 'https://www.youtube.com/embed/YOUR_YOUTUBE_LIVE_ID', // Kept for Live Broadcasts
+    videoSrc: 'https://www.youtube.com/embed/uWK228UPDSw', // Replace with valid YouTube embed/watch link
     poster: '/tony_youtube.png',
     role: 'Technical Director, Camera Operator',
     equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
@@ -39,7 +39,7 @@ const projects: Project[] = [
     id: 3,
     title: 'THE PAU PROJECT',
     category: 'video',
-    videoSrc: 'https://drive.google.com/file/d/1Wzu_zDcmiEgkZlZfbpDz-SoiweC56A-Q/view?usp=sharing', // Standard Google Drive Link
+    videoSrc: 'https://drive.google.com/file/d/1Wzu_zDcmiEgkZlZfbpDz-SoiweC56A-Q/view?usp=sharing', // Check Google Drive link & sharing permissions
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['DJI Mini 3', 'Davinci Resolve Studio'],
@@ -49,7 +49,7 @@ const projects: Project[] = [
     id: 5,
     title: 'Se o gbo Yoruba',
     category: 'video',
-    videoSrc: 'https://drive.google.com/file/d/YOUR_YORUBA_DRIVE_ID/view?usp=sharing', // Standard Google Drive Link
+    videoSrc: 'https://drive.google.com/file/d/uFE9vXopZqs/view?usp=sharing', // Insert valid Google Drive URL here
     poster: '/tony_youtube.png',
     role: 'Cinematographer, Colorist',
     equipment: ['Canon 80D', 'Davinci Resolve Studio', 'DJI Mini 3'],
