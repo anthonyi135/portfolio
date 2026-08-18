@@ -13,10 +13,43 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* Improve touch responsiveness on mobile */
+  -webkit-tap-highlight-color: rgba(59, 130, 246, 0.3);
 }
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Improve touch target size for buttons and interactive elements */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Optimize font rendering for mobile */
+  body {
+    font-size: 16px; /* Prevents auto-zoom on input focus in iOS */
+  }
+
+  /* Reduce motion for reduced motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Responsive image optimization */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
 }
 
 /* ==========================================================================

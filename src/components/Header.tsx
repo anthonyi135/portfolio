@@ -31,6 +31,7 @@ const Header = () => {
             <img
               src="/tony_white.png"
               alt="Tonyshotit Logo"
+              loading="lazy"
               className="w-full h-full object-cover rounded-sm filter brightness-0"
             />
           </div>

@@ -36,7 +36,7 @@ const Footer = () => {
       <div className="absolute inset-0 bg-gradient-to-t from-blue-950/20 to-transparent"></div>
 
       <div className="relative max-w-7xl mx-auto">
-        <div className="grid md:grid-cols-2 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}

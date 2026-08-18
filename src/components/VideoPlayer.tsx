@@ -121,21 +121,21 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                 animate={{ scale: 1 }}
                 whileHover={{ scale: 1.1 }}
                 onClick={togglePlay}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-2xl hover:bg-blue-500 transition-colors"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-2xl hover:bg-blue-500 transition-colors active:scale-95"
               >
                 <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
               </motion.button>
             )}
 
-            <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-3">
+            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 flex items-center gap-2 sm:gap-3">
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   togglePlay();
                 }}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="p-2 text-white hover:text-blue-400 transition-colors active:bg-blue-500/30 rounded"
               >
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                {isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6" />}
               </button>
 
               <button
@@ -143,9 +143,9 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                   e.stopPropagation();
                   toggleMute();
                 }}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="p-2 text-white hover:text-blue-400 transition-colors active:bg-blue-500/30 rounded"
               >
-                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                {isMuted ? <VolumeX className="w-5 h-5 sm:w-6 sm:h-6" /> : <Volume2 className="w-5 h-5 sm:w-6 sm:h-6" />}
               </button>
 
               <div className="flex-1"></div>
@@ -155,9 +155,9 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                   e.stopPropagation();
                   toggleFullscreen();
                 }}
-                className="text-white hover:text-blue-400 transition-colors"
+                className="p-2 text-white hover:text-blue-400 transition-colors active:bg-blue-500/30 rounded"
               >
-                <Maximize className="w-6 h-6" />
+                <Maximize className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             </div>
           </motion.div>

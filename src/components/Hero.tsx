@@ -22,7 +22,8 @@ const Hero = () => {
       <div className="absolute inset-0 z-0">
         <img 
           src="/tony_white.png"
-          alt="Cinematography Production" 
+          alt="Cinematography Production"
+          loading="eager"
           className="w-full h-full object-cover opacity-40 filter brightness-[0.3] contrast-[1.1]"
         />
         {/* Cinematic subtle vignette and gradient mapping overlay */}
