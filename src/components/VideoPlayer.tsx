@@ -29,11 +29,11 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [showCustomThumb, setShowCustomThumb] = useState(true);
+  const [showIframe, setShowIframe] = useState(false);
 
   const togglePlay = () => {
     if (isYouTubeUrl(src) || isGoogleDriveUrl(src)) {
-      setShowCustomThumb(false);
+      setShowIframe(true);
     } else if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -61,46 +61,60 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     }
   };
 
-  // 1. GOOGLE DRIVE EMBED (Responsive 16:9 Frame for Mobile & Desktop)
+  // 1. GOOGLE DRIVE EMBED
   if (isGoogleDriveUrl(src)) {
-    if (showCustomThumb && poster) {
+    if (!showIframe) {
       return (
-        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden cursor-pointer" onClick={togglePlay}>
-          <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover" />
-          <button className="absolute inset-0 flex items-center justify-center">
-            <span className="bg-blue-600 rounded-full p-4 sm:p-6 shadow-2xl hover:bg-blue-500 transition-colors">
+        <div 
+          className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden cursor-pointer group border border-gray-800" 
+          onClick={togglePlay}
+        >
+          {poster ? (
+            <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-gray-900 to-black flex items-center justify-center">
+              <span className="text-gray-600 text-xs tracking-widest uppercase">Click To Play Stream</span>
+            </div>
+          )}
+          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <span className="bg-blue-600 rounded-full p-4 sm:p-5 shadow-2xl group-hover:scale-110 transition-transform">
               <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
             </span>
-          </button>
+          </div>
         </div>
       );
     }
+
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
         <iframe
           src={getGoogleDriveEmbedUrl(src)}
           title="Google Drive video player"
           allow="autoplay; fullscreen"
-          className="absolute top-0 left-0 w-full h-full rounded-lg border-0"
+          className="w-full h-full rounded-lg border-0"
         />
       </div>
     );
   }
 
-  // 2. YOUTUBE EMBED (Kept intact for Live Broadcasting sections)
+  // 2. YOUTUBE EMBED
   if (isYouTubeUrl(src)) {
-    if (showCustomThumb && poster) {
+    if (!showIframe && poster) {
       return (
-        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden cursor-pointer" onClick={togglePlay}>
-          <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover" />
-          <button className="absolute inset-0 flex items-center justify-center">
-            <span className="bg-blue-600 rounded-full p-4 sm:p-6 shadow-2xl hover:bg-blue-500 transition-colors">
+        <div 
+          className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden cursor-pointer group border border-gray-800" 
+          onClick={togglePlay}
+        >
+          <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <span className="bg-blue-600 rounded-full p-4 sm:p-5 shadow-2xl group-hover:scale-110 transition-transform">
               <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
             </span>
-          </button>
+          </div>
         </div>
       );
     }
+
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
         <iframe
@@ -108,16 +122,16 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
           title="YouTube video player"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          className="absolute top-0 left-0 w-full h-full rounded-lg border-0"
+          className="w-full h-full rounded-lg border-0"
         />
       </div>
     );
   }
 
-  // 3. DIRECT MP4 / VIDEO ELEMENT FALLBACK
+  // 3. DIRECT MP4 / NATIVE VIDEO FALLBACK
   return (
     <div
-      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group cursor-pointer"
+      className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group cursor-pointer border border-gray-800"
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(isPlaying ? false : true)}
       onClick={togglePlay}
@@ -144,9 +158,9 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
                 animate={{ scale: 1 }}
                 whileHover={{ scale: 1.1 }}
                 onClick={togglePlay}
-                className="w-20 h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-2xl hover:bg-blue-500 transition-colors"
+                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-2xl hover:bg-blue-500 transition-colors"
               >
-                <Play className="w-10 h-10 text-white ml-1" />
+                <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
               </motion.button>
             )}
 
