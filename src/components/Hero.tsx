@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Play, ChevronDown } from 'lucide-react';
+import { Play, ChevronDown, Video } from 'lucide-react';
 
 const Hero = () => {
   const scrollToPortfolio = () => {
@@ -8,76 +8,88 @@ const Hero = () => {
 
   return (
     <section className="relative h-screen flex items-center justify-center overflow-hidden bg-black pt-20">
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-gray-900 to-black opacity-90 z-10"></div>
-
+      {/* Immersive Cinema Background Image/Video Container */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(17,24,39,1),rgba(0,0,0,1))]"></div>
-        <div className="absolute inset-0 opacity-20">
-          {[...Array(50)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 bg-blue-500 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                opacity: [0.2, 1, 0.2],
-                scale: [1, 1.5, 1],
-              }}
-              transition={{
-                duration: 2 + Math.random() * 3,
-                repeat: Infinity,
-                delay: Math.random() * 2,
-              }}
-            />
-          ))}
-        </div>
+        <img 
+          src="/tony_white.png" // Temporary placeholder or high-res production still[cite: 1]
+          alt="Cinematography Production" 
+          className="w-full h-full object-cover opacity-40 filter brightness-[0.3] contrast-[1.1]"
+        />
+        {/* Cinematic subtle vignette and gradient mapping overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-black/70 z-10"></div>
       </div>
 
-      <div className="relative z-20 text-center px-4 max-w-5xl mx-auto">
+      {/* Main Centered Typography Content */}
+      <div className="relative z-20 text-center px-4 max-w-6xl mx-auto flex flex-col items-center justify-center h-full">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.2 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="space-y-4"
         >
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 text-white tracking-tight">
+          <span className="text-xs uppercase tracking-[0.4em] text-blue-400 font-semibold block mb-2">
+            Tonyshotit Studio
+          </span>
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-8 text-white tracking-tight leading-[1.1] max-w-5xl">
             Video Production &<br />
-            <span className="bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
+            <span className="text-white opacity-95 filter drop-shadow-[0_2px_10px_rgba(59,130,246,0.2)]">
               Live Broadcast Specialist
             </span>
           </h1>
         </motion.div>
 
         <motion.p
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 1, delay: 0.5 }}
-          className="text-xl md:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto"
+          transition={{ duration: 1.2, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          className="text-lg md:text-xl text-gray-300/90 mb-12 max-w-2xl mx-auto leading-relaxed font-light tracking-wide"
         >
           Crafting compelling visual stories through professional cinematography,
-          technical directing, and seamless live production
+          technical directing, and seamless live production.
         </motion.p>
 
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
+          initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.8 }}
-          className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+          transition={{ duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
           <button
             onClick={scrollToPortfolio}
-            className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg text-white font-semibold text-lg overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-500/50 hover:scale-105"
+            className="group relative px-10 py-4 border border-white/20 bg-white/5 backdrop-blur-md rounded-full text-white font-medium text-base tracking-wider overflow-hidden transition-all duration-500 hover:border-blue-500/50 hover:bg-white hover:text-black hover:scale-105"
           >
-            <span className="relative z-10 flex items-center gap-2">
-              <Play className="w-5 h-5" />
-              View My Reel
+            <span className="relative z-10 flex items-center gap-3">
+              <Play className="w-4 h-4 fill-current group-hover:fill-black" />
+              VIEW MY REEL
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </button>
         </motion.div>
       </div>
 
+      {/* Interactive Floating "Play Reel" Badge in Lower Corner */}
+      <motion.div 
+        initial={{ opacity: 0, x: 50 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 1, delay: 1 }}
+        className="absolute bottom-12 right-12 z-30 hidden md:block"
+      >
+        <button 
+          onClick={scrollToPortfolio}
+          className="relative flex items-center justify-center w-24 h-24 rounded-full border border-white/10 bg-black/60 backdrop-blur-md group hover:border-blue-500 transition-all duration-500 cursor-pointer"
+        >
+          {/* Pulsing ring animation */}
+          <span className="absolute inset-0 rounded-full border border-blue-500/30 animate-ping opacity-75 group-hover:duration-1000"></span>
+          
+          <div className="flex flex-col items-center justify-center text-[10px] tracking-widest text-gray-400 group-hover:text-white transition-colors duration-300 font-medium">
+            <Video className="w-5 h-5 mb-1 text-blue-500" />
+            <span>PLAY</span>
+            <span>REEL</span>
+          </div>
+        </button>
+      </motion.div>
+
+      {/* Scroll Down Indicator */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -85,12 +97,12 @@ const Hero = () => {
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
       >
         <motion.div
-          animate={{ y: [0, 10, 0] }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="cursor-pointer"
+          animate={{ y: [0, 8, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          className="cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
           onClick={scrollToPortfolio}
         >
-          <ChevronDown className="w-8 h-8 text-gray-400" />
+          <ChevronDown className="w-6 h-6 text-white" />
         </motion.div>
       </motion.div>
     </section>

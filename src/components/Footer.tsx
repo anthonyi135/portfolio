@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Youtube, Instagram, Music, Mail, ArrowUp } from 'lucide-react';
+import { Youtube, Instagram, Music, Mail, ArrowUp, Lock } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -101,18 +102,31 @@ const Footer = () => {
 
         <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-gray-500 text-sm">
-            © 2024 Video Production & Live Broadcast Specialist. All rights reserved.
+            © {new Date().getFullYear()} Video Production & Live Broadcast Specialist. All rights reserved.
           </p>
 
-          <button
-            onClick={scrollToTop}
-            className="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
-          >
-            <span className="text-sm font-medium">Back to Top</span>
-            <div className="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 group-hover:border-blue-500 flex items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:shadow-blue-500/30">
-              <ArrowUp className="w-4 h-4" />
-            </div>
-          </button>
+          <div className="flex items-center gap-6">
+            {/* DISCREET ADMIN STUDIO ACCESS LINK */}
+            <Link
+              to="/admin"
+              className="flex items-center gap-1.5 text-xs text-gray-700 hover:text-gray-400 transition-colors duration-300"
+              title="Admin Studio"
+            >
+              <Lock className="w-3.5 h-3.5" />
+              <span>Admin Studio</span>
+            </Link>
+
+            {/* BACK TO TOP BUTTON */}
+            <button
+              onClick={scrollToTop}
+              className="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
+            >
+              <span className="text-sm font-medium">Back to Top</span>
+              <div className="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 group-hover:border-blue-500 flex items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:shadow-blue-500/30">
+                <ArrowUp className="w-4 h-4" />
+              </div>
+            </button>
+          </div>
         </div>
       </div>
     </footer>

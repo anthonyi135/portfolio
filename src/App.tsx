@@ -6,12 +6,13 @@ import Timeline from './components/Timeline';
 import GearKit from './components/GearKit';
 import Footer from './components/Footer';
 import AboutMe from './components/AboutMe';
+import { Admin } from './components/Admin';
+import ClientPortal from './components/ClientPortal';
 
 function App() {
   return (
     <Router>
       <div className="min-h-screen bg-black flex flex-col justify-between">
-        {/* Header is now safely inside the Router context! */}
         <Header />
         
         <main className="flex-grow pt-20">
@@ -25,6 +26,10 @@ function App() {
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/experience" element={<Timeline />} />
             <Route path="/gear" element={<GearKit />} />
+            
+            {/* New Routes */}
+            <Route path="/admin" element={<Admin />} />
+            <Route path="/client/:slug" element={<ClientPortal />} />
           </Routes>
         </main>
 
