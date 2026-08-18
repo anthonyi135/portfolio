@@ -21,7 +21,7 @@ const projects: Project[] = [
     title: 'WHAT A FINALIST FEELS LIKE',
     category: 'video',
     // FIXED: Supabase domain name corrected (added 'i')
-    videoSrc: 'https://basingnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/FINALIST%20EP%201%20FINAL.mp4',
+    videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/FINALIST%20EP%201%20FINAL.mp4',
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['SONY A7III', 'Davinci Resolve Studio'],
@@ -43,10 +43,10 @@ const projects: Project[] = [
     title: 'PAU IS COMMUNITY',
     category: 'video',
     // FIXED: Supabase domain name corrected (added 'i')
-    videoSrc: 'https://basingnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/PAU%20IN%20COMMUNITY%20FINAL.mp4',
+    videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/PAU%20IN%20COMMUNITY%20FINAL.mp4',
     poster: '',
     role: 'Director of Photography, Editor',
-    equipment: ['DJI Mini 3', 'Davinci Resolve Studio'],
+    equipment: ['DJI Mini 3', 'SONY A7III', 'DJI RS 5', 'Davinci Resolve Studio'],
     description: 'This project showcases the core values of Pan-Atlantic University, emphasizing the importance of community engagement, social responsibility, and the impact of collective efforts in fostering a supportive and inclusive environment.',
     // ADDED: Set to true so this vertical video renders without black side bars
     isVertical: true,
@@ -60,6 +60,18 @@ const projects: Project[] = [
     role: 'Technical Director',
     equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
     description: 'Multi-camera live broadcast for a 500+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
+  },
+    {
+    id: 5,
+    title: 'STORY BEHIND CROWNEDBYANNIE',
+    category: 'video',
+    // FIXED: Supabase domain name corrected (added 'i')
+    videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/CROWNED%20-%20EP%201%20F.mp4',
+    poster: '',
+    role: 'Director of Photography, Editor',
+    equipment: ['SONY A7III', 'Davinci Resolve Studio'],
+    description: 'This is the story behing a Canadian based hairstylist and entrepreneur, CrownedbyAnnie. The project captures the essence of her journey, highlighting the challenges, triumphs, and inspirations that have shaped her career in the beauty industry.',
+    isVertical: true,
   },
 ];
 
