@@ -55,7 +55,7 @@ const Footer = () => {
               directing opportunities.
             </p>
             <a
-              href="mailto:anthony.ibuzo@gmail.com"
+              href="mailto:tony.shotit17@gmail.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105"
             >
               <Mail className="w-5 h-5" />
@@ -106,7 +106,6 @@ const Footer = () => {
           </p>
 
           <div className="flex items-center gap-6">
-            {/* DISCREET ADMIN STUDIO ACCESS LINK */}
             <Link
               to="/admin"
               className="flex items-center gap-1.5 text-xs text-gray-700 hover:text-gray-400 transition-colors duration-300"
@@ -116,7 +115,6 @@ const Footer = () => {
               <span>Admin Studio</span>
             </Link>
 
-            {/* BACK TO TOP BUTTON */}
             <button
               onClick={scrollToTop}
               className="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
