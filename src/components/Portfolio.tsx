@@ -20,7 +20,8 @@ const projects: Project[] = [
     id: 1,
     title: 'WHAT A FINALIST FEELS LIKE',
     category: 'video',
-    videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/FINALIST%20EP%201%20FINAL.mp4',
+    // FIXED: Supabase domain name corrected (added 'i')
+    videoSrc: 'https://basingnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/FINALIST%20EP%201%20FINAL.mp4',
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['SONY A7III', 'Davinci Resolve Studio'],
@@ -41,11 +42,14 @@ const projects: Project[] = [
     id: 3,
     title: 'PAU IS COMMUNITY',
     category: 'video',
-    videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/PAU%20IN%20COMMUNITY%20FINAL.mp4',
+    // FIXED: Supabase domain name corrected (added 'i')
+    videoSrc: 'https://basingnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/PAU%20IN%20COMMUNITY%20FINAL.mp4',
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['DJI Mini 3', 'Davinci Resolve Studio'],
     description: 'This project showcases the core values of Pan-Atlantic University, emphasizing the importance of community engagement, social responsibility, and the impact of collective efforts in fostering a supportive and inclusive environment.',
+    // ADDED: Set to true so this vertical video renders without black side bars
+    isVertical: true,
   },
      {
     id: 4,
@@ -130,7 +134,11 @@ const Portfolio = () => {
               className="bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800/50"
             >
               <div className="grid md:grid-cols-2 gap-6 md:gap-8 p-4 sm:p-6 md:p-8">
-                <div className="w-full">
+                {/* 
+                  The layout forces a 50/50 grid. 
+                  VideoPlayer handles internally how the video sits within its half based on isVertical.
+                */}
+                <div className="w-full flex items-center justify-center">
                   <VideoPlayer 
                     src={project.videoSrc} 
                     poster={project.poster} 
