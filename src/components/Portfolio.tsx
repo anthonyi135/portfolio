@@ -17,12 +17,12 @@ interface Project {
 const projects: Project[] = [
   {
     id: 1,
-    title: 'REDBULL ENCOURAGED BMX SHOWCASE',
+    title: 'WHAT A FINALIST FEELS LIKE',
     category: 'video',
     videoSrc: 'https://drive.google.com/file/d/1hg2uGXxH9kKcOWGyH3ihAYZDO7LOWT8J/view?usp=sharing', // Standard Google Drive Link
     poster: '',
     role: 'Director of Photography, Editor',
-    equipment: ['iPhone 15 Pro', 'DJI Mini 3', 'Davinci Resolve Studio'],
+    equipment: ['SONY A7III', 'Davinci Resolve Studio'],
     description: 'A high-octane showcase of the Red Bull Encouraged tour at Pan-Atlantic University. This project captured the raw energy of top BMX talent as they performed gravity-defying stunts, documenting the intense atmosphere and crowd engagement through dynamic, fast-paced cinematography.',
   },
   {
@@ -39,7 +39,7 @@ const projects: Project[] = [
     id: 3,
     title: 'THE PAU PROJECT',
     category: 'video',
-    videoSrc: 'https://drive.google.com/file/d/YOUR_PAU_PROJECT_DRIVE_ID/view?usp=sharing', // Standard Google Drive Link
+    videoSrc: 'https://drive.google.com/file/d/1Wzu_zDcmiEgkZlZfbpDz-SoiweC56A-Q/view?usp=sharing', // Standard Google Drive Link
     poster: '',
     role: 'Director of Photography, Editor',
     equipment: ['DJI Mini 3', 'Davinci Resolve Studio'],
