@@ -18,7 +18,16 @@ interface Project {
   created_at?: string;
 }
 
+// MASTER ADMIN PASSCODE UPDATED TO 1472
+const MASTER_ADMIN_PIN = '1472';
+
 export const Admin: React.FC = () => {
+  // Authentication State
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminPinInput, setAdminPinInput] = useState('');
+  const [pinError, setPinError] = useState('');
+
+  // Project Management States
   const [projects, setProjects] = useState<Project[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,8 +43,20 @@ export const Admin: React.FC = () => {
   const [videos, setVideos] = useState<VideoStream[]>([{ title: 'Main Stream', url: '' }]);
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
+    if (isAdminAuthenticated) {
+      fetchProjects();
+    }
+  }, [isAdminAuthenticated]);
+
+  const handleAdminUnlock = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminPinInput === MASTER_ADMIN_PIN) {
+      setIsAdminAuthenticated(true);
+      setPinError('');
+    } else {
+      setPinError('Invalid Admin Passcode');
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -86,7 +107,6 @@ export const Admin: React.FC = () => {
     setDownloadUrl(project.download_url || '');
     setDirectorNotes(project.director_notes || '');
 
-    // Parse array or single URL fallback
     if (Array.isArray(project.videos) && project.videos.length > 0) {
       setVideos(project.videos);
     } else if ((project as any).video_url) {
@@ -121,7 +141,7 @@ export const Admin: React.FC = () => {
       slug,
       pin,
       videos,
-      video_url: videos[0]?.url || '', // Fallback for backwards compatibility
+      video_url: videos[0]?.url || '',
       download_url: downloadUrl,
       director_notes: directorNotes,
     };
@@ -146,12 +166,75 @@ export const Admin: React.FC = () => {
     }
   };
 
+  // 1. ADMIN LOCK SCREEN IF NOT AUTHENTICATED
+  if (!isAdminAuthenticated) {
+    return (
+      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div style={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '12px', padding: '40px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '16px' }}>🔑</div>
+          <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '1px' }}>
+            ADMIN STUDIO LOCK
+          </h2>
+          <p style={{ color: '#666', fontSize: '12px', marginBottom: '24px' }}>ENTER MASTER PASSCODE TO MANAGE GALLERIES</p>
+
+          <form onSubmit={handleAdminUnlock}>
+            <input
+              type="password"
+              value={adminPinInput}
+              onChange={(e) => setAdminPinInput(e.target.value)}
+              placeholder="• • • •"
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#000',
+                border: '1px solid #333',
+                borderRadius: '6px',
+                color: '#fff',
+                textAlign: 'center',
+                letterSpacing: '4px',
+                fontSize: '1.2rem',
+                marginBottom: '16px',
+              }}
+            />
+            {pinError && <p style={{ color: '#f88', fontSize: '12px', marginBottom: '16px' }}>{pinError}</p>}
+            <button
+              type="submit"
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#fff',
+                color: '#000',
+                fontWeight: 'bold',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+              }}
+            >
+              ACCESS DASHBOARD
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
+  // 2. UNLOCKED DASHBOARD
   return (
     <div style={{ maxWidth: '900px', margin: '0 auto', padding: '40px 20px', color: '#fff' }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 'bold', marginBottom: '8px' }}>CLIENT GALLERY STUDIO</h1>
-      <p style={{ color: '#888', marginBottom: '32px' }}>
-        {editingId ? 'EDIT EXISTING CLIENT GALLERY' : 'CREATE A NEW PRIVATE DELIVERABLE LINK'}
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div>
+          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '0 0 4px 0' }}>CLIENT GALLERY STUDIO</h1>
+          <p style={{ color: '#888', margin: 0 }}>
+            {editingId ? 'EDIT EXISTING CLIENT GALLERY' : 'CREATE A NEW PRIVATE DELIVERABLE LINK'}
+          </p>
+        </div>
+        <button
+          onClick={() => setIsAdminAuthenticated(false)}
+          style={{ padding: '8px 16px', backgroundColor: '#222', color: '#aaa', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}
+        >
+          🔒 Lock Dashboard
+        </button>
+      </div>
 
       {statusMsg && (
         <div
@@ -351,7 +434,6 @@ export const Admin: React.FC = () => {
                   </p>
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  {/* VIEW GALLERY LINK */}
                   <a
                     href={`/client/${proj.slug}`}
                     target="_blank"
@@ -370,7 +452,6 @@ export const Admin: React.FC = () => {
                     View Gallery ↗
                   </a>
 
-                  {/* COPY LINK BUTTON */}
                   <button
                     type="button"
                     onClick={() => {
@@ -382,7 +463,6 @@ export const Admin: React.FC = () => {
                     Copy Link
                   </button>
 
-                  {/* EDIT BUTTON */}
                   <button
                     type="button"
                     onClick={() => handleEdit(proj)}
@@ -391,7 +471,6 @@ export const Admin: React.FC = () => {
                     Edit
                   </button>
 
-                  {/* DELETE BUTTON */}
                   <button
                     type="button"
                     onClick={() => handleDelete(proj.id!)}
