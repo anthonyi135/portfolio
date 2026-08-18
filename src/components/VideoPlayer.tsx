@@ -8,8 +8,20 @@ interface VideoPlayerProps {
 }
 
 function isYouTubeUrl(url: string) {
-  // Accept both www.youtube.com/embed and youtube.com/embed and youtu.be links
-  return /youtube\.com\/embed\/.+|youtu\.be\/.+/.test(url);
+  return /youtube\.com|youtu\.be/.test(url);
+}
+
+function isGoogleDriveUrl(url: string) {
+  return /drive\.google\.com/.test(url);
+}
+
+function getGoogleDriveEmbedUrl(url: string) {
+  if (url.includes('/preview')) return url;
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/id=([a-zA-Z0-9_-]+)/);
+  if (match && match[1]) {
+    return `https://drive.google.com/file/d/${match[1]}/preview`;
+  }
+  return url;
 }
 
 const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
@@ -19,9 +31,8 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
   const [showControls, setShowControls] = useState(true);
   const [showCustomThumb, setShowCustomThumb] = useState(true);
 
-  // Native video controls
   const togglePlay = () => {
-    if (isYouTubeUrl(src)) {
+    if (isYouTubeUrl(src) || isGoogleDriveUrl(src)) {
       setShowCustomThumb(false);
     } else if (videoRef.current) {
       if (isPlaying) {
@@ -50,8 +61,8 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     }
   };
 
-  if (isYouTubeUrl(src)) {
-    // If showCustomThumb is true and poster is provided, show custom thumbnail overlay
+  // 1. GOOGLE DRIVE EMBED (Clean iframe preview without YouTube branding)
+  if (isGoogleDriveUrl(src)) {
     if (showCustomThumb && poster) {
       return (
         <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden cursor-pointer" onClick={togglePlay}>
@@ -64,7 +75,32 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
         </div>
       );
     }
-    // Otherwise, show YouTube iframe
+    return (
+      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+        <iframe
+          src={getGoogleDriveEmbedUrl(src)}
+          title="Google Drive video player"
+          allow="autoplay; fullscreen"
+          className="w-full h-full rounded-lg border-0"
+        />
+      </div>
+    );
+  }
+
+  // 2. YOUTUBE EMBED (Kept intact for Live Broadcasting sections)
+  if (isYouTubeUrl(src)) {
+    if (showCustomThumb && poster) {
+      return (
+        <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden cursor-pointer" onClick={togglePlay}>
+          <img src={poster} alt="Video thumbnail" className="w-full h-full object-cover" />
+          <button className="absolute inset-0 flex items-center justify-center">
+            <span className="bg-blue-600 rounded-full p-6 shadow-2xl hover:bg-blue-500 transition-colors">
+              <Play className="w-10 h-10 text-white ml-1" />
+            </span>
+          </button>
+        </div>
+      );
+    }
     return (
       <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
         <iframe
@@ -78,6 +114,7 @@ const VideoPlayer = ({ src, poster }: VideoPlayerProps) => {
     );
   }
 
+  // 3. DIRECT MP4 / VIDEO ELEMENT FALLBACK
   return (
     <div
       className="relative w-full aspect-video bg-black rounded-lg overflow-hidden group cursor-pointer"
