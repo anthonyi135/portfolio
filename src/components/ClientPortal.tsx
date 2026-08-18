@@ -194,7 +194,7 @@ export const ClientPortal: React.FC = () => {
         </div>
       )}
 
-      {/* MAIN VIDEO PLAYER */}
+      {/* MAIN VIDEO PLAYER CONTAINER */}
       <div
         style={{
           backgroundColor: '#000',
@@ -207,14 +207,30 @@ export const ClientPortal: React.FC = () => {
         }}
       >
         {currentVideo?.url ? (
-          <video
-            key={currentVideo.url}
-            controls
-            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
-          >
-            <source src={currentVideo.url} type="video/mp4" />
-            Your browser does not support playing this video directly.
-          </video>
+          currentVideo.url.includes('drive.google.com') ? (
+            <iframe
+              key={currentVideo.url}
+              src={
+                currentVideo.url.includes('/preview')
+                  ? currentVideo.url
+                  : `https://drive.google.com/file/d/${
+                      currentVideo.url.match(/\/d\/([^\/]+)/)?.[1] ||
+                      currentVideo.url.match(/id=([^&]+)/)?.[1]
+                    }/preview`
+              }
+              style={{ width: '100%', height: '100%', border: 'none' }}
+              allow="autoplay; fullscreen"
+            />
+          ) : (
+            <video
+              key={currentVideo.url}
+              controls
+              style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+            >
+              <source src={currentVideo.url} type="video/mp4" />
+              Your browser does not support playing this video directly.
+            </video>
+          )
         ) : (
           <div style={{ padding: '60px', textAlign: 'center', color: '#666' }}>
             No valid video stream URL available for this selection.
