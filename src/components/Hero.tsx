@@ -1,9 +1,19 @@
 import { motion } from 'framer-motion';
 import { Play, ChevronDown, Video } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
-  const scrollToPortfolio = () => {
-    document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' });
+  const navigate = useNavigate();
+
+  const handleNavigateToPortfolio = () => {
+    // 1. Try to scroll down if Portfolio is rendered on the same page
+    const portfolioElem = document.getElementById('portfolio');
+    if (portfolioElem) {
+      portfolioElem.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      // 2. Otherwise route to the dedicated portfolio page
+      navigate('/portfolio');
+    }
   };
 
   return (
@@ -11,7 +21,7 @@ const Hero = () => {
       {/* Immersive Cinema Background Image/Video Container */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="/tony_white.png" // Temporary placeholder or high-res production still[cite: 1]
+          src="/tony_white.png"
           alt="Cinematography Production" 
           className="w-full h-full object-cover opacity-40 filter brightness-[0.3] contrast-[1.1]"
         />
@@ -55,19 +65,19 @@ const Hero = () => {
           transition={{ duration: 1, delay: 0.6, ease: [0.16, 1, 0.3, 1] }}
         >
           <button
-            onClick={scrollToPortfolio}
-            className="group relative px-10 py-4 border border-white/20 bg-white/5 backdrop-blur-md rounded-full text-white font-medium text-base tracking-wider overflow-hidden transition-all duration-500 hover:border-blue-500/50 hover:bg-white hover:text-black hover:scale-105"
+            onClick={handleNavigateToPortfolio}
+            className="group relative px-10 py-4 border border-white/20 bg-white/5 backdrop-blur-md rounded-full text-white font-medium text-base tracking-wider overflow-hidden transition-all duration-500 hover:border-blue-500/50 hover:bg-white hover:text-black hover:scale-105 cursor-pointer"
           >
             <span className="relative z-10 flex items-center gap-3">
               <Play className="w-4 h-4 fill-current group-hover:fill-black" />
-              VIEW MY REEL
+              VIEW MY RECENT WORK
             </span>
             <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
           </button>
         </motion.div>
       </div>
 
-      {/* Interactive Floating "Play Reel" Badge in Lower Corner */}
+      {/* Interactive Floating "Recent Work" Badge in Lower Corner */}
       <motion.div 
         initial={{ opacity: 0, x: 50 }}
         animate={{ opacity: 1, x: 0 }}
@@ -75,7 +85,7 @@ const Hero = () => {
         className="absolute bottom-12 right-12 z-30 hidden md:block"
       >
         <button 
-          onClick={scrollToPortfolio}
+          onClick={handleNavigateToPortfolio}
           className="relative flex items-center justify-center w-24 h-24 rounded-full border border-white/10 bg-black/60 backdrop-blur-md group hover:border-blue-500 transition-all duration-500 cursor-pointer"
         >
           {/* Pulsing ring animation */}
@@ -83,8 +93,8 @@ const Hero = () => {
           
           <div className="flex flex-col items-center justify-center text-[10px] tracking-widest text-gray-400 group-hover:text-white transition-colors duration-300 font-medium">
             <Video className="w-5 h-5 mb-1 text-blue-500" />
-            <span>PLAY</span>
-            <span>REEL</span>
+            <span>RECENT</span>
+            <span>WORK</span>
           </div>
         </button>
       </motion.div>
@@ -100,7 +110,7 @@ const Hero = () => {
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="cursor-pointer opacity-60 hover:opacity-100 transition-opacity"
-          onClick={scrollToPortfolio}
+          onClick={handleNavigateToPortfolio}
         >
           <ChevronDown className="w-6 h-6 text-white" />
         </motion.div>
