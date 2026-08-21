@@ -135,7 +135,7 @@ export const ClientPortal: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-black text-white pt-28 pb-16 px-4 sm:px-8 max-w-5xl mx-auto">
-      {/* HEADER INFO: Responsive layout stacks cleanly on mobile */}
+      {/* HEADER INFO */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <span className="text-xs font-semibold text-gray-400 tracking-widest uppercase mb-1 block">
@@ -178,25 +178,33 @@ export const ClientPortal: React.FC = () => {
       )}
 
       {/* MAIN VIDEO PLAYER CONTAINER */}
-      <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-2xl mb-8">
+      <div className="relative w-full bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-2xl mb-8 p-4 flex flex-col items-center justify-center min-h-[220px]">
         {driveEmbedUrl ? (
-          <iframe
-            key={driveEmbedUrl}
-            src={driveEmbedUrl}
-            title="Client Video Preview"
-            allow="autoplay; fullscreen"
-            className="w-full h-full border-0"
-          />
+          <div className="w-full flex flex-col items-center justify-center gap-4 py-8">
+            <p className="text-gray-400 text-sm text-center px-4">
+              Tap below to view full-screen video with complete playback controls:
+            </p>
+            <a
+              href={currentVideo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-sm hover:bg-blue-500 transition-all shadow-lg uppercase tracking-wider"
+            >
+              ▶ OPEN IN FULLSCREEN PLAYER
+            </a>
+          </div>
         ) : currentVideo?.url ? (
-          <video
-            key={currentVideo.url}
-            controls
-            playsInline
-            className="w-full h-full object-contain block"
-          >
-            <source src={currentVideo.url} type="video/mp4" />
-            Your browser does not support playing this video directly.
-          </video>
+          <div className="w-full aspect-video">
+            <video
+              key={currentVideo.url}
+              controls
+              playsInline
+              className="w-full h-full object-contain block"
+            >
+              <source src={currentVideo.url} type="video/mp4" />
+              Your browser does not support playing this video directly.
+            </video>
+          </div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500 text-sm p-8">
             No valid video stream URL available for this selection.
