@@ -13,6 +13,7 @@ interface Project {
   project_title: string;
   slug: string;
   pin: string;
+  passcode?: string;
   video_url?: string;
   videos?: VideoStream[];
   download_url?: string;
@@ -64,7 +65,8 @@ export const ClientPortal: React.FC = () => {
 
   const handleUnlock = (e: React.FormEvent) => {
     e.preventDefault();
-    if (project && inputPin === project.pin) {
+    const validPin = project?.pin || project?.passcode;
+    if (project && inputPin === validPin) {
       setIsAuthenticated(true);
       setErrorMsg('');
     } else {
@@ -74,7 +76,7 @@ export const ClientPortal: React.FC = () => {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>
+      <div className="min-h-[80vh] flex items-center justify-center text-gray-500 pt-20">
         Loading deliverable gallery...
       </div>
     );
@@ -82,7 +84,7 @@ export const ClientPortal: React.FC = () => {
 
   if (!project) {
     return (
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f88' }}>
+      <div className="min-h-[80vh] flex items-center justify-center text-red-400 pt-20">
         Deliverable link not found.
       </div>
     );
@@ -91,13 +93,15 @@ export const ClientPortal: React.FC = () => {
   // PIN LOCK SCREEN
   if (!isAuthenticated) {
     return (
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
-        <div style={{ backgroundColor: '#111', border: '1px solid #222', borderRadius: '12px', padding: '40px', maxWidth: '400px', width: '100%', textAlign: 'center' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '16px' }}>🔒</div>
-          <h2 style={{ color: '#fff', fontSize: '1.25rem', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '1px' }}>
+      <div className="min-h-[80vh] flex items-center justify-center p-4 pt-28">
+        <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 max-w-md w-full text-center shadow-2xl">
+          <div className="text-3xl mb-4">🔒</div>
+          <h2 className="text-white text-xl font-bold mb-2 tracking-wider uppercase">
             PAU ACCESS PORTAL
           </h2>
-          <p style={{ color: '#666', fontSize: '12px', marginBottom: '24px' }}>ENTER PIN TO ACCESS DELIVERABLES</p>
+          <p className="text-gray-400 text-xs mb-6 uppercase tracking-wider">
+            ENTER PIN TO ACCESS DELIVERABLES
+          </p>
 
           <form onSubmit={handleUnlock}>
             <input
@@ -105,32 +109,12 @@ export const ClientPortal: React.FC = () => {
               value={inputPin}
               onChange={(e) => setInputPin(e.target.value)}
               placeholder="• • • •"
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#000',
-                border: '1px solid #333',
-                borderRadius: '6px',
-                color: '#fff',
-                textAlign: 'center',
-                letterSpacing: '4px',
-                fontSize: '1.2rem',
-                marginBottom: '16px',
-              }}
+              className="w-full p-3 bg-black border border-gray-800 rounded-lg color-white text-center tracking-[0.5em] text-xl mb-4 focus:outline-none focus:border-blue-500"
             />
-            {errorMsg && <p style={{ color: '#f88', fontSize: '12px', marginBottom: '16px' }}>{errorMsg}</p>}
+            {errorMsg && <p className="text-red-400 text-xs mb-4">{errorMsg}</p>}
             <button
               type="submit"
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: '#fff',
-                color: '#000',
-                fontWeight: 'bold',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-              }}
+              className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors uppercase text-sm tracking-wider"
             >
               UNLOCK GALLERY
             </button>
@@ -150,32 +134,24 @@ export const ClientPortal: React.FC = () => {
   const driveEmbedUrl = currentVideo?.url ? getDriveEmbedUrl(currentVideo.url) : null;
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '40px 20px', color: '#fff' }}>
-      {/* HEADER INFO */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+    <div className="min-h-screen bg-black text-white pt-28 pb-16 px-4 sm:px-8 max-w-5xl mx-auto">
+      {/* HEADER INFO: Responsive layout stacks cleanly on mobile */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <span style={{ fontSize: '12px', color: '#888', letterSpacing: '1px', textTransform: 'uppercase' }}>{project.client_name}</span>
-          <h1 style={{ fontSize: '2rem', fontWeight: 'bold', margin: '4px 0 0 0', textTransform: 'uppercase', letterSpacing: '1px' }}>
+          <span className="text-xs font-semibold text-gray-400 tracking-widest uppercase mb-1 block">
+            {project.client_name}
+          </span>
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight break-words">
             {project.project_title}
           </h1>
         </div>
+
         {project.download_url && (
           <a
             href={project.download_url}
             target="_blank"
             rel="noopener noreferrer"
-            style={{
-              padding: '10px 18px',
-              backgroundColor: '#fff',
-              color: '#000',
-              fontWeight: 'bold',
-              borderRadius: '4px',
-              textDecoration: 'none',
-              fontSize: '12px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 bg-white text-black px-6 py-3 rounded-lg font-bold text-xs tracking-wider hover:bg-gray-200 transition-all shadow-lg uppercase"
           >
             📥 DOWNLOAD DELIVERABLES
           </a>
@@ -184,22 +160,16 @@ export const ClientPortal: React.FC = () => {
 
       {/* MULTI-VIDEO SELECTION TABS */}
       {videoList.length > 1 && (
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '16px', borderBottom: '1px solid #222', paddingBottom: '12px' }}>
+        <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-800 pb-4">
           {videoList.map((vid, idx) => (
             <button
               key={idx}
               onClick={() => setSelectedVideoIndex(idx)}
-              style={{
-                padding: '8px 16px',
-                borderRadius: '4px',
-                fontSize: '13px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                backgroundColor: selectedVideoIndex === idx ? '#fff' : '#111',
-                color: selectedVideoIndex === idx ? '#000' : '#aaa',
-                border: selectedVideoIndex === idx ? '1px solid #fff' : '1px solid #333',
-                transition: 'all 0.2s ease',
-              }}
+              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                selectedVideoIndex === idx
+                  ? 'bg-white text-black shadow-md'
+                  : 'bg-gray-900 text-gray-400 border border-gray-800 hover:bg-gray-800'
+              }`}
             >
               {vid.title || `Video ${idx + 1}`}
             </button>
@@ -208,35 +178,27 @@ export const ClientPortal: React.FC = () => {
       )}
 
       {/* MAIN VIDEO PLAYER CONTAINER */}
-      <div
-        style={{
-          backgroundColor: '#000',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          border: '1px solid #222',
-          marginBottom: '32px',
-          width: '100%',
-          aspectRatio: '16 / 9',
-        }}
-      >
+      <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-2xl mb-8">
         {driveEmbedUrl ? (
           <iframe
             key={driveEmbedUrl}
             src={driveEmbedUrl}
-            style={{ width: '100%', height: '100%', border: 'none' }}
+            title="Client Video Preview"
             allow="autoplay; fullscreen"
+            className="w-full h-full border-0"
           />
         ) : currentVideo?.url ? (
           <video
             key={currentVideo.url}
             controls
-            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+            playsInline
+            className="w-full h-full object-contain block"
           >
             <source src={currentVideo.url} type="video/mp4" />
             Your browser does not support playing this video directly.
           </video>
         ) : (
-          <div style={{ padding: '60px', textAlign: 'center', color: '#666' }}>
+          <div className="flex items-center justify-center h-full text-gray-500 text-sm p-8">
             No valid video stream URL available for this selection.
           </div>
         )}
@@ -244,11 +206,13 @@ export const ClientPortal: React.FC = () => {
 
       {/* DIRECTOR NOTES SECTION */}
       {project.director_notes && (
-        <div style={{ backgroundColor: '#111', border: '1px solid #222', padding: '24px', borderRadius: '8px' }}>
-          <h3 style={{ fontSize: '12px', color: '#888', letterSpacing: '1px', marginBottom: '8px', textTransform: 'uppercase' }}>
+        <div className="bg-gray-900/60 border border-gray-800 rounded-xl p-6">
+          <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
             DIRECTOR NOTES
           </h3>
-          <p style={{ margin: 0, color: '#ccc', lineHeight: '1.6', fontSize: '14px' }}>{project.director_notes}</p>
+          <p className="text-gray-200 text-sm sm:text-base leading-relaxed">
+            {project.director_notes}
+          </p>
         </div>
       )}
     </div>
