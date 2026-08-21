@@ -177,8 +177,8 @@ export const ClientPortal: React.FC = () => {
         </div>
       )}
 
-      {/* MAIN VIDEO PLAYER CONTAINER */}
-      <div className="relative w-full bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-2xl mb-8 p-4 flex flex-col items-center justify-center min-h-[220px]">
+      {/* 1. MOBILE VIEW: Direct Fullscreen Trigger (Hidden on Desktop) */}
+      <div className="block md:hidden relative w-full bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-2xl mb-8 p-4 flex flex-col items-center justify-center min-h-[220px]">
         {driveEmbedUrl ? (
           <div className="w-full flex flex-col items-center justify-center gap-4 py-8">
             <p className="text-gray-400 text-sm text-center px-4">
@@ -205,6 +205,32 @@ export const ClientPortal: React.FC = () => {
               Your browser does not support playing this video directly.
             </video>
           </div>
+        ) : (
+          <div className="flex items-center justify-center h-full text-gray-500 text-sm p-8">
+            No valid video stream URL available for this selection.
+          </div>
+        )}
+      </div>
+
+      {/* 2. DESKTOP VIEW: Embedded Google Drive Player (Hidden on Mobile) */}
+      <div className="hidden md:block relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden border border-gray-800 shadow-2xl mb-8">
+        {driveEmbedUrl ? (
+          <iframe
+            key={driveEmbedUrl}
+            src={driveEmbedUrl}
+            title="Client Video Preview"
+            allow="autoplay; fullscreen"
+            className="w-full h-full border-0"
+          />
+        ) : currentVideo?.url ? (
+          <video
+            key={currentVideo.url}
+            controls
+            className="w-full h-full object-contain block"
+          >
+            <source src={currentVideo.url} type="video/mp4" />
+            Your browser does not support playing this video directly.
+          </video>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500 text-sm p-8">
             No valid video stream URL available for this selection.
