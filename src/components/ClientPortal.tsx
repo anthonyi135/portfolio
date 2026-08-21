@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { Eye, EyeOff, Lock } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface VideoStream {
@@ -36,6 +37,7 @@ export const ClientPortal: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [project, setProject] = useState<Project | null>(null);
   const [inputPin, setInputPin] = useState('');
+  const [showPin, setShowPin] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(true);
@@ -95,7 +97,11 @@ export const ClientPortal: React.FC = () => {
     return (
       <div className="min-h-[80vh] flex items-center justify-center p-4 pt-28">
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-8 max-w-md w-full text-center shadow-2xl">
-          <div className="text-3xl mb-4">🔒</div>
+          <div className="flex justify-center mb-4">
+            <div className="w-12 h-12 rounded-full bg-gray-800 border border-gray-700 flex items-center justify-center text-blue-500">
+              <Lock className="w-6 h-6 text-white" />
+            </div>
+          </div>
           <h2 className="text-white text-xl font-bold mb-2 tracking-wider uppercase">
             PAU ACCESS PORTAL
           </h2>
@@ -104,14 +110,26 @@ export const ClientPortal: React.FC = () => {
           </p>
 
           <form onSubmit={handleUnlock}>
-            <input
-              type="password"
-              value={inputPin}
-              onChange={(e) => setInputPin(e.target.value)}
-              placeholder="• • • •"
-              className="w-full p-3 bg-black border border-gray-800 rounded-lg color-white text-center tracking-[0.5em] text-xl mb-4 focus:outline-none focus:border-blue-500"
-            />
+            <div className="relative mb-4">
+              <input
+                type={showPin ? 'text' : 'password'}
+                value={inputPin}
+                onChange={(e) => setInputPin(e.target.value)}
+                placeholder="• • • •"
+                className="w-full p-3 pr-12 bg-black border border-gray-800 rounded-lg text-white text-center tracking-[0.4em] text-2xl font-mono focus:outline-none focus:border-blue-500 placeholder-gray-600"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPin(!showPin)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white p-1 transition-colors"
+                title={showPin ? 'Hide PIN' : 'Show PIN'}
+              >
+                {showPin ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+
             {errorMsg && <p className="text-red-400 text-xs mb-4">{errorMsg}</p>}
+
             <button
               type="submit"
               className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors uppercase text-sm tracking-wider"
