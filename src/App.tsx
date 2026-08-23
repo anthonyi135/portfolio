@@ -8,8 +8,8 @@ import Footer from './components/Footer';
 import AboutMe from './components/AboutMe';
 import { Admin } from './components/Admin';
 import ClientPortal from './components/ClientPortal';
-import { Analytics } from "@vercel/analytics/next"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+import { Analytics } from "@vercel/analytics/react"
+import { SpeedInsights } from "@vercel/speed-insights/react"
 
 function App() {
   return (
