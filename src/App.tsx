@@ -9,6 +9,7 @@ import AboutMe from './components/AboutMe';
 import { Admin } from './components/Admin';
 import ClientPortal from './components/ClientPortal';
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
         <Footer />
       </div>
       <Analytics />
+      <SpeedInsights />
     </Router>
   );
 }
