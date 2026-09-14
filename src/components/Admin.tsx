@@ -193,7 +193,7 @@ export const Admin: React.FC = () => {
     setInvClientEmail(inv.client_email || '');
     setInvProjectFor(inv.project_for || '');
     setInvIssueDate(inv.issue_date);
-    setInvDueDate(inv.due_date);
+    setInvDueDate(inv.due_date || '');
     setInvCurrency(inv.currency || 'NGN');
     setInvStatus(inv.status || 'Sent');
     setInvBankName(inv.bank_name || 'Parallex Bank');
@@ -308,7 +308,7 @@ export const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* GALLERIES TAB (RESTORED ORIGINAL LAYOUT) */}
+      {/* GALLERIES TAB */}
       {activeTab === 'galleries' && (
         <div className="no-print">
           <form onSubmit={handleGallerySubmit} style={{ backgroundColor: '#111', padding: '24px', borderRadius: '8px', border: '1px solid #222', marginBottom: '40px' }}>
@@ -510,6 +510,11 @@ export const Admin: React.FC = () => {
                 <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#333' }}>
                   <strong>Date:</strong> {invIssueDate}
                 </p>
+                {invDueDate && (
+                  <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#000' }}>
+                    <strong>Due Date:</strong> {invDueDate}
+                  </p>
+                )}
               </div>
 
               <div style={{ textAlign: 'right' }}>
@@ -586,9 +591,33 @@ export const Admin: React.FC = () => {
                 <p style={{ margin: '2px 0', color: '#333' }}>Account Name: <strong>{invAccountName}</strong></p>
               </div>
 
-              <div>
+              <div style={{ marginBottom: '20px' }}>
                 <p style={{ fontWeight: 'bold', margin: '0 0 4px 0', color: '#000', textTransform: 'uppercase' }}>NOTES</p>
                 <p style={{ margin: 0, color: '#444', lineHeight: '1.4' }}>{invNotes}</p>
+              </div>
+
+              {/* TERMS & CONDITIONS */}
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px' }}>
+                <p style={{ fontWeight: 'bold', margin: '0 0 6px 0', color: '#000', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.5px' }}>
+                  TERMS & CONDITIONS
+                </p>
+                <ol style={{ margin: 0, paddingLeft: '18px', color: '#444', fontSize: '11px', lineHeight: '1.6' }}>
+                  <li style={{ marginBottom: '4px' }}>
+                    <strong>Payment Milestones:</strong> A 70% advance deposit is required to confirm booking and mobilize crew/equipment. The remaining 30% balance is strictly due within 24 hours of project completion / final deliverable handoff.
+                  </li>
+                  <li style={{ marginBottom: '4px' }}>
+                    <strong>Invoice Validity:</strong> This invoice and reserved equipment/dates remain valid until the specified Due Date. Once the due date has passed, this invoice becomes null and void, subject to schedule availability and price re-evaluation.
+                  </li>
+                  <li style={{ marginBottom: '4px' }}>
+                    <strong>Revisions & Scope:</strong> Deliverables include up to two (2) complimentary rounds of revisions. Additional shoot days, overtime hours, or scope modifications outside the agreed line items will be billed separately.
+                  </li>
+                  <li style={{ marginBottom: '4px' }}>
+                    <strong>Asset Ownership:</strong> All broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.
+                  </li>
+                  <li>
+                    <strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.
+                  </li>
+                </ol>
               </div>
             </div>
           </div>
@@ -603,7 +632,7 @@ export const Admin: React.FC = () => {
                 <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '16px', borderRadius: '6px', border: '1px solid #222' }}>
                   <div>
                     <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', color: '#fff' }}>{inv.invoice_number} - {inv.client_name}</h3>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Date: {inv.issue_date} | Status: {inv.status}</p>
+                    <p style={{ margin: 0, fontSize: '12px', color: '#888' }}>Date: {inv.issue_date} | Due: {inv.due_date || 'N/A'} | Status: {inv.status}</p>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer' }}>Edit</button>
