@@ -55,7 +55,7 @@ const Footer = () => {
               directing opportunities.
             </p>
             <a
-              href="mailto:tony.shotit17@gmail.com"
+              href="mailto:anthony@tonyshotit.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105"
             >
               <Mail className="w-5 h-5" />
