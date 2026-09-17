@@ -78,6 +78,7 @@ export const Admin: React.FC = () => {
   const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
   const [invItems, setInvItems] = useState<InvoiceItem[]>([{ description: 'Cinematography Day Rate', quantity: 1, rate: 0 }]);
   const [invNotes, setInvNotes] = useState('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
+  const [includeTerms, setIncludeTerms] = useState(true);
 
   const [loading, setLoading] = useState(false);
 
@@ -489,6 +490,20 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
+            {/* TOGGLE TERMS & CONDITIONS */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #222' }}>
+              <input
+                type="checkbox"
+                id="includeTermsCheckbox"
+                checked={includeTerms}
+                onChange={(e) => setIncludeTerms(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: '#38bdf8' }}
+              />
+              <label htmlFor="includeTermsCheckbox" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer', userSelect: 'none' }}>
+                Include Terms & Conditions on printed invoice
+              </label>
+            </div>
+
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
               <button type="button" onClick={handleInvoiceSubmit} disabled={loading} style={{ flex: 1, padding: '12px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                 {loading ? 'SAVING...' : editingInvoiceId ? 'UPDATE INVOICE' : 'SAVE INVOICE'}
@@ -519,8 +534,8 @@ export const Admin: React.FC = () => {
 
               <div style={{ textAlign: 'right' }}>
                 <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, letterSpacing: '2px', color: '#000' }}>TONYSHOTIT</h2>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>tony.shotit17@gmail.com</p>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>www.tonyshotit.xyz</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>anthony@tonyshotit.com</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>tonyshotit.com</p>
               </div>
             </div>
 
@@ -535,8 +550,8 @@ export const Admin: React.FC = () => {
                 <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#888', textTransform: 'uppercase', margin: '0 0 4px 0' }}>FROM</p>
                 <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, color: '#000' }}>Tonyshotit Studio</p>
                 <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>Sales Rep: Anthony Ibuzo</p>
-                <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>tony.shotit17@gmail.com</p>
-                <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>www.tonyshotit.xyz</p>
+                <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>anthony@tonyshotit.com</p>
+                <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>tonyshotit.com</p>
               </div>
 
               <div>
@@ -596,29 +611,31 @@ export const Admin: React.FC = () => {
                 <p style={{ margin: 0, color: '#444', lineHeight: '1.4' }}>{invNotes}</p>
               </div>
 
-              {/* TERMS & CONDITIONS */}
-              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px' }}>
-                <p style={{ fontWeight: 'bold', margin: '0 0 6px 0', color: '#000', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.5px' }}>
-                  TERMS & CONDITIONS
-                </p>
-                <ol style={{ margin: 0, paddingLeft: '18px', color: '#444', fontSize: '11px', lineHeight: '1.6' }}>
-                  <li style={{ marginBottom: '4px' }}>
-                    <strong>Payment Milestones:</strong> A 70% advance deposit is required to confirm booking and mobilize crew/equipment. The remaining 30% balance is strictly due within 24 hours of project completion / final deliverable handoff.
-                  </li>
-                  <li style={{ marginBottom: '4px' }}>
-                    <strong>Invoice Validity:</strong> This invoice and reserved equipment/dates remain valid until the specified Due Date. Once the due date has passed, this invoice becomes null and void, subject to schedule availability and price re-evaluation.
-                  </li>
-                  <li style={{ marginBottom: '4px' }}>
-                    <strong>Revisions & Scope:</strong> Deliverables include up to two (2) complimentary rounds of revisions. Additional shoot days, overtime hours, or scope modifications outside the agreed line items will be billed separately.
-                  </li>
-                  <li style={{ marginBottom: '4px' }}>
-                    <strong>Asset Ownership:</strong> All broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.
-                  </li>
-                  <li>
-                    <strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.
-                  </li>
-                </ol>
-              </div>
+              {/* CONDITIONAL TERMS & CONDITIONS */}
+              {includeTerms && (
+                <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '16px' }}>
+                  <p style={{ fontWeight: 'bold', margin: '0 0 6px 0', color: '#000', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.5px' }}>
+                    TERMS & CONDITIONS
+                  </p>
+                  <ol style={{ margin: 0, paddingLeft: '18px', color: '#444', fontSize: '11px', lineHeight: '1.6' }}>
+                    <li style={{ marginBottom: '4px' }}>
+                      <strong>Payment Milestones:</strong> A 70% advance deposit is required to confirm booking and mobilize crew/equipment. The remaining 30% balance is strictly due within 24 hours of project completion / final deliverable handoff.
+                    </li>
+                    <li style={{ marginBottom: '4px' }}>
+                      <strong>Invoice Validity:</strong> This invoice and reserved equipment/dates remain valid until the specified Due Date. Once the due date has passed, this invoice becomes null and void, subject to schedule availability and price re-evaluation.
+                    </li>
+                    <li style={{ marginBottom: '4px' }}>
+                      <strong>Revisions & Scope:</strong> Deliverables include up to two (2) complimentary rounds of revisions. Additional shoot days, overtime hours, or scope modifications outside the agreed line items will be billed separately.
+                    </li>
+                    <li style={{ marginBottom: '4px' }}>
+                      <strong>Asset Ownership:</strong> All broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.
+                    </li>
+                    <li>
+                      <strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.
+                    </li>
+                  </ol>
+                </div>
+              )}
             </div>
           </div>
 
