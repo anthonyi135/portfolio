@@ -90,6 +90,7 @@ export const Admin: React.FC = () => {
   const [contractScope, setContractScope] = useState('Equipment supply, hardware deployment, logistics, and technical audio/visual support as itemized in the attached invoice.');
   const [contractDeliverables, setContractDeliverables] = useState('On-site delivery, hardware rigging/operation, and full technical execution for the duration of the event.');
   const [depositPercent, setDepositPercent] = useState<number>(70);
+  const [includeEquipmentSafety, setIncludeEquipmentSafety] = useState(true);
   const [contractCustomTerms, setContractCustomTerms] = useState('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
   const [contractSignerName, setContractSignerName] = useState('');
 
@@ -556,7 +557,7 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* MOBILE-OPTIMIZED LINE ITEMS */}
+            {/* LINE ITEMS */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
                 LINE ITEMS & SPECIFICATIONS
@@ -670,7 +671,7 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* AGREEMENT CUSTOMIZATION PANEL WITH CLIENT SIGNER NAME */}
+            {/* AGREEMENT CUSTOMIZATION PANEL WITH EQUIPMENT SAFETY CHECKBOX */}
             {printDocumentMode === 'contract' && (
               <div style={{ marginTop: '20px', padding: '14px', backgroundColor: '#18181b', borderRadius: '6px', border: '1px solid #38bdf8' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#38bdf8', margin: '0 0 12px 0', textTransform: 'uppercase' }}>
@@ -735,14 +736,32 @@ export const Admin: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>SPECIAL EQUIPMENT CLAUSES / VENUE OBLIGATIONS</label>
-                  <textarea
-                    rows={2}
-                    value={contractCustomTerms}
-                    onChange={(e) => setContractCustomTerms(e.target.value)}
-                    style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
-                  />
+                {/* EQUIPMENT SAFETY CHECKBOX & FIELD */}
+                <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #27272a' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                    <input
+                      type="checkbox"
+                      id="includeEquipmentSafetyCheckbox"
+                      checked={includeEquipmentSafety}
+                      onChange={(e) => setIncludeEquipmentSafety(e.target.checked)}
+                      style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#38bdf8' }}
+                    />
+                    <label htmlFor="includeEquipmentSafetyCheckbox" style={{ fontSize: '12px', fontWeight: 'bold', color: '#fff', cursor: 'pointer', userSelect: 'none' }}>
+                      Include Equipment Safety & Venue Custody Clauses (Uncheck for regular event coverage)
+                    </label>
+                  </div>
+
+                  {includeEquipmentSafety && (
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>EQUIPMENT CUSTODY & VENUE OBLIGATIONS</label>
+                      <textarea
+                        rows={2}
+                        value={contractCustomTerms}
+                        onChange={(e) => setContractCustomTerms(e.target.value)}
+                        style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -903,7 +922,7 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
-            {/* PRINTABLE AREA: AGREEMENT WITH DYNAMIC SIGNER */}
+            {/* PRINTABLE AREA: AGREEMENT WITH DYNAMIC SAFETY CLAUSE */}
             {printDocumentMode === 'contract' && (
               <div id="printable-contract-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -970,10 +989,16 @@ export const Admin: React.FC = () => {
                   </p>
 
                   <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0f172a', margin: '12px 0 4px 0', textTransform: 'uppercase' }}>
-                    3. Key Operational Terms & Venue Dependencies
+                    3. Key Operational Terms {includeEquipmentSafety ? '& Venue Dependencies' : ''}
                   </h3>
-                  <p style={{ margin: '0 0 4px 0' }}>• <strong>Equipment Safety & Custody:</strong> {contractCustomTerms}</p>
-                  <p style={{ margin: '0 0 4px 0' }}>• <strong>Damage & Loss:</strong> Any damage or loss to hardware resulting from event attendees, unstable electrical current, or lack of security will be billed to the Client at full replacement cost.</p>
+                  
+                  {includeEquipmentSafety && (
+                    <>
+                      <p style={{ margin: '0 0 4px 0' }}>• <strong>Equipment Safety & Custody:</strong> {contractCustomTerms}</p>
+                      <p style={{ margin: '0 0 4px 0' }}>• <strong>Damage & Loss:</strong> Any damage or loss to hardware resulting from event attendees, unstable electrical current, or lack of security will be billed to the Client at full replacement cost.</p>
+                    </>
+                  )}
+
                   <p style={{ margin: '0 0 4px 0' }}>• <strong>Asset Rights:</strong> All equipment, captured assets, or media outputs remain the property of Tonyshotit Studio until 100% final balance settlement is received.</p>
                   <p style={{ margin: '0 0 16px 0' }}>• <strong>Cancellation:</strong> Cancellations inside 48 hours of scheduled call time forfeit the commitment deposit to cover equipment holds and technical crew retainers.</p>
 
@@ -981,7 +1006,7 @@ export const Admin: React.FC = () => {
                     4. Signatures & Acceptance
                   </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '8px' }}>
-                    {/* TONYSIGNATURE */}
+                    {/* PRODUCER SIGNATURE */}
                     <div style={{ border: '1px solid #cbd5e1', padding: '12px', borderRadius: '4px', backgroundColor: '#f8fafc', fontSize: '10.5px' }}>
                       <p style={{ margin: '0 0 16px 0', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
                       <p style={{ margin: '0 0 4px 0' }}>Signature: __________________________</p>
@@ -990,7 +1015,7 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: '0' }}>Date: ______________________________</p>
                     </div>
 
-                    {/* CLIENT SIGNATURE (DYNAMIC PERSON + ORG) */}
+                    {/* CLIENT SIGNATURE */}
                     <div style={{ border: '1px solid #cbd5e1', padding: '12px', borderRadius: '4px', backgroundColor: '#f8fafc', fontSize: '10.5px' }}>
                       <p style={{ margin: '0 0 16px 0', fontWeight: 'bold' }}>For the Client:</p>
                       <p style={{ margin: '0 0 4px 0' }}>Signature: __________________________</p>
