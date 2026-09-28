@@ -87,6 +87,7 @@ export const Admin: React.FC = () => {
 
   // Contract Customization States
   const [contractTitle, setContractTitle] = useState('EQUIPMENT RENTAL & PRODUCTION SERVICES AGREEMENT');
+  const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('');
   const [contractScope, setContractScope] = useState('Equipment supply, hardware deployment, logistics, and technical audio/visual support as itemized in the attached invoice.');
   const [contractDeliverables, setContractDeliverables] = useState('On-site delivery, hardware rigging/operation, and full technical execution for the duration of the event.');
   const [depositPercent, setDepositPercent] = useState<number>(70);
@@ -507,7 +508,7 @@ export const Admin: React.FC = () => {
                 <input type="date" value={invIssueDate} onChange={(e) => setInvIssueDate(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
-                <label style={{ fontSize: '11px', color: '#888' }}>DUE DATE</label>
+                <label style={{ fontSize: '11px', color: '#888' }}>PAYMENT DUE DATE (INVOICE ONLY)</label>
                 <input type="date" value={invDueDate} onChange={(e) => setInvDueDate(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
             </div>
@@ -671,7 +672,7 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* AGREEMENT CUSTOMIZATION PANEL WITH EQUIPMENT SAFETY CHECKBOX */}
+            {/* AGREEMENT CUSTOMIZATION PANEL WITH EDITABLE FULFILLMENT WINDOW */}
             {printDocumentMode === 'contract' && (
               <div style={{ marginTop: '20px', padding: '14px', backgroundColor: '#18181b', borderRadius: '6px', border: '1px solid #38bdf8' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#38bdf8', margin: '0 0 12px 0', textTransform: 'uppercase' }}>
@@ -699,6 +700,20 @@ export const Admin: React.FC = () => {
                       style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#38bdf8', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}
                     />
                   </div>
+                </div>
+
+                {/* EDITABLE FULFILLMENT / EVENT WINDOW (INDEPENDENT FROM INVOICE DUE DATE) */}
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                    PROJECT DATES & FULFILLMENT WINDOW (e.g. "October 11, 2026 • Final media delivered within 7 business days")
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. October 11, 2026 (Event Date) • Final edits delivered within 10 days"
+                    value={contractFulfillmentWindow}
+                    onChange={(e) => setContractFulfillmentWindow(e.target.value)}
+                    style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #38bdf8', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                  />
                 </div>
 
                 {/* DEDICATED CLIENT SIGNER INPUT */}
@@ -922,7 +937,7 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
-            {/* PRINTABLE AREA: AGREEMENT WITH DYNAMIC SAFETY CLAUSE */}
+            {/* PRINTABLE AREA: AGREEMENT WITH DEDICATED FULFILLMENT WINDOW */}
             {printDocumentMode === 'contract' && (
               <div id="printable-contract-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -951,7 +966,9 @@ export const Admin: React.FC = () => {
                     1. Project Scope & Deliverables
                   </h3>
                   <p style={{ margin: '0 0 4px 0' }}>• <strong>Project / Event:</strong> {invProjectFor || '[Project / Event Name]'}</p>
-                  <p style={{ margin: '0 0 4px 0' }}>• <strong>Dates & Fulfillment Window:</strong> {invIssueDate} through {invDueDate || 'Event Conclusion'}</p>
+                  <p style={{ margin: '0 0 4px 0' }}>
+                    • <strong>Dates & Fulfillment Window:</strong> {contractFulfillmentWindow || `${invIssueDate} through Project / Event Conclusion`}
+                  </p>
                   <p style={{ margin: '0 0 4px 0' }}>• <strong>Scope of Service:</strong> {contractScope}</p>
                   <p style={{ margin: '0 0 12px 0' }}>• <strong>Deliverables:</strong> {contractDeliverables}</p>
 
