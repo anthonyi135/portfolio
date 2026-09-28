@@ -91,6 +91,7 @@ export const Admin: React.FC = () => {
   const [contractDeliverables, setContractDeliverables] = useState('On-site delivery, hardware rigging/operation, and full technical execution for the duration of the event.');
   const [depositPercent, setDepositPercent] = useState<number>(70);
   const [contractCustomTerms, setContractCustomTerms] = useState('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
+  const [contractSignerName, setContractSignerName] = useState('');
 
   // Print Mode State ('invoice' or 'contract')
   const [printDocumentMode, setPrintDocumentMode] = useState<'invoice' | 'contract'>('invoice');
@@ -514,7 +515,7 @@ export const Admin: React.FC = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888' }}>CLIENT / COMPANY</label>
-                <input type="text" placeholder="Client Name" value={invClientName} onChange={(e) => setInvClientName(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="Client Name / Organization" value={invClientName} onChange={(e) => setInvClientName(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
                 <label style={{ fontSize: '11px', color: '#888' }}>CLIENT EMAIL</label>
@@ -555,14 +556,13 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* MOBILE-OPTIMIZED LINE ITEMS WITH ZERO-OVERRIDE FIX */}
+            {/* MOBILE-OPTIMIZED LINE ITEMS */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
                 LINE ITEMS & SPECIFICATIONS
               </label>
               {invItems.map((item, idx) => (
                 <div key={idx} style={{ backgroundColor: '#0a0a0a', padding: '12px', borderRadius: '6px', border: '1px solid #222', marginBottom: '10px' }}>
-                  {/* Top: Description & Delete Button */}
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                     <input
                       type="text"
@@ -586,7 +586,6 @@ export const Admin: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Middle: Qty and Rate side-by-side with easy input handling */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '8px', marginBottom: '8px' }}>
                     <div>
                       <label style={{ fontSize: '10px', color: '#666', display: 'block', marginBottom: '2px' }}>QTY</label>
@@ -620,7 +619,6 @@ export const Admin: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Bottom: Sub-description */}
                   <input
                     type="text"
                     placeholder="Additional details / specs (e.g. includes rigging truss, processors, and cables)"
@@ -672,11 +670,11 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* AGREEMENT CUSTOMIZATION PANEL (VISIBLE WHEN AGREEMENT PREVIEW IS ACTIVE) */}
+            {/* AGREEMENT CUSTOMIZATION PANEL WITH CLIENT SIGNER NAME */}
             {printDocumentMode === 'contract' && (
               <div style={{ marginTop: '20px', padding: '14px', backgroundColor: '#18181b', borderRadius: '6px', border: '1px solid #38bdf8' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#38bdf8', margin: '0 0 12px 0', textTransform: 'uppercase' }}>
-                  ✍️ Customize Agreement Terms for This Job
+                  ✍️ Customize Agreement Terms & Signers
                 </h3>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
@@ -700,6 +698,20 @@ export const Admin: React.FC = () => {
                       style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#38bdf8', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}
                     />
                   </div>
+                </div>
+
+                {/* DEDICATED CLIENT SIGNER INPUT */}
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
+                    CLIENT REPRESENTATIVE / SIGNER NAME (Leave blank to keep write-in line)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Engr. Babatunde Sanwo / Mrs. Agnes Okon"
+                    value={contractSignerName}
+                    onChange={(e) => setContractSignerName(e.target.value)}
+                    style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                  />
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
@@ -735,7 +747,7 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
-            {/* ACTION BUTTONS (MOBILE RESPONSIVE WRAP) */}
+            {/* ACTION BUTTONS */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px' }}>
               <button type="button" onClick={handleInvoiceSubmit} disabled={loading} style={{ flex: '2 1 200px', padding: '12px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                 {loading ? 'SAVING...' : editingInvoiceId ? 'UPDATE RECORD' : 'SAVE TO DATABASE'}
@@ -749,7 +761,7 @@ export const Admin: React.FC = () => {
             </div>
           </div>
 
-          {/* PRINTABLE AREA: INVOICE TEMPLATE (HORIZONTAL SCROLL WRAPPER FOR MOBILE SCREEN INTEGRITY) */}
+          {/* PRINTABLE AREA */}
           <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
             {printDocumentMode === 'invoice' && (
               <div id="printable-invoice-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
@@ -891,7 +903,7 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
-            {/* PRINTABLE AREA: AGREEMENT TEMPLATE */}
+            {/* PRINTABLE AREA: AGREEMENT WITH DYNAMIC SIGNER */}
             {printDocumentMode === 'contract' && (
               <div id="printable-contract-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -969,18 +981,32 @@ export const Admin: React.FC = () => {
                     4. Signatures & Acceptance
                   </h3>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '8px' }}>
+                    {/* TONYSIGNATURE */}
                     <div style={{ border: '1px solid #cbd5e1', padding: '12px', borderRadius: '4px', backgroundColor: '#f8fafc', fontSize: '10.5px' }}>
-                      <p style={{ margin: '0 0 18px 0', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
+                      <p style={{ margin: '0 0 16px 0', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
                       <p style={{ margin: '0 0 4px 0' }}>Signature: __________________________</p>
                       <p style={{ margin: '0 0 4px 0' }}>Name: <strong>Anthony Ibuzo</strong></p>
                       <p style={{ margin: '0 0 4px 0' }}>Title: Lead Technical Director / Producer</p>
                       <p style={{ margin: '0' }}>Date: ______________________________</p>
                     </div>
 
+                    {/* CLIENT SIGNATURE (DYNAMIC PERSON + ORG) */}
                     <div style={{ border: '1px solid #cbd5e1', padding: '12px', borderRadius: '4px', backgroundColor: '#f8fafc', fontSize: '10.5px' }}>
-                      <p style={{ margin: '0 0 18px 0', fontWeight: 'bold' }}>For the Client:</p>
+                      <p style={{ margin: '0 0 16px 0', fontWeight: 'bold' }}>For the Client:</p>
                       <p style={{ margin: '0 0 4px 0' }}>Signature: __________________________</p>
-                      <p style={{ margin: '0 0 4px 0' }}>Name: <strong>{invClientName || '[Client Representative Name]'}</strong></p>
+                      
+                      {contractSignerName ? (
+                        <p style={{ margin: '0 0 4px 0' }}>Name: <strong>{contractSignerName}</strong></p>
+                      ) : (
+                        <p style={{ margin: '0 0 4px 0' }}>Name: __________________________</p>
+                      )}
+
+                      {invClientName && (
+                        <p style={{ margin: '0 0 4px 0', color: '#475569' }}>
+                          Organization: <strong>{invClientName}</strong>
+                        </p>
+                      )}
+                      
                       <p style={{ margin: '0 0 4px 0' }}>Title: Authorized Representative</p>
                       <p style={{ margin: '0' }}>Date: ______________________________</p>
                     </div>
