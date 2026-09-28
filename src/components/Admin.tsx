@@ -74,13 +74,20 @@ export const Admin: React.FC = () => {
   const [invDueDate, setInvDueDate] = useState('');
   const [invCurrency, setInvCurrency] = useState('NGN');
   const [invStatus, setInvStatus] = useState<'Draft' | 'Sent' | 'Paid'>('Sent');
-  const [invBankName, setInvBankName] = useState('GTB BANK');
+  const [invBankName, setInvBankName] = useState('GT Bank');
   const [invAccountNumber, setInvAccountNumber] = useState('0430859996');
   const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
   const [invDiscount, setInvDiscount] = useState<number>(0);
-  const [invItems, setInvItems] = useState<InvoiceItem[]>([{ description: 'Cinematography Day Rate', quantity: 1, rate: 0 }]);
+  const [invItems, setInvItems] = useState<InvoiceItem[]>([{ description: 'Equipment Supply & Crew', quantity: 1, rate: 0 }]);
   const [invNotes, setInvNotes] = useState('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
   const [includeTerms, setIncludeTerms] = useState(true);
+
+  // Contract Customization States
+  const [contractTitle, setContractTitle] = useState('EQUIPMENT RENTAL & PRODUCTION SERVICES AGREEMENT');
+  const [contractScope, setContractScope] = useState('Equipment supply, hardware deployment, logistics, and technical audio/visual support as itemized in the attached invoice.');
+  const [contractDeliverables, setContractDeliverables] = useState('On-site delivery, hardware rigging/operation, and full technical execution for the duration of the event.');
+  const [depositPercent, setDepositPercent] = useState<number>(70);
+  const [contractCustomTerms, setContractCustomTerms] = useState('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
 
   // Print Mode State ('invoice' or 'contract')
   const [printDocumentMode, setPrintDocumentMode] = useState<'invoice' | 'contract'>('invoice');
@@ -202,7 +209,7 @@ export const Admin: React.FC = () => {
     setInvDueDate(inv.due_date || '');
     setInvCurrency(inv.currency || 'NGN');
     setInvStatus(inv.status || 'Sent');
-    setInvBankName(inv.bank_name || 'GTB BANK');
+    setInvBankName(inv.bank_name || 'GT Bank');
     setInvAccountNumber(inv.account_number || '0430859996');
     setInvAccountName(inv.account_name || 'Anthony Ibuzo');
     setInvDiscount(inv.discount || 0);
@@ -265,13 +272,13 @@ export const Admin: React.FC = () => {
   const discountAmount = Math.max(0, invDiscount || 0);
   const invoiceGrandTotal = Math.max(0, invoiceSubtotal - discountAmount);
 
-  // Contract specific milestone splits
-  const deposit70 = Math.round(invoiceGrandTotal * 0.7);
-  const balance30 = invoiceGrandTotal - deposit70;
+  // Dynamic deposit calculation based on depositPercent state
+  const safeDepositPercent = Math.min(100, Math.max(0, depositPercent || 70));
+  const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
+  const balanceAmount = invoiceGrandTotal - depositAmount;
 
   const currencySymbol = invCurrency === 'NGN' ? 'NGN ' : invCurrency === 'GBP' ? '£ ' : invCurrency === 'EUR' ? '€ ' : '$ ';
 
-  // Action handlers to trigger proper print document
   const triggerPrintInvoice = () => {
     setPrintDocumentMode('invoice');
     setTimeout(() => {
@@ -473,7 +480,7 @@ export const Admin: React.FC = () => {
                     border: '1px solid #444'
                   }}
                 >
-                  👁️ Preview Agreement
+                  👁️ Preview & Customize Agreement
                 </button>
               </div>
             </div>
@@ -504,7 +511,7 @@ export const Admin: React.FC = () => {
               </div>
               <div>
                 <label style={{ fontSize: '11px', color: '#888' }}>FOR (PROJECT / EVENT)</label>
-                <input type="text" placeholder="e.g. MAKESPACE CONFERENCE" value={invProjectFor} onChange={(e) => setInvProjectFor(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="e.g. HARVEST LUNCHEON" value={invProjectFor} onChange={(e) => setInvProjectFor(e.target.value)} style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
             </div>
 
@@ -554,7 +561,7 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
-            {/* DISCOUNT INPUT & TERMS TOGGLE */}
+            {/* DISCOUNT & TERMS ROW */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #222' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '6px' }}>
@@ -582,6 +589,69 @@ export const Admin: React.FC = () => {
                 </label>
               </div>
             </div>
+
+            {/* AGREEMENT EDITABLE SETTINGS (APPEARS WHEN AGREEMENT MODE IS ACTIVE) */}
+            {printDocumentMode === 'contract' && (
+              <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#18181b', borderRadius: '6px', border: '1px solid #38bdf8' }}>
+                <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#38bdf8', margin: '0 0 12px 0', textTransform: 'uppercase' }}>
+                  ✍️ Customize Agreement Terms for This Job
+                </h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '14px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>AGREEMENT TITLE</label>
+                    <input
+                      type="text"
+                      value={contractTitle}
+                      onChange={(e) => setContractTitle(e.target.value)}
+                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>INITIAL DEPOSIT %</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={depositPercent}
+                      onChange={(e) => setDepositPercent(parseFloat(e.target.value) || 0)}
+                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#38bdf8', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}
+                    />
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>SCOPE OF WORK / SERVICE</label>
+                    <textarea
+                      rows={2}
+                      value={contractScope}
+                      onChange={(e) => setContractScope(e.target.value)}
+                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>KEY DELIVERABLES / HANDOFF</label>
+                    <textarea
+                      rows={2}
+                      value={contractDeliverables}
+                      onChange={(e) => setContractDeliverables(e.target.value)}
+                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>ADDITIONAL SPECIAL CLAUSES / VENUE OBLIGATIONS</label>
+                  <textarea
+                    rows={2}
+                    value={contractCustomTerms}
+                    onChange={(e) => setContractCustomTerms(e.target.value)}
+                    style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                  />
+                </div>
+              </div>
+            )}
 
             {/* ACTION BUTTONS */}
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
@@ -710,16 +780,16 @@ export const Admin: React.FC = () => {
                     </p>
                     <ol style={{ margin: 0, paddingLeft: '18px', color: '#444', fontSize: '11px', lineHeight: '1.6' }}>
                       <li style={{ marginBottom: '4px' }}>
-                        <strong>Payment Milestones:</strong> A 70% advance deposit is required to confirm booking and mobilize crew/equipment. The remaining 30% balance is strictly due within 24 hours of project completion / final deliverable handoff.
+                        <strong>Payment Milestones:</strong> An advance commitment deposit is required to confirm booking and mobilize crew/equipment. The remaining balance is strictly due within 24 hours of project completion / final deliverable handoff.
                       </li>
                       <li style={{ marginBottom: '4px' }}>
                         <strong>Invoice Validity:</strong> This invoice and reserved equipment/dates remain valid until the specified Due Date. Once the due date has passed, this invoice becomes null and void, subject to schedule availability and price re-evaluation.
                       </li>
                       <li style={{ marginBottom: '4px' }}>
-                        <strong>Revisions & Scope:</strong> Deliverables include up to two (2) complimentary rounds of revisions. Additional shoot days, overtime hours, or scope modifications outside the agreed line items will be billed separately.
+                        <strong>Revisions & Scope:</strong> Agreed deliverables include complimentary review cycles. Additional days, overtime hours, or scope modifications outside the agreed line items will be billed separately.
                       </li>
                       <li style={{ marginBottom: '4px' }}>
-                        <strong>Asset Ownership:</strong> All broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.
+                        <strong>Asset Ownership:</strong> All hardware, broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.
                       </li>
                       <li>
                         <strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.
@@ -736,8 +806,8 @@ export const Admin: React.FC = () => {
             <div id="printable-contract-document" style={{ backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <div>
-                  <h1 style={{ fontSize: '1.8rem', fontWeight: '900', letterSpacing: '0.5px', margin: 0, color: '#0f172a' }}>
-                    PRODUCTION & BROADCAST SERVICES AGREEMENT
+                  <h1 style={{ fontSize: '1.6rem', fontWeight: '900', letterSpacing: '0.5px', margin: 0, color: '#0f172a' }}>
+                    {contractTitle}
                   </h1>
                   <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#0284c7', fontWeight: 'bold', textTransform: 'uppercase' }}>
                     Tonyshotit Studio • tonyshotit.com • anthony@tonyshotit.com
@@ -752,7 +822,7 @@ export const Admin: React.FC = () => {
               <hr style={{ border: 'none', borderTop: '2px solid #0f172a', marginBottom: '16px' }} />
 
               <p style={{ fontSize: '11px', lineHeight: '1.5', color: '#334155', marginBottom: '16px' }}>
-                This Agreement is entered into as of <strong>{invIssueDate}</strong> by and between <strong>Tonyshotit Studio</strong>, represented by Anthony Ibuzo (the <em>"Producer"</em>), and <strong>{invClientName || '[Client Organization Name]'}</strong> {invClientEmail && `(${invClientEmail})`} (the <em>"Client"</em>).
+                This Agreement is entered into as of <strong>{invIssueDate}</strong> by and between <strong>Tonyshotit Studio</strong>, represented by Anthony Ibuzo (the <em>"Producer / Supplier"</em>), and <strong>{invClientName || '[Client Organization Name]'}</strong> {invClientEmail && `(${invClientEmail})`} (the <em>"Client"</em>).
               </p>
 
               <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#1e293b' }}>
@@ -760,9 +830,9 @@ export const Admin: React.FC = () => {
                   1. Project Scope & Deliverables
                 </h3>
                 <p style={{ margin: '0 0 4px 0' }}>• <strong>Project / Event:</strong> {invProjectFor || '[Project / Event Name]'}</p>
-                <p style={{ margin: '0 0 4px 0' }}>• <strong>Dates & Due Window:</strong> {invIssueDate} to {invDueDate || 'Upon Delivery'}</p>
-                <p style={{ margin: '0 0 4px 0' }}>• <strong>Scope of Service:</strong> Multi-camera cinematography, live broadcast switching/streaming, audio engineering, and equipment logistics as itemized in Invoice {invNumber}.</p>
-                <p style={{ margin: '0 0 12px 0' }}>• <strong>Deliverables:</strong> Broadcast live feed and master digital recording delivered via Tonyshotit Client Portal.</p>
+                <p style={{ margin: '0 0 4px 0' }}>• <strong>Dates & Fulfillment Window:</strong> {invIssueDate} through {invDueDate || 'Event Conclusion'}</p>
+                <p style={{ margin: '0 0 4px 0' }}>• <strong>Scope of Service:</strong> {contractScope}</p>
+                <p style={{ margin: '0 0 12px 0' }}>• <strong>Deliverables:</strong> {contractDeliverables}</p>
 
                 <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0f172a', margin: '12px 0 4px 0', textTransform: 'uppercase' }}>
                   2. Payment Schedule & Milestones
@@ -777,14 +847,14 @@ export const Admin: React.FC = () => {
                   </thead>
                   <tbody>
                     <tr style={{ borderBottom: '1px solid #cbd5e1', backgroundColor: '#f8fafc' }}>
-                      <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Commitment Deposit (70%)</td>
-                      <td style={{ padding: '6px 8px' }}>{currencySymbol}{deposit70.toLocaleString()}</td>
-                      <td style={{ padding: '6px 8px' }}>Required upon signing to lock schedule, crew, and gear</td>
+                      <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Commitment Deposit ({safeDepositPercent}%)</td>
+                      <td style={{ padding: '6px 8px' }}>{currencySymbol}{depositAmount.toLocaleString()}</td>
+                      <td style={{ padding: '6px 8px' }}>Required upon signing to lock schedule, technical crew, and reserved hardware</td>
                     </tr>
                     <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
-                      <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Final Balance (30%)</td>
-                      <td style={{ padding: '6px 8px' }}>{currencySymbol}{balance30.toLocaleString()}</td>
-                      <td style={{ padding: '6px 8px' }}>Strictly due within 24 hours of project completion / handoff</td>
+                      <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Final Balance ({100 - safeDepositPercent}%)</td>
+                      <td style={{ padding: '6px 8px' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
+                      <td style={{ padding: '6px 8px' }}>Strictly due within 24 hours of project / event completion</td>
                     </tr>
                     <tr style={{ borderBottom: '2px solid #0f172a', backgroundColor: '#f1f5f9', fontWeight: 'bold' }}>
                       <td style={{ padding: '6px 8px' }}>Total Fee (After Discount)</td>
@@ -794,16 +864,16 @@ export const Admin: React.FC = () => {
                   </tbody>
                 </table>
                 <p style={{ fontSize: '10px', color: '#64748b', margin: '0 0 14px 0' }}>
-                  Settlement Details: <strong>{invBankName}</strong> | Account: <strong>{invAccountNumber}</strong> ({invAccountName}). Late settlements exceed 5 business days incur a 5% weekly fee.
+                  Settlement Details: <strong>{invBankName}</strong> | Account: <strong>{invAccountNumber}</strong> ({invAccountName}). Late settlements exceeding 5 business days incur a 5% weekly late fee.
                 </p>
 
                 <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0f172a', margin: '12px 0 4px 0', textTransform: 'uppercase' }}>
-                  3. Key Operational Terms
+                  3. Key Operational Terms & Venue Dependencies
                 </h3>
-                <p style={{ margin: '0 0 4px 0' }}>• <strong>Revisions:</strong> Includes two (2) complimentary rounds of edits submitted within 7 business days of delivery. Additional revisions are billed as separate line items.</p>
-                <p style={{ margin: '0 0 4px 0' }}>• <strong>Asset Rights:</strong> All raw media, recorded assets, and project files remain Producer property until 100% full balance payment is confirmed.</p>
-                <p style={{ margin: '0 0 4px 0' }}>• <strong>Client Obligations:</strong> Client guarantees secure venue access, uninterrupted power supply, and dedicated internet (minimum 20 Mbps sustained upload for broadcast).</p>
-                <p style={{ margin: '0 0 16px 0' }}>• <strong>Cancellation:</strong> Cancellations inside 48 hours of scheduled call time strictly forfeit the 70% deposit to cover reserved crew and equipment hold.</p>
+                <p style={{ margin: '0 0 4px 0' }}>• <strong>Equipment Safety & Custody:</strong> {contractCustomTerms}</p>
+                <p style={{ margin: '0 0 4px 0' }}>• <strong>Damage & Loss:</strong> Any damage or loss to hardware resulting from event attendees, unstable electrical current, or lack of security will be billed to the Client at full replacement cost.</p>
+                <p style={{ margin: '0 0 4px 0' }}>• <strong>Asset Rights:</strong> All equipment, captured assets, or media outputs remain the property of Tonyshotit Studio until 100% final balance settlement is received.</p>
+                <p style={{ margin: '0 0 16px 0' }}>• <strong>Cancellation:</strong> Cancellations inside 48 hours of scheduled call time forfeit the commitment deposit to cover equipment holds and technical crew retainers.</p>
 
                 <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0f172a', margin: '14px 0 6px 0', textTransform: 'uppercase' }}>
                   4. Signatures & Acceptance
@@ -813,7 +883,7 @@ export const Admin: React.FC = () => {
                     <p style={{ margin: '0 0 18px 0', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
                     <p style={{ margin: '0 0 4px 0' }}>Signature: __________________________</p>
                     <p style={{ margin: '0 0 4px 0' }}>Name: <strong>Anthony Ibuzo</strong></p>
-                    <p style={{ margin: '0 0 4px 0' }}>Title: Lead Cinematographer & Broadcast Engineer</p>
+                    <p style={{ margin: '0 0 4px 0' }}>Title: Lead Technical Director / Producer</p>
                     <p style={{ margin: '0' }}>Date: ______________________________</p>
                   </div>
 
