@@ -20,6 +20,7 @@ interface Project {
 
 interface InvoiceItem {
   description: string;
+  sub_description?: string;
   quantity: number;
   rate: number;
 }
@@ -78,7 +79,9 @@ export const Admin: React.FC = () => {
   const [invAccountNumber, setInvAccountNumber] = useState('0430859996');
   const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
   const [invDiscount, setInvDiscount] = useState<number>(0);
-  const [invItems, setInvItems] = useState<InvoiceItem[]>([{ description: 'Equipment Supply & Crew', quantity: 1, rate: 0 }]);
+  const [invItems, setInvItems] = useState<InvoiceItem[]>([
+    { description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }
+  ]);
   const [invNotes, setInvNotes] = useState('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
   const [includeTerms, setIncludeTerms] = useState(true);
 
@@ -213,7 +216,11 @@ export const Admin: React.FC = () => {
     setInvAccountNumber(inv.account_number || '0430859996');
     setInvAccountName(inv.account_name || 'Anthony Ibuzo');
     setInvDiscount(inv.discount || 0);
-    setInvItems(inv.items || [{ description: '', quantity: 1, rate: 0 }]);
+    setInvItems(
+      inv.items && inv.items.length > 0
+        ? inv.items.map(item => ({ ...item, sub_description: item.sub_description || '' }))
+        : [{ description: '', sub_description: '', quantity: 1, rate: 0 }]
+    );
     setInvNotes(inv.notes || '');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -543,20 +550,76 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* DYNAMIC LINE ITEMS */}
+            {/* DYNAMIC LINE ITEMS WITH SUB-DESCRIPTIONS */}
             <div style={{ marginBottom: '16px' }}>
-              <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>LINE ITEMS</label>
+              <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
+                LINE ITEMS & DESCRIPTIONS
+              </label>
               {invItems.map((item, idx) => (
-                <div key={idx} style={{ display: 'flex', gap: '10px', marginBottom: '8px' }}>
-                  <input type="text" placeholder="Description" value={item.description} onChange={(e) => { const updated = [...invItems]; updated[idx].description = e.target.value; setInvItems(updated); }} style={{ flex: 3, padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  <input type="number" placeholder="Qty" value={item.quantity} onChange={(e) => { const updated = [...invItems]; updated[idx].quantity = parseFloat(e.target.value) || 0; setInvItems(updated); }} style={{ flex: 1, padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  <input type="number" placeholder="Rate" value={item.rate} onChange={(e) => { const updated = [...invItems]; updated[idx].rate = parseFloat(e.target.value) || 0; setInvItems(updated); }} style={{ flex: 1, padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  {invItems.length > 1 && (
-                    <button type="button" onClick={() => setInvItems(invItems.filter((_, i) => i !== idx))} style={{ padding: '8px 12px', backgroundColor: '#300', color: '#f88', border: 'none', borderRadius: '4px' }}>✕</button>
-                  )}
+                <div key={idx} style={{ backgroundColor: '#0a0a0a', padding: '10px', borderRadius: '6px', border: '1px solid #222', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '6px' }}>
+                    <input
+                      type="text"
+                      placeholder="Item Title (e.g. 12sqm LED Screen Deployment)"
+                      value={item.description}
+                      onChange={(e) => {
+                        const updated = [...invItems];
+                        updated[idx].description = e.target.value;
+                        setInvItems(updated);
+                      }}
+                      style={{ flex: 3, padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => {
+                        const updated = [...invItems];
+                        updated[idx].quantity = parseFloat(e.target.value) || 0;
+                        setInvItems(updated);
+                      }}
+                      style={{ flex: 1, padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Rate"
+                      value={item.rate}
+                      onChange={(e) => {
+                        const updated = [...invItems];
+                        updated[idx].rate = parseFloat(e.target.value) || 0;
+                        setInvItems(updated);
+                      }}
+                      style={{ flex: 1, padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    />
+                    {invItems.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setInvItems(invItems.filter((_, i) => i !== idx))}
+                        style={{ padding: '8px 12px', backgroundColor: '#300', color: '#f88', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  {/* SUB-DESCRIPTION FIELD */}
+                  <input
+                    type="text"
+                    placeholder="Additional details / specs (e.g., includes rigging truss, video processor, and cabling)"
+                    value={item.sub_description || ''}
+                    onChange={(e) => {
+                      const updated = [...invItems];
+                      updated[idx].sub_description = e.target.value;
+                      setInvItems(updated);
+                    }}
+                    style={{ width: '100%', padding: '6px 8px', backgroundColor: '#111', border: '1px solid #222', color: '#888', borderRadius: '4px', fontSize: '11px' }}
+                  />
                 </div>
               ))}
-              <button type="button" onClick={() => setInvItems([...invItems, { description: '', quantity: 1, rate: 0 }])} style={{ padding: '6px 12px', fontSize: '11px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer' }}>
+              <button
+                type="button"
+                onClick={() => setInvItems([...invItems, { description: '', sub_description: '', quantity: 1, rate: 0 }])}
+                style={{ padding: '6px 12px', fontSize: '11px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer' }}
+              >
                 + Add Item
               </button>
             </div>
@@ -590,7 +653,7 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* AGREEMENT EDITABLE SETTINGS (APPEARS WHEN AGREEMENT MODE IS ACTIVE) */}
+            {/* AGREEMENT EDITABLE SETTINGS (VISIBLE WHEN AGREEMENT PREVIEW IS ACTIVE) */}
             {printDocumentMode === 'contract' && (
               <div style={{ marginTop: '24px', padding: '16px', backgroundColor: '#18181b', borderRadius: '6px', border: '1px solid #38bdf8' }}>
                 <h3 style={{ fontSize: '13px', fontWeight: 'bold', color: '#38bdf8', margin: '0 0 12px 0', textTransform: 'uppercase' }}>
@@ -729,11 +792,18 @@ export const Admin: React.FC = () => {
                 <tbody>
                   {invItems.map((item, idx) => (
                     <tr key={idx} style={{ borderBottom: '1px solid #ddd', fontSize: '12px' }}>
-                      <td style={{ padding: '10px 4px', color: '#333' }}>{idx + 1}</td>
-                      <td style={{ padding: '10px 4px', fontWeight: 'bold', color: '#000' }}>{item.description || 'Service Line Item'}</td>
-                      <td style={{ padding: '10px 4px', textAlign: 'center', color: '#333' }}>{item.quantity}</td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#333' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
-                      <td style={{ padding: '10px 4px', textAlign: 'right', fontWeight: 'bold', color: '#000' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
+                      <td style={{ padding: '10px 4px', color: '#333', verticalAlign: 'top' }}>{idx + 1}</td>
+                      <td style={{ padding: '10px 4px', verticalAlign: 'top' }}>
+                        <div style={{ fontWeight: 'bold', color: '#000' }}>{item.description || 'Service Line Item'}</div>
+                        {item.sub_description && (
+                          <div style={{ fontSize: '10.5px', color: '#666', marginTop: '2px', lineHeight: '1.3' }}>
+                            {item.sub_description}
+                          </div>
+                        )}
+                      </td>
+                      <td style={{ padding: '10px 4px', textAlign: 'center', color: '#333', verticalAlign: 'top' }}>{item.quantity}</td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', color: '#333', verticalAlign: 'top' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
+                      <td style={{ padding: '10px 4px', textAlign: 'right', fontWeight: 'bold', color: '#000', verticalAlign: 'top' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
