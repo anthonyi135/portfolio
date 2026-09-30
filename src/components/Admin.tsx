@@ -86,11 +86,13 @@ export const Admin: React.FC = () => {
   const [includeTerms, setIncludeTerms] = useState(true);
 
   // Contract Customization States
-  const [contractTitle, setContractTitle] = useState('EQUIPMENT RENTAL & PRODUCTION SERVICES AGREEMENT');
+  const [contractTypePreset, setContractTypePreset] = useState<'broadcast' | 'video_edit'>('broadcast');
+  const [contractTitle, setContractTitle] = useState('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
   const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('');
-  const [contractScope, setContractScope] = useState('Equipment supply, hardware deployment, logistics, and technical audio/visual support as itemized in the attached invoice.');
-  const [contractDeliverables, setContractDeliverables] = useState('On-site delivery, hardware rigging/operation, and full technical execution for the duration of the event.');
+  const [contractScope, setContractScope] = useState('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
+  const [contractDeliverables, setContractDeliverables] = useState('1. Live transmission to designated client destinations\n2. Master program archival recording delivered via Tonyshotit Client Portal\n3. Full-resolution backup media download access');
   const [depositPercent, setDepositPercent] = useState<number>(70);
+  const [finalPaymentTrigger, setFinalPaymentTrigger] = useState('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
   const [includeEquipmentSafety, setIncludeEquipmentSafety] = useState(true);
   const [contractCustomTerms, setContractCustomTerms] = useState('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
   const [contractSignerName, setContractSignerName] = useState('');
@@ -106,6 +108,25 @@ export const Admin: React.FC = () => {
       fetchInvoices();
     }
   }, [isAdminAuthenticated]);
+
+  // Handle Preset Switching
+  const handlePresetChange = (preset: 'broadcast' | 'video_edit') => {
+    setContractTypePreset(preset);
+    if (preset === 'broadcast') {
+      setContractTitle('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
+      setContractScope('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
+      setContractDeliverables('1. Live stream broadcast to client streaming endpoints\n2. Master archival program record\n3. Portal download link access');
+      setFinalPaymentTrigger('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
+      setIncludeEquipmentSafety(true);
+      setContractCustomTerms('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
+    } else {
+      setContractTitle('CINEMATOGRAPHY & VIDEO PRODUCTION AGREEMENT');
+      setContractScope('On-site cinematography, sound capture, lighting execution, and multi-stage post-production editing.');
+      setContractDeliverables('1. Master highlight reel (4K/1080p)\n2. Social media cutdowns / vertical deliverables\n3. Up to two (2) complimentary rounds of minor revisions');
+      setFinalPaymentTrigger('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and full asset release occur strictly upon confirmation of 100% balance settlement.');
+      setIncludeEquipmentSafety(false);
+    }
+  };
 
   const handleAdminUnlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -287,6 +308,7 @@ export const Admin: React.FC = () => {
   const balanceAmount = invoiceGrandTotal - depositAmount;
 
   const currencySymbol = invCurrency === 'NGN' ? 'NGN ' : invCurrency === 'GBP' ? '£ ' : invCurrency === 'EUR' ? '€ ' : '$ ';
+  const overtimeRateFormatted = invCurrency === 'NGN' ? 'NGN 25,000' : invCurrency === 'USD' ? '$50' : invCurrency === 'GBP' ? '£40' : '€45';
 
   const triggerPrintInvoice = () => {
     setPrintDocumentMode('invoice');
@@ -475,7 +497,7 @@ export const Admin: React.FC = () => {
                     border: '1px solid #444'
                   }}
                 >
-                  👁️ Preview Invoice
+                  👁 Preview Invoice
                 </button>
                 <button
                   type="button"
@@ -672,12 +694,27 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* AGREEMENT CUSTOMIZATION PANEL WITH EDITABLE FULFILLMENT WINDOW */}
+            {/* AGREEMENT CUSTOMIZATION PANEL */}
             {printDocumentMode === 'contract' && (
-              <div style={{ marginTop: '20px', padding: '14px', backgroundColor: '#18181b', borderRadius: '6px', border: '1px solid #38bdf8' }}>
-                <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#38bdf8', margin: '0 0 12px 0', textTransform: 'uppercase' }}>
-                  ✍️ Customize Agreement Terms & Signers
-                </h3>
+              <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#18181b', borderRadius: '6px', border: '1px solid #38bdf8' }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', gap: '10px' }}>
+                  <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#38bdf8', margin: 0, textTransform: 'uppercase' }}>
+                    ✍️ Customize Agreement Terms & Signers
+                  </h3>
+
+                  {/* PRESET SELECTOR FOR DIFFERENT WORKFLOWS */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '11px', color: '#aaa' }}>Contract Mode:</span>
+                    <select
+                      value={contractTypePreset}
+                      onChange={(e) => handlePresetChange(e.target.value as any)}
+                      style={{ padding: '6px 10px', backgroundColor: '#000', border: '1px solid #38bdf8', color: '#fff', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold' }}
+                    >
+                      <option value="broadcast">Live Broadcast / Event Production</option>
+                      <option value="video_edit">Video Shoot & Post-Production Editing</option>
+                    </select>
+                  </div>
+                </div>
                 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                   <div>
@@ -702,17 +739,30 @@ export const Admin: React.FC = () => {
                   </div>
                 </div>
 
-                {/* EDITABLE FULFILLMENT / EVENT WINDOW (INDEPENDENT FROM INVOICE DUE DATE) */}
+                {/* EDITABLE FINAL PAYMENT BALANCE TRIGGER */}
                 <div style={{ marginBottom: '12px' }}>
                   <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
-                    PROJECT DATES & FULFILLMENT WINDOW (e.g. "October 11, 2026 • Final media delivered within 7 business days")
+                    BALANCE PAYMENT TRIGGER & RELEASE CONDITION (Section 2)
+                  </label>
+                  <input
+                    type="text"
+                    value={finalPaymentTrigger}
+                    onChange={(e) => setFinalPaymentTrigger(e.target.value)}
+                    style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                  />
+                </div>
+
+                {/* EDITABLE FULFILLMENT / EVENT WINDOW */}
+                <div style={{ marginBottom: '12px' }}>
+                  <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
+                    PROJECT DATES & FULFILLMENT WINDOW
                   </label>
                   <input
                     type="text"
                     placeholder="e.g. October 11, 2026 (Event Date) • Final edits delivered within 10 days"
                     value={contractFulfillmentWindow}
                     onChange={(e) => setContractFulfillmentWindow(e.target.value)}
-                    style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #38bdf8', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                    style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
                   />
                 </div>
 
@@ -732,21 +782,21 @@ export const Admin: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>SCOPE OF WORK / SERVICE</label>
+                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>SCOPE OF WORK / SERVICE (Preserves line breaks)</label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       value={contractScope}
                       onChange={(e) => setContractScope(e.target.value)}
-                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px', lineHeight: '1.4' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>KEY DELIVERABLES / HANDOFF</label>
+                    <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>KEY DELIVERABLES / HANDOFF (Preserves line breaks)</label>
                     <textarea
-                      rows={2}
+                      rows={3}
                       value={contractDeliverables}
                       onChange={(e) => setContractDeliverables(e.target.value)}
-                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                      style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px', lineHeight: '1.4' }}
                     />
                   </div>
                 </div>
@@ -937,7 +987,7 @@ export const Admin: React.FC = () => {
               </div>
             )}
 
-            {/* PRINTABLE AREA: AGREEMENT WITH DEDICATED FULFILLMENT WINDOW */}
+            {/* PRINTABLE AREA: AGREEMENT TEMPLATE */}
             {printDocumentMode === 'contract' && (
               <div id="printable-contract-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
@@ -966,11 +1016,17 @@ export const Admin: React.FC = () => {
                     1. Project Scope & Deliverables
                   </h3>
                   <p style={{ margin: '0 0 4px 0' }}>• <strong>Project / Event:</strong> {invProjectFor || '[Project / Event Name]'}</p>
-                  <p style={{ margin: '0 0 4px 0' }}>
+                  <p style={{ margin: '0 0 6px 0' }}>
                     • <strong>Dates & Fulfillment Window:</strong> {contractFulfillmentWindow || `${invIssueDate} through Project / Event Conclusion`}
                   </p>
-                  <p style={{ margin: '0 0 4px 0' }}>• <strong>Scope of Service:</strong> {contractScope}</p>
-                  <p style={{ margin: '0 0 12px 0' }}>• <strong>Deliverables:</strong> {contractDeliverables}</p>
+                  <div style={{ margin: '0 0 6px 0', whiteSpace: 'pre-line' }}>
+                    • <strong>Scope of Service:</strong><br />
+                    <span style={{ color: '#334155', paddingLeft: '12px', display: 'inline-block' }}>{contractScope}</span>
+                  </div>
+                  <div style={{ margin: '0 0 12px 0', whiteSpace: 'pre-line' }}>
+                    • <strong>Key Deliverables & Handoff:</strong><br />
+                    <span style={{ color: '#334155', paddingLeft: '12px', display: 'inline-block' }}>{contractDeliverables}</span>
+                  </div>
 
                   <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0f172a', margin: '12px 0 4px 0', textTransform: 'uppercase' }}>
                     2. Payment Schedule & Milestones
@@ -992,7 +1048,9 @@ export const Admin: React.FC = () => {
                       <tr style={{ borderBottom: '1px solid #cbd5e1' }}>
                         <td style={{ padding: '6px 8px', fontWeight: 'bold' }}>Final Balance ({100 - safeDepositPercent}%)</td>
                         <td style={{ padding: '6px 8px' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
-                        <td style={{ padding: '6px 8px' }}>Strictly due within 24 hours of project / event completion</td>
+                        <td style={{ padding: '6px 8px' }}>
+                          {finalPaymentTrigger}
+                        </td>
                       </tr>
                       <tr style={{ borderBottom: '2px solid #0f172a', backgroundColor: '#f1f5f9', fontWeight: 'bold' }}>
                         <td style={{ padding: '6px 8px' }}>Total Fee (After Discount)</td>
@@ -1016,8 +1074,18 @@ export const Admin: React.FC = () => {
                     </>
                   )}
 
-                  <p style={{ margin: '0 0 4px 0' }}>• <strong>Asset Rights:</strong> All equipment, captured assets, or media outputs remain the property of Tonyshotit Studio until 100% final balance settlement is received.</p>
-                  <p style={{ margin: '0 0 16px 0' }}>• <strong>Cancellation:</strong> Cancellations inside 48 hours of scheduled call time forfeit the commitment deposit to cover equipment holds and technical crew retainers.</p>
+                  <p style={{ margin: '0 0 4px 0' }}>
+                    • <strong>Overtime:</strong> On-site coverage exceeding the agreed scope window will be billed at an additional rate of {overtimeRateFormatted} per hour (or part thereof).
+                  </p>
+                  <p style={{ margin: '0 0 4px 0' }}>
+                    • <strong>Rescheduling:</strong> Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit and require a new booking fee subject to crew and gear availability.
+                  </p>
+                  <p style={{ margin: '0 0 4px 0' }}>
+                    • <strong>Asset & Media Rights:</strong> All raw captured media, working project files, and intellectual property remain the sole property of Tonyshotit Studio until the total project fee is paid in full. Previews are supplied for client approval purposes only.
+                  </p>
+                  <p style={{ margin: '0 0 16px 0' }}>
+                    • <strong>Cancellation:</strong> Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit to cover equipment holding and crew retainers.
+                  </p>
 
                   <h3 style={{ fontSize: '12px', fontWeight: 'bold', color: '#0f172a', margin: '14px 0 6px 0', textTransform: 'uppercase' }}>
                     4. Signatures & Acceptance
