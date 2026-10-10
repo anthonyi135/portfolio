@@ -903,7 +903,7 @@ export const Admin: React.FC = () => {
                     <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#888', textTransform: 'uppercase', margin: '0 0 4px 0' }}>FROM</p>
                     <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, color: '#000' }}>Tonyshotit Studios</p>
                     <p style={{ fontSize: '11px', color: '#555', margin: '1px 0 0 0' }}>BN: <strong>9926513</strong> | TIN: <strong>2622415188316</strong></p>
-                    <p style={{ fontSize: '11.5px', color: '#444', margin: '2px 0 0 0' }}>5, Plot 5 Otuyelu Close, Mende, Maryland, Lagos</p>
+                    <p style={{ fontSize: '11.5px', color: '#444', margin: '2px 0 0 0' }}>Plot 5 Otuyelu Close, Mende, Maryland, Lagos</p>
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>Lead: Anthony Ibuzo • anthony@tonyshotit.com</p>
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>tonyshotit.com</p>
                   </div>
