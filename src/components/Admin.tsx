@@ -111,7 +111,6 @@ export const Admin: React.FC = () => {
     }
   }, [isAdminAuthenticated]);
 
-  // Handle Preset Switching
   const handlePresetChange = (preset: 'broadcast' | 'video_edit') => {
     setContractTypePreset(preset);
     if (preset === 'broadcast') {
@@ -307,7 +306,6 @@ export const Admin: React.FC = () => {
   const discountAmount = Math.max(0, invDiscount || 0);
   const discountedSubtotal = Math.max(0, invoiceSubtotal - discountAmount);
   
-  // Tax / VAT Calculation (Defaults to 0% -> 0 amount)
   const safeTaxPercent = Math.max(0, invTaxPercent || 0);
   const taxAmount = Math.round(discountedSubtotal * (safeTaxPercent / 100));
   const invoiceGrandTotal = discountedSubtotal + taxAmount;
@@ -362,8 +360,8 @@ export const Admin: React.FC = () => {
       {/* HEADER */}
       <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>TONYSHOTIT STUDIO</h1>
-          <p style={{ color: '#888', margin: 0, fontSize: '11px' }}>MANAGEMENT DASHBOARD</p>
+          <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>TONYSHOTIT STUDIOS</h1>
+          <p style={{ color: '#888', margin: 0, fontSize: '11px' }}>MANAGEMENT DASHBOARD • BN: 9926513</p>
         </div>
         <button onClick={() => setIsAdminAuthenticated(false)} style={{ padding: '8px 14px', backgroundColor: '#222', color: '#aaa', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
           🔒 Lock Studio
@@ -888,7 +886,7 @@ export const Admin: React.FC = () => {
                   </div>
 
                   <div style={{ textAlign: 'right' }}>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, letterSpacing: '2px', color: '#000' }}>TONYSHOTIT</h2>
+                    <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, letterSpacing: '2px', color: '#000' }}>TONYSHOTIT STUDIOS</h2>
                     <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>anthony@tonyshotit.com</p>
                     <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>tonyshotit.com</p>
                   </div>
@@ -897,17 +895,17 @@ export const Admin: React.FC = () => {
                 <hr style={{ border: 'none', borderTop: '1px solid #000', marginBottom: '16px' }} />
 
                 <p style={{ fontSize: '13px', fontStyle: 'italic', marginBottom: '24px', color: '#333' }}>
-                  Thank you for choosing Tonyshotit Studio – Professional Video & Broadcast Solutions.
+                  Thank you for choosing Tonyshotit Studios – Professional Video & Broadcast Solutions.
                 </p>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginBottom: '28px' }}>
                   <div>
                     <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#888', textTransform: 'uppercase', margin: '0 0 4px 0' }}>FROM</p>
-                    <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, color: '#000' }}>Tonyshotit Studio</p>
-                    <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>Sales Rep: Anthony Ibuzo</p>
-                    <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>anthony@tonyshotit.com</p>
+                    <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, color: '#000' }}>Tonyshotit Studios</p>
+                    <p style={{ fontSize: '11px', color: '#555', margin: '1px 0 0 0' }}>BN: <strong>9926513</strong> | TIN: <strong>2622415188316</strong></p>
+                    <p style={{ fontSize: '11.5px', color: '#444', margin: '2px 0 0 0' }}>5, Plot 5 Otuyelu Close, Mende, Maryland, Lagos</p>
+                    <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>Lead: Anthony Ibuzo • anthony@tonyshotit.com</p>
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>tonyshotit.com</p>
-                    <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>TIN: <strong>2622415188316</strong></p>
                   </div>
 
                   <div>
@@ -962,7 +960,6 @@ export const Admin: React.FC = () => {
                       </div>
                     )}
 
-                    {/* ALWAYS VISIBLE TAX / VAT ROW TO DEMONSTRATE ZERO VAT */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd', color: safeTaxPercent === 0 ? '#64748b' : '#000' }}>
                       <span style={{ fontWeight: 'bold' }}>VAT ({safeTaxPercent}%)</span>
                       <span>{currencySymbol}{taxAmount.toLocaleString()}</span>
@@ -982,6 +979,7 @@ export const Admin: React.FC = () => {
                     <p style={{ margin: '2px 0', color: '#333' }}>Account Number: <strong>{invAccountNumber}</strong></p>
                     <p style={{ margin: '2px 0', color: '#333' }}>Account Name: <strong>{invAccountName}</strong></p>
                     <p style={{ margin: '2px 0', color: '#333' }}>Tax Identification No. (TIN): <strong>2622415188316</strong></p>
+                    <p style={{ margin: '2px 0', color: '#333' }}>Business Registration No. (CAC): <strong>BN: 9926513</strong></p>
                   </div>
 
                   <div style={{ marginBottom: '20px' }}>
@@ -1005,7 +1003,7 @@ export const Admin: React.FC = () => {
                           <strong>Revisions & Scope:</strong> Agreed deliverables include complimentary review cycles. Additional days, overtime hours, or scope modifications outside the agreed line items will be billed separately.
                         </li>
                         <li style={{ marginBottom: '4px' }}>
-                          <strong>Asset Ownership:</strong> All hardware, broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.
+                          <strong>Asset Ownership:</strong> All hardware, broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studios until the final balance is settled in full.
                         </li>
                         <li>
                           <strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.
@@ -1026,7 +1024,7 @@ export const Admin: React.FC = () => {
                       {contractTitle}
                     </h1>
                     <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#0284c7', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                      Tonyshotit Studio • tonyshotit.com • anthony@tonyshotit.com
+                      Tonyshotit Studios • BN: 9926513 • tonyshotit.com • anthony@tonyshotit.com
                     </p>
                   </div>
                   <div style={{ textAlign: 'right', fontSize: '11px', color: '#64748b' }}>
@@ -1038,7 +1036,7 @@ export const Admin: React.FC = () => {
                 <hr style={{ border: 'none', borderTop: '2px solid #0f172a', marginBottom: '16px' }} />
 
                 <p style={{ fontSize: '11px', lineHeight: '1.5', color: '#334155', marginBottom: '16px' }}>
-                  This Agreement is entered into as of <strong>{invIssueDate}</strong> by and between <strong>Tonyshotit Studio</strong>, represented by Anthony Ibuzo (the <em>"Producer / Supplier"</em>), and <strong>{invClientName || '[Client Organization Name]'}</strong> {invClientEmail && `(${invClientEmail})`} (the <em>"Client"</em>).
+                  This Agreement is entered into as of <strong>{invIssueDate}</strong> by and between <strong>Tonyshotit Studios</strong> (Registered Business Name No: 9926513, Lagos, Nigeria), represented by Anthony Ibuzo (the <em>"Producer / Supplier"</em>), and <strong>{invClientName || '[Client Organization Name]'}</strong> {invClientEmail && `(${invClientEmail})`} (the <em>"Client"</em>).
                 </p>
 
                 <div style={{ fontSize: '11px', lineHeight: '1.5', color: '#1e293b' }}>
@@ -1111,7 +1109,7 @@ export const Admin: React.FC = () => {
                     • <strong>Rescheduling:</strong> Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit and require a new booking fee subject to crew and gear availability.
                   </p>
                   <p style={{ margin: '0 0 4px 0' }}>
-                    • <strong>Asset & Media Rights:</strong> All raw captured media, working project files, and intellectual property remain the sole property of Tonyshotit Studio until the total project fee is paid in full. Previews are supplied for client approval purposes only.
+                    • <strong>Asset & Media Rights:</strong> All raw captured media, working project files, and intellectual property remain the sole property of Tonyshotit Studios until the total project fee is paid in full. Previews are supplied for client approval purposes only.
                   </p>
                   <p style={{ margin: '0 0 16px 0' }}>
                     • <strong>Cancellation:</strong> Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit to cover equipment holding and crew retainers.
@@ -1123,7 +1121,7 @@ export const Admin: React.FC = () => {
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '8px' }}>
                     {/* PRODUCER SIGNATURE */}
                     <div style={{ border: '1px solid #cbd5e1', padding: '12px', borderRadius: '4px', backgroundColor: '#f8fafc', fontSize: '10.5px' }}>
-                      <p style={{ margin: '0 0 16px 0', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
+                      <p style={{ margin: '0 0 16px 0', fontWeight: 'bold' }}>For Tonyshotit Studios:</p>
                       <p style={{ margin: '0 0 4px 0' }}>Signature: __________________________</p>
                       <p style={{ margin: '0 0 4px 0' }}>Name: <strong>Anthony Ibuzo</strong></p>
                       <p style={{ margin: '0 0 4px 0' }}>Title: Lead Technical Director / Producer</p>
