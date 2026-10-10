@@ -58,7 +58,7 @@ const Footer = () => {
               href="mailto:anthony@tonyshotit.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg text-white font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105"
             >
-              <Mail className="w-5 h-5" />
+              <Mail className="w-5 h-5"/>
               Get In Touch
             </a>
           </motion.div>
@@ -87,7 +87,7 @@ const Footer = () => {
                     className={`flex items-center gap-4 p-4 bg-gray-900 rounded-lg border border-gray-800 hover:border-blue-500/50 transition-all duration-300 ${link.color}`}
                   >
                     <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center">
-                      <Icon className="w-6 h-6" />
+                      <Icon className="w-6 h-6"/>
                     </div>
                     <div>
                       <p className="text-white font-semibold">{link.name}</p>
@@ -100,18 +100,25 @@ const Footer = () => {
           </motion.div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-500 text-sm">
-            © {new Date().getFullYear()} Video Production & Live Broadcast Specialist. All rights reserved.
-          </p>
+        {/* Legal & Compliance Bottom Bar */}
+        <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-1">
+            <p className="text-gray-400 text-sm font-semibold tracking-wide">
+              TONYSHOTIT STUDIOS
+            </p>
+            <p className="text-gray-500 text-xs leading-relaxed">
+              RC/BN: <span className="text-gray-400 font-medium">9926513</span> • TIN: <span className="text-gray-400 font-medium">2622415188316</span>
+              <br className="hidden sm:inline" />
+              {' '}• 5, Plot 5 Otuyelu Close, Mende, Maryland, Lagos, Nigeria
+            </p>
+            <p className="text-gray-600 text-[11px] pt-1">
+              © {new Date().getFullYear()} Tonyshotit Studios. All rights reserved.
+            </p>
+          </div>
 
-          <div className="flex items-center gap-6">
-            <Link
-              to="/admin"
-              className="flex items-center gap-1.5 text-xs text-gray-700 hover:text-gray-400 transition-colors duration-300"
-              title="Admin Studio"
-            >
-              <Lock className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-6 self-end md:self-auto">
+            <Link className="flex items-center gap-1.5 text-xs text-gray-700 hover:text-gray-400 transition-colors duration-300" title="Admin Studio" to="/admin">
+              <Lock className="w-3.5 h-3.5"/>
               <span>Admin Studio</span>
             </Link>
 
@@ -121,7 +128,7 @@ const Footer = () => {
             >
               <span className="text-sm font-medium">Back to Top</span>
               <div className="w-8 h-8 rounded-full bg-gray-900 border border-gray-800 group-hover:border-blue-500 flex items-center justify-center transition-all duration-300 group-hover:shadow-lg group-hover:shadow-blue-500/30">
-                <ArrowUp className="w-4 h-4" />
+                <ArrowUp className="w-4 h-4"/>
               </div>
             </button>
           </div>
