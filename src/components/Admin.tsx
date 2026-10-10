@@ -37,6 +37,7 @@ interface Invoice {
   status: 'Draft' | 'Sent' | 'Paid';
   items: InvoiceItem[];
   discount?: number;
+  tax_percent?: number;
   bank_name?: string;
   account_number?: string;
   account_name?: string;
@@ -79,6 +80,7 @@ export const Admin: React.FC = () => {
   const [invAccountNumber, setInvAccountNumber] = useState('0430859996');
   const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
   const [invDiscount, setInvDiscount] = useState<number>(0);
+  const [invTaxPercent, setInvTaxPercent] = useState<number>(0);
   const [invItems, setInvItems] = useState<InvoiceItem[]>([
     { description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }
   ]);
@@ -240,6 +242,7 @@ export const Admin: React.FC = () => {
     setInvAccountNumber(inv.account_number || '0430859996');
     setInvAccountName(inv.account_name || 'Anthony Ibuzo');
     setInvDiscount(inv.discount || 0);
+    setInvTaxPercent(inv.tax_percent || 0);
     setInvItems(
       inv.items && inv.items.length > 0
         ? inv.items.map(item => ({ ...item, sub_description: item.sub_description || '' }))
@@ -277,6 +280,7 @@ export const Admin: React.FC = () => {
       account_number: invAccountNumber,
       account_name: invAccountName,
       discount: invDiscount || 0,
+      tax_percent: invTaxPercent || 0,
       items: invItems,
       notes: invNotes,
     };
@@ -301,7 +305,12 @@ export const Admin: React.FC = () => {
 
   const invoiceSubtotal = invItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.rate || 0), 0);
   const discountAmount = Math.max(0, invDiscount || 0);
-  const invoiceGrandTotal = Math.max(0, invoiceSubtotal - discountAmount);
+  const discountedSubtotal = Math.max(0, invoiceSubtotal - discountAmount);
+  
+  // Tax / VAT Calculation (Defaults to 0% -> 0 amount)
+  const safeTaxPercent = Math.max(0, invTaxPercent || 0);
+  const taxAmount = Math.round(discountedSubtotal * (safeTaxPercent / 100));
+  const invoiceGrandTotal = discountedSubtotal + taxAmount;
 
   const safeDepositPercent = Math.min(100, Math.max(0, depositPercent || 70));
   const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
@@ -665,8 +674,8 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
-            {/* DISCOUNT & TERMS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #222' }}>
+            {/* DISCOUNT, TAX (VAT) & TERMS */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #222' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
                   DISCOUNT ALLOCATED ({currencySymbol.trim()})
@@ -677,6 +686,19 @@ export const Admin: React.FC = () => {
                   value={invDiscount === 0 ? '' : invDiscount}
                   onChange={(e) => setInvDiscount(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
                   style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#38bdf8', borderRadius: '4px', fontWeight: 'bold' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
+                  TAX / VAT RATE (% - Usually 0)
+                </label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={invTaxPercent === 0 ? '' : invTaxPercent}
+                  onChange={(e) => setInvTaxPercent(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                 />
               </div>
 
@@ -927,7 +949,7 @@ export const Admin: React.FC = () => {
                 </table>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
-                  <div style={{ width: '300px' }}>
+                  <div style={{ width: '320px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd' }}>
                       <span style={{ fontWeight: 'bold' }}>Subtotal</span>
                       <span>{currencySymbol}{invoiceSubtotal.toLocaleString()}</span>
@@ -939,6 +961,12 @@ export const Admin: React.FC = () => {
                         <span>- {currencySymbol}{discountAmount.toLocaleString()}</span>
                       </div>
                     )}
+
+                    {/* ALWAYS VISIBLE TAX / VAT ROW TO DEMONSTRATE ZERO VAT */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd', color: safeTaxPercent === 0 ? '#64748b' : '#000' }}>
+                      <span style={{ fontWeight: 'bold' }}>VAT ({safeTaxPercent}%)</span>
+                      <span>{currencySymbol}{taxAmount.toLocaleString()}</span>
+                    </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', padding: '8px 0', borderBottom: '2px solid #000' }}>
                       <span>GRAND TOTAL</span>
@@ -1055,7 +1083,7 @@ export const Admin: React.FC = () => {
                         </td>
                       </tr>
                       <tr style={{ borderBottom: '2px solid #0f172a', backgroundColor: '#f1f5f9', fontWeight: 'bold' }}>
-                        <td style={{ padding: '6px 8px' }}>Total Fee (After Discount)</td>
+                        <td style={{ padding: '6px 8px' }}>Total Fee (After Discount & Taxes)</td>
                         <td style={{ padding: '6px 8px' }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
                         <td style={{ padding: '6px 8px' }}>Referenced in Invoice: {invNumber}</td>
                       </tr>
