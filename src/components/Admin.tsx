@@ -885,6 +885,7 @@ export const Admin: React.FC = () => {
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>Sales Rep: Anthony Ibuzo</p>
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>anthony@tonyshotit.com</p>
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>tonyshotit.com</p>
+                    <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>TIN: <strong>2622415188316</strong></p>
                   </div>
 
                   <div>
@@ -952,6 +953,7 @@ export const Admin: React.FC = () => {
                     <p style={{ margin: '2px 0', color: '#333' }}>Bank Name: <strong>{invBankName}</strong></p>
                     <p style={{ margin: '2px 0', color: '#333' }}>Account Number: <strong>{invAccountNumber}</strong></p>
                     <p style={{ margin: '2px 0', color: '#333' }}>Account Name: <strong>{invAccountName}</strong></p>
+                    <p style={{ margin: '2px 0', color: '#333' }}>Tax Identification No. (TIN): <strong>2622415188316</strong></p>
                   </div>
 
                   <div style={{ marginBottom: '20px' }}>
