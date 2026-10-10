@@ -109,7 +109,7 @@ const Footer = () => {
             <p className="text-gray-500 text-xs leading-relaxed">
               RC/BN: <span className="text-gray-400 font-medium">9926513</span> • TIN: <span className="text-gray-400 font-medium">2622415188316</span>
               <br className="hidden sm:inline" />
-              {' '}• 5, Plot 5 Otuyelu Close, Mende, Maryland, Lagos, Nigeria
+              {' '}• Plot 5 Otuyelu Close, Mende, Maryland, Lagos, Nigeria
             </p>
             <p className="text-gray-600 text-[11px] pt-1">
               © {new Date().getFullYear()} Tonyshotit Studios. All rights reserved.
