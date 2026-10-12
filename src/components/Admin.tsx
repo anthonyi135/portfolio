@@ -111,36 +111,35 @@ export const Admin: React.FC = () => {
   const [invBankName, setInvBankName] = useState('GT Bank');
   const [invAccountNumber, setInvAccountNumber] = useState('0430859996');
   const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
-  
-  // Financial Controls: Discount, VAT, Extra Fee / Delivery Line
+
+  // Financial Controls
   const [invDiscount, setInvDiscount] = useState<number>(0);
   const [invTaxPercent, setInvTaxPercent] = useState<number>(0);
   const [showVatRow, setShowVatRow] = useState<boolean>(true);
-  const [invExtraFeeLabel, setInvExtraFeeLabel] = useState<string>('Delivery & Production Logistics');
+  const [invExtraFeeLabel, setInvExtraFeeLabel] = useState<string>('Transportation and Logistics');
   const [invExtraFeeAmount, setInvExtraFeeAmount] = useState<number>(0);
   const [invItems, setInvItems] = useState<InvoiceItem[]>([
-    { description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }
+    { description: 'On-site location shooting', sub_description: '', quantity: 1, rate: 0 }
   ]);
   const [invNotes, setInvNotes] = useState('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
-  const [includeTerms, setIncludeTerms] = useState(true);
+  const [includeTerms, setIncludeTerms] = useState<boolean>(true);
 
-  // Dedicated Separate Agreement Customization States & Template Dropdown
-  const [contractTypePreset, setContractTypePreset] = useState<'broadcast' | 'video_edit'>('broadcast');
-  const [contractTitle, setContractTitle] = useState('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
-  const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('');
-  const [contractScope, setContractScope] = useState('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
-  const [contractDeliverables, setContractDeliverables] = useState('1. Live transmission to designated client destinations\n2. Master program archival recording delivered via Tonyshotit Client Portal\n3. Full-resolution backup media download access');
+  // Sub-Section: Agreement Contract Settings
+  const [showAgreementEditor, setShowAgreementEditor] = useState(false);
+  const [contractTypePreset, setContractTypePreset] = useState<'video_edit' | 'broadcast'>('video_edit');
+  const [contractTitle, setContractTitle] = useState('CINEMATOGRAPHY & VIDEO PRODUCTION AGREEMENT');
+  const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('Through Project/Event Conclusion. Final edits delivered within 5 business days.');
+  const [contractScope, setContractScope] = useState('On-site cinematography, sound capture, lighting execution, and multi-stage post-production editing.');
+  const [contractDeliverables, setContractDeliverables] = useState('• Key Deliverables & Handoff:\n- Highlight Event Video\n- Interview Session Cutdown\n- Social Media Vertical Reel\n*Includes up to 2 rounds of minor editorial revisions.');
   const [depositPercent, setDepositPercent] = useState<number>(70);
-  const [finalPaymentTrigger, setFinalPaymentTrigger] = useState('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
-  const [includeEquipmentSafety, setIncludeEquipmentSafety] = useState(true);
-  const [contractCustomTerms, setContractCustomTerms] = useState('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
+  const [finalPaymentTrigger, setFinalPaymentTrigger] = useState('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and full asset release occur strictly upon confirmation of 100% balance settlement.');
+  const [includeEquipmentSafety, setIncludeEquipmentSafety] = useState(false);
+  const [contractCustomTerms, setContractCustomTerms] = useState('Overtime: On-site coverage exceeding the agreed scope window will be billed at an additional rate of NGN 25,000 per hour (or part thereof).\nRescheduling: Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit.\nAsset & Media Rights: All raw captured media remain the sole property of Tonyshotit Studio until the total project fee is paid in full.\nCancellation: Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit.');
   const [contractSignerName, setContractSignerName] = useState('');
   const [printDocumentMode, setPrintDocumentMode] = useState<'invoice' | 'contract'>('invoice');
 
-  // CMS Sub-Tabs
+  // CMS States
   const [cmsSubTab, setCmsSubTab] = useState<'portfolio' | 'gear' | 'timeline'>('portfolio');
-
-  // CMS: Portfolio State
   const [cmsPortfolioList, setCmsPortfolioList] = useState<PortfolioItem[]>([]);
   const [editingPortId, setEditingPortId] = useState<number | null>(null);
   const [portTitle, setPortTitle] = useState('');
@@ -152,7 +151,6 @@ export const Admin: React.FC = () => {
   const [portIsVertical, setPortIsVertical] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
 
-  // CMS: Gear State
   const [cmsGearList, setCmsGearList] = useState<GearItemCMS[]>([]);
   const [editingGearId, setEditingGearId] = useState<number | null>(null);
   const [gearName, setGearName] = useState('');
@@ -160,7 +158,6 @@ export const Admin: React.FC = () => {
   const [gearTag, setGearTag] = useState<'vision' | 'cinema' | 'wireless' | 'audio' | 'aerial'>('vision');
   const [gearDesc, setGearDesc] = useState('');
 
-  // CMS: Timeline State
   const [cmsTimelineList, setCmsTimelineList] = useState<ExperienceItemCMS[]>([]);
   const [editingExpId, setEditingExpId] = useState<number | null>(null);
   const [expYear, setExpYear] = useState('');
@@ -190,23 +187,22 @@ export const Admin: React.FC = () => {
     }
   };
 
-  // Switch between the two agreement templates
-  const handlePresetChange = (preset: 'broadcast' | 'video_edit') => {
+  const handlePresetChange = (preset: 'video_edit' | 'broadcast') => {
     setContractTypePreset(preset);
-    if (preset === 'broadcast') {
+    if (preset === 'video_edit') {
+      setContractTitle('CINEMATOGRAPHY & VIDEO PRODUCTION AGREEMENT');
+      setContractScope('On-site cinematography, sound capture, lighting execution, and multi-stage post-production editing.');
+      setContractDeliverables('• Key Deliverables & Handoff:\n- Highlight Event Video\n- Interview Session Cutdown\n- Social Media Vertical Reel\n*Includes up to 2 rounds of minor editorial revisions.');
+      setFinalPaymentTrigger('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and full asset release occur strictly upon confirmation of 100% balance settlement.');
+      setIncludeEquipmentSafety(false);
+      setContractCustomTerms('Overtime: On-site coverage exceeding the agreed scope window will be billed at an additional rate of NGN 25,000 per hour (or part thereof).\nRescheduling: Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit.\nAsset & Media Rights: All raw captured media remain the sole property of Tonyshotit Studio until the total project fee is paid in full.\nCancellation: Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit.');
+    } else {
       setContractTitle('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
       setContractScope('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
-      setContractDeliverables('1. Live transmission to designated client destinations\n2. Master program archival recording delivered via Tonyshotit Client Portal\n3. Full-resolution backup media download access');
+      setContractDeliverables('1. Live stream transmission to designated client streaming endpoints\n2. Master program archival recording delivered via Tonyshotit Client Portal\n3. Full-resolution backup media download access');
       setFinalPaymentTrigger('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
       setIncludeEquipmentSafety(true);
       setContractCustomTerms('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
-    } else {
-      setContractTitle('CINEMATOGRAPHY & VIDEO PRODUCTION SERVICES AGREEMENT');
-      setContractScope('On-site commercial cinematography, camera operation, audio capture, lighting execution, and multi-stage post-production editing.');
-      setContractDeliverables('1. Master highlight video deliverable (4K / 1080p)\n2. Social media cutdowns / vertical edits\n3. Up to two (2) complimentary rounds of editorial revisions');
-      setFinalPaymentTrigger('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and media release occur strictly upon confirmation of 100% balance settlement.');
-      setIncludeEquipmentSafety(false);
-      setContractCustomTerms('Client guarantees scheduled access to locations and timely feedback on rough cuts.');
     }
   };
 
@@ -217,7 +213,7 @@ export const Admin: React.FC = () => {
       if (error) throw error;
       if (data) setProjects(data);
     } catch (err: any) {
-      console.error('Error fetching galleries:', err.message);
+      console.error(err);
     }
   };
 
@@ -227,37 +223,34 @@ export const Admin: React.FC = () => {
       if (error) throw error;
       if (data) setInvoices(data);
     } catch (err: any) {
-      console.error('Error fetching invoices:', err.message);
+      console.error(err);
     }
   };
 
   const fetchCmsPortfolio = async () => {
     try {
-      const { data, error } = await supabase.from('portfolio_projects').select('*').order('id', { ascending: true });
-      if (error) throw error;
+      const { data } = await supabase.from('portfolio_projects').select('*').order('id', { ascending: true });
       if (data) setCmsPortfolioList(data);
     } catch (err: any) {
-      console.error('Error fetching portfolio:', err.message);
+      console.error(err);
     }
   };
 
   const fetchCmsGear = async () => {
     try {
-      const { data, error } = await supabase.from('gear_items').select('*').order('id', { ascending: true });
-      if (error) throw error;
+      const { data } = await supabase.from('gear_items').select('*').order('id', { ascending: true });
       if (data) setCmsGearList(data);
     } catch (err: any) {
-      console.error('Error fetching gear:', err.message);
+      console.error(err);
     }
   };
 
   const fetchCmsTimeline = async () => {
     try {
-      const { data, error } = await supabase.from('experience_timeline').select('*').order('id', { ascending: true });
-      if (error) throw error;
+      const { data } = await supabase.from('experience_timeline').select('*').order('id', { ascending: true });
       if (data) setCmsTimelineList(data);
     } catch (err: any) {
-      console.error('Error fetching timeline:', err.message);
+      console.error(err);
     }
   };
 
@@ -286,16 +279,14 @@ export const Admin: React.FC = () => {
   };
 
   const handleDeleteProject = async (id: string) => {
-    if (!id) return;
-    if (!window.confirm('Delete this client gallery?')) return;
+    if (!id || !window.confirm('Delete this client gallery?')) return;
     try {
       setProjects((prev) => prev.filter((p) => p.id !== id));
       const { error } = await supabase.from('client_projects').delete().eq('id', id);
       if (error) throw error;
-      setStatusMsg({ type: 'success', text: 'Client gallery deleted successfully!' });
       fetchProjects();
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message });
+      alert(err.message);
       fetchProjects();
     }
   };
@@ -318,22 +309,20 @@ export const Admin: React.FC = () => {
       if (editingProjectId) {
         const { error } = await supabase.from('client_projects').update(payload).eq('id', editingProjectId);
         if (error) throw error;
-        setStatusMsg({ type: 'success', text: 'Client gallery updated!' });
       } else {
         const { error } = await supabase.from('client_projects').insert([payload]);
         if (error) throw error;
-        setStatusMsg({ type: 'success', text: 'Client gallery published!' });
       }
       resetGalleryForm();
       fetchProjects();
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message });
+      alert(err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  // --- SUPABASE STORAGE REEL UPLOAD ---
+  // --- CMS HANDLERS ---
   const handleDirectReelUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -341,28 +330,18 @@ export const Admin: React.FC = () => {
     try {
       setUploadingVideo(true);
       const cleanFileName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('portfolio-videos')
-        .upload(cleanFileName, file, { cacheControl: '3600', upsert: true });
-
+      const { error: uploadError } = await supabase.storage.from('portfolio-videos').upload(cleanFileName, file, { cacheControl: '3600', upsert: true });
       if (uploadError) throw uploadError;
 
-      const { data: publicData } = supabase.storage
-        .from('portfolio-videos')
-        .getPublicUrl(cleanFileName);
-
+      const { data: publicData } = supabase.storage.from('portfolio-videos').getPublicUrl(cleanFileName);
       setPortVideoSrc(publicData.publicUrl);
-      setStatusMsg({ type: 'success', text: `Reel uploaded successfully: ${cleanFileName}` });
     } catch (err: any) {
-      console.error('Storage Upload Error:', err);
-      alert(`Upload Failed: ${err.message}`);
+      alert(`Upload failed: ${err.message}`);
     } finally {
       setUploadingVideo(false);
     }
   };
 
-  // --- PORTFOLIO CMS HANDLERS ---
   const handlePortfolioSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -378,175 +357,81 @@ export const Admin: React.FC = () => {
 
     try {
       if (editingPortId) {
-        const { error } = await supabase.from('portfolio_projects').update(payload).eq('id', editingPortId);
-        if (error) throw error;
-        setStatusMsg({ type: 'success', text: 'Portfolio project updated!' });
+        await supabase.from('portfolio_projects').update(payload).eq('id', editingPortId);
       } else {
-        const { error } = await supabase.from('portfolio_projects').insert([payload]);
-        if (error) throw error;
-        setStatusMsg({ type: 'success', text: 'Portfolio project added!' });
+        await supabase.from('portfolio_projects').insert([payload]);
       }
-      resetPortfolioForm();
+      setEditingPortId(null);
+      setPortTitle('');
+      setPortVideoSrc('');
+      setPortRole('');
+      setPortEquipment('');
+      setPortDesc('');
       fetchCmsPortfolio();
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message });
+      alert(err.message);
     } finally {
       setLoading(false);
     }
-  };
-
-  const resetPortfolioForm = () => {
-    setEditingPortId(null);
-    setPortTitle('');
-    setPortCategory('video');
-    setPortVideoSrc('');
-    setPortRole('');
-    setPortEquipment('');
-    setPortDesc('');
-    setPortIsVertical(false);
-  };
-
-  const handleEditPortfolio = (item: PortfolioItem) => {
-    setEditingPortId(item.id || null);
-    setPortTitle(item.title);
-    setPortCategory(item.category);
-    setPortVideoSrc(item.video_src);
-    setPortRole(item.role);
-    setPortEquipment(Array.isArray(item.equipment) ? item.equipment.join(', ') : '');
-    setPortDesc(item.description);
-    setPortIsVertical(item.is_vertical);
-    window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
   const handleDeletePortfolio = async (id?: number) => {
     if (!id && id !== 0) return;
-    if (!window.confirm('Delete this portfolio project?')) return;
-    try {
-      setCmsPortfolioList((prev) => prev.filter((p) => p.id !== id));
-      const { error } = await supabase.from('portfolio_projects').delete().eq('id', id);
-      if (error) throw error;
-      setStatusMsg({ type: 'success', text: 'Portfolio project deleted successfully.' });
-      fetchCmsPortfolio();
-    } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
-      fetchCmsPortfolio();
-    }
+    if (!window.confirm('Delete this project?')) return;
+    setCmsPortfolioList((prev) => prev.filter((p) => p.id !== id));
+    await supabase.from('portfolio_projects').delete().eq('id', id);
+    fetchCmsPortfolio();
   };
 
-  // --- GEAR CMS HANDLERS ---
   const handleGearSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const payload = {
-      name: gearName,
-      category: gearCategory,
-      tag: gearTag,
-      description: gearDesc,
-    };
-
-    try {
-      if (editingGearId) {
-        const { error } = await supabase.from('gear_items').update(payload).eq('id', editingGearId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('gear_items').insert([payload]);
-        if (error) throw error;
-      }
-      resetGearForm();
-      fetchCmsGear();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
+    const payload = { name: gearName, category: gearCategory, tag: gearTag, description: gearDesc };
+    if (editingGearId) {
+      await supabase.from('gear_items').update(payload).eq('id', editingGearId);
+    } else {
+      await supabase.from('gear_items').insert([payload]);
     }
-  };
-
-  const resetGearForm = () => {
     setEditingGearId(null);
     setGearName('');
     setGearCategory('');
-    setGearTag('vision');
     setGearDesc('');
-  };
-
-  const handleEditGear = (g: GearItemCMS) => {
-    setEditingGearId(g.id || null);
-    setGearName(g.name);
-    setGearCategory(g.category);
-    setGearTag(g.tag);
-    setGearDesc(g.description);
+    setLoading(false);
+    fetchCmsGear();
   };
 
   const handleDeleteGear = async (id?: number) => {
     if (!id && id !== 0) return;
-    if (!window.confirm('Delete gear item?')) return;
-    try {
-      setCmsGearList((prev) => prev.filter((g) => g.id !== id));
-      const { error } = await supabase.from('gear_items').delete().eq('id', id);
-      if (error) throw error;
-      fetchCmsGear();
-    } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
-      fetchCmsGear();
-    }
+    if (!window.confirm('Delete gear?')) return;
+    setCmsGearList((prev) => prev.filter((g) => g.id !== id));
+    await supabase.from('gear_items').delete().eq('id', id);
+    fetchCmsGear();
   };
 
-  // --- TIMELINE CMS HANDLERS ---
   const handleTimelineSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const payload = {
-      year: expYear,
-      title: expTitle,
-      company: expCompany,
-      responsibilities: expResponsibilities.split('\n').map((s) => s.trim()).filter(Boolean),
-    };
-
-    try {
-      if (editingExpId) {
-        const { error } = await supabase.from('experience_timeline').update(payload).eq('id', editingExpId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.from('experience_timeline').insert([payload]);
-        if (error) throw error;
-      }
-      resetTimelineForm();
-      fetchCmsTimeline();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
+    const payload = { year: expYear, title: expTitle, company: expCompany, responsibilities: expResponsibilities.split('\n').filter(Boolean) };
+    if (editingExpId) {
+      await supabase.from('experience_timeline').update(payload).eq('id', editingExpId);
+    } else {
+      await supabase.from('experience_timeline').insert([payload]);
     }
-  };
-
-  const resetTimelineForm = () => {
     setEditingExpId(null);
     setExpYear('');
     setExpTitle('');
     setExpCompany('');
     setExpResponsibilities('');
-  };
-
-  const handleEditTimeline = (exp: ExperienceItemCMS) => {
-    setEditingExpId(exp.id || null);
-    setExpYear(exp.year);
-    setExpTitle(exp.title);
-    setExpCompany(exp.company);
-    setExpResponsibilities(Array.isArray(exp.responsibilities) ? exp.responsibilities.join('\n') : '');
+    setLoading(false);
+    fetchCmsTimeline();
   };
 
   const handleDeleteTimeline = async (id?: number) => {
     if (!id && id !== 0) return;
-    if (!window.confirm('Delete experience milestone?')) return;
-    try {
-      setCmsTimelineList((prev) => prev.filter((t) => t.id !== id));
-      const { error } = await supabase.from('experience_timeline').delete().eq('id', id);
-      if (error) throw error;
-      fetchCmsTimeline();
-    } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
-      fetchCmsTimeline();
-    }
+    if (!window.confirm('Delete milestone?')) return;
+    setCmsTimelineList((prev) => prev.filter((t) => t.id !== id));
+    await supabase.from('experience_timeline').delete().eq('id', id);
+    fetchCmsTimeline();
   };
 
   // --- INVOICE HANDLERS ---
@@ -566,10 +451,11 @@ export const Admin: React.FC = () => {
     setInvDiscount(0);
     setInvTaxPercent(0);
     setShowVatRow(true);
-    setInvExtraFeeLabel('Delivery & Production Logistics');
+    setInvExtraFeeLabel('Transportation and Logistics');
     setInvExtraFeeAmount(0);
     setInvItems([{ description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }]);
     setInvNotes('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
+    setIncludeTerms(true);
   };
 
   const handleEditInvoice = (inv: Invoice) => {
@@ -588,7 +474,7 @@ export const Admin: React.FC = () => {
     setInvDiscount(inv.discount || 0);
     setInvTaxPercent(inv.tax_percent || 0);
     setShowVatRow(inv.show_vat_row !== undefined ? inv.show_vat_row : true);
-    setInvExtraFeeLabel(inv.extra_fee_label || 'Delivery & Production Logistics');
+    setInvExtraFeeLabel(inv.extra_fee_label || 'Transportation and Logistics');
     setInvExtraFeeAmount(inv.extra_fee_amount || 0);
     setInvItems(
       inv.items && inv.items.length > 0
@@ -600,19 +486,10 @@ export const Admin: React.FC = () => {
   };
 
   const handleDeleteInvoice = async (id?: string) => {
-    if (!id) return;
-    if (!window.confirm('Delete this invoice?')) return;
-    try {
-      setInvoices((prev) => prev.filter((inv) => inv.id !== id));
-      const { error } = await supabase.from('invoices').delete().eq('id', id);
-      if (error) throw error;
-      setStatusMsg({ type: 'success', text: 'Invoice record deleted!' });
-      if (editingInvoiceId === id) resetInvoiceForm();
-      fetchInvoices();
-    } catch (err: any) {
-      alert(`Delete failed: ${err.message}`);
-      fetchInvoices();
-    }
+    if (!id || !window.confirm('Delete invoice?')) return;
+    setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+    await supabase.from('invoices').delete().eq('id', id);
+    fetchInvoices();
   };
 
   const handleInvoiceSubmit = async (e: React.FormEvent) => {
@@ -641,12 +518,10 @@ export const Admin: React.FC = () => {
 
     try {
       if (editingInvoiceId) {
-        const { error } = await supabase.from('invoices').update(payload).eq('id', editingInvoiceId);
-        if (error) throw error;
+        await supabase.from('invoices').update(payload).eq('id', editingInvoiceId);
         setStatusMsg({ type: 'success', text: 'Invoice updated!' });
       } else {
-        const { error } = await supabase.from('invoices').insert([payload]);
-        if (error) throw error;
+        await supabase.from('invoices').insert([payload]);
         setStatusMsg({ type: 'success', text: 'Invoice saved!' });
       }
       fetchInvoices();
@@ -669,7 +544,6 @@ export const Admin: React.FC = () => {
   const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
   const balanceAmount = invoiceGrandTotal - depositAmount;
   const currencySymbol = invCurrency === 'NGN' ? 'NGN ' : invCurrency === 'GBP' ? '£ ' : invCurrency === 'EUR' ? '€ ' : '$ ';
-  const overtimeRateFormatted = invCurrency === 'NGN' ? 'NGN 25,000' : invCurrency === 'USD' ? '$50' : invCurrency === 'GBP' ? '£40' : '€45';
 
   if (!isAdminAuthenticated) {
     return (
@@ -698,11 +572,13 @@ export const Admin: React.FC = () => {
   return (
     <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '24px 14px', color: '#fff', boxSizing: 'border-box', overflowX: 'hidden' }}>
       
-      {/* HEADER */}
+      {/* HEADER WITH BN & TIN */}
       <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '1.6rem', fontWeight: 'bold', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>TONYSHOTIT STUDIOS</h1>
-          <p style={{ color: '#888', margin: 0, fontSize: '11px' }}>MANAGEMENT DASHBOARD • BN: 9926513 • TIN: 2622415188316</p>
+          <p style={{ color: '#888', margin: 0, fontSize: '11px', fontWeight: 600 }}>
+            MANAGEMENT DASHBOARD • <span style={{ color: '#38bdf8' }}>BN: 9926513</span> • <span style={{ color: '#38bdf8' }}>TIN: 2622415188316</span>
+          </p>
         </div>
         <button onClick={() => setIsAdminAuthenticated(false)} style={{ padding: '8px 14px', backgroundColor: '#222', color: '#aaa', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>
           🔒 Lock Studio
@@ -745,7 +621,7 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* INVOICE META ROW 1 */}
+            {/* INVOICE DETAILS */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>INVOICE NUMBER</label>
@@ -761,7 +637,6 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* INVOICE META ROW 2 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CLIENT / COMPANY</label>
@@ -777,7 +652,6 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* INVOICE META ROW 3 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CURRENCY</label>
@@ -806,17 +680,17 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* LINE ITEMS - FULLY RESPONSIVE */}
+            {/* LINE ITEMS */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-                TAXABLE SERVICE LINE ITEMS
+                SERVICE LINE ITEMS
               </label>
               {invItems.map((item, idx) => (
                 <div key={idx} style={{ backgroundColor: '#0a0a0a', padding: '12px', borderRadius: '6px', border: '1px solid #222', marginBottom: '10px', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                     <input 
                       type="text" 
-                      placeholder="Line item title" 
+                      placeholder="Line item title (e.g. On-site location shooting)" 
                       value={item.description} 
                       onChange={(e) => { const u = [...invItems]; u[idx].description = e.target.value; setInvItems(u); }} 
                       style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '13px' }} 
@@ -854,7 +728,7 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
-            {/* RESTORED: FINANCIAL CONTROLS, DISCOUNT TAB, VAT CHECKBOX & LOGISTICS LINE */}
+            {/* FINANCIALS: DISCOUNT, VAT CHECKBOX & LOGISTICS/DELIVERY LINE */}
             <div style={{ backgroundColor: '#0a0a0a', padding: '16px', borderRadius: '6px', border: '1px solid #222', marginBottom: '20px', boxSizing: 'border-box' }}>
               <h3 style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '14px' }}>
                 Discounts, VAT Controls & Disbursements
@@ -862,13 +736,13 @@ export const Admin: React.FC = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DISCOUNT ({currencySymbol.trim()})</label>
+                  <label style={{ fontSize: '11px', color: '#16a34a', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>DISCOUNT ({currencySymbol.trim()})</label>
                   <input
                     type="number"
                     value={invDiscount === 0 ? '' : invDiscount}
                     onChange={(e) => setInvDiscount(parseFloat(e.target.value) || 0)}
                     placeholder="0"
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
+                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #16a34a', color: '#4ade80', borderRadius: '4px', fontWeight: 'bold' }}
                   />
                 </div>
                 <div>
@@ -883,7 +757,7 @@ export const Admin: React.FC = () => {
                 </div>
               </div>
 
-              {/* CHECKBOX FOR VAT */}
+              {/* VAT CHECKBOX */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                 <input
                   type="checkbox"
@@ -893,24 +767,24 @@ export const Admin: React.FC = () => {
                   style={{ accentColor: '#38bdf8', width: '16px', height: '16px', cursor: 'pointer' }}
                 />
                 <label htmlFor="showVatRow" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>
-                  Enable VAT Row on Invoice (uncheck to hide VAT row or display Small Business Exemption note)
+                  Show VAT Row on Invoice (unchecked displays 0.00 Small Business Exemption)
                 </label>
               </div>
 
-              {/* EXTRA DISBURSEMENT / DELIVERY LINE UNDER VAT */}
+              {/* DELIVERY / LOGISTICS LINE RIGHT UNDER VAT */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
                 <div>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>EXTRA DISBURSEMENT / DELIVERY LABEL</label>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>POST-VAT DISBURSEMENT LABEL (e.g. Delivery / Logistics)</label>
                   <input
                     type="text"
                     value={invExtraFeeLabel}
                     onChange={(e) => setInvExtraFeeLabel(e.target.value)}
-                    placeholder="Delivery & Production Logistics"
+                    placeholder="Transportation and Logistics"
                     style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>EXTRA DISBURSEMENT AMOUNT ({currencySymbol.trim()})</label>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DISBURSEMENT / DELIVERY AMOUNT ({currencySymbol.trim()})</label>
                   <input
                     type="number"
                     value={invExtraFeeAmount === 0 ? '' : invExtraFeeAmount}
@@ -922,84 +796,85 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* RESTORED: DEDICATED SEPARATE AGREEMENT BUILDER WITH DROPDOWN TEMPLATES */}
-            <div style={{ backgroundColor: '#0a0a0a', padding: '16px', borderRadius: '6px', border: '1px solid #222', marginBottom: '20px', boxSizing: 'border-box' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
-                <h3 style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 'bold', textTransform: 'uppercase', margin: 0 }}>
-                  Agreement & Production Contract Editor
-                </h3>
-
-                {/* DROPDOWN TO SELECT TEMPLATE TYPE */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 600 }}>SELECT TEMPLATE:</label>
-                  <select 
-                    value={contractTypePreset} 
-                    onChange={(e) => handlePresetChange(e.target.value as any)}
-                    style={{ padding: '6px 10px', backgroundColor: '#18181b', color: '#38bdf8', border: '1px solid #38bdf8', borderRadius: '4px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer' }}
-                  >
-                    <option value="broadcast">Live Multi-Camera Broadcast Template</option>
-                    <option value="video_edit">Cinematography & Video Production Template</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+            {/* AGREEMENT SECTION (EXPANDABLE SUBSECTION OF INVOICES) */}
+            <div style={{ backgroundColor: '#0c0c0e', border: '1px solid #27272a', borderRadius: '8px', marginBottom: '20px', overflow: 'hidden' }}>
+              <div 
+                onClick={() => setShowAgreementEditor(!showAgreementEditor)}
+                style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: '#141417' }}
+              >
                 <div>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>AGREEMENT TITLE</label>
-                  <input type="text" value={contractTitle} onChange={(e) => setContractTitle(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#38bdf8', textTransform: 'uppercase' }}>
+                    📑 Agreement / Contract Editor (Optional Subsection)
+                  </span>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#71717a' }}>
+                    Customize legal deliverables, milestones & contract parameters
+                  </p>
                 </div>
-                <div>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>FULFILLMENT / PRODUCTION WINDOW</label>
-                  <input type="text" value={contractFulfillmentWindow} onChange={(e) => setContractFulfillmentWindow(e.target.value)} placeholder="e.g. October 24 – 26, 2026" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                <button type="button" style={{ background: 'transparent', border: 'none', color: '#38bdf8', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
+                  {showAgreementEditor ? '▲ Collapse' : '▼ Expand'}
+                </button>
+              </div>
+
+              {showAgreementEditor && (
+                <div style={{ padding: '16px', borderTop: '1px solid #27272a' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                    <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 600 }}>SELECT AGREEMENT TEMPLATE:</label>
+                    <select 
+                      value={contractTypePreset} 
+                      onChange={(e) => handlePresetChange(e.target.value as any)}
+                      style={{ padding: '6px 12px', backgroundColor: '#18181b', color: '#38bdf8', border: '1px solid #38bdf8', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
+                    >
+                      <option value="video_edit">Cinematography & Video Production Template</option>
+                      <option value="broadcast">Live Multi-Camera Broadcast Template</option>
+                    </select>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>AGREEMENT TITLE</label>
+                      <input type="text" value={contractTitle} onChange={(e) => setContractTitle(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DATES & FULFILLMENT WINDOW</label>
+                      <input type="text" value={contractFulfillmentWindow} onChange={(e) => setContractFulfillmentWindow(e.target.value)} placeholder="e.g. October 02, 2026 through Conclusion" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>SCOPE OF SERVICE</label>
+                    <textarea rows={2} value={contractScope} onChange={(e) => setContractScope(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>KEY DELIVERABLES & HANDOFF</label>
+                    <textarea rows={3} value={contractDeliverables} onChange={(e) => setContractDeliverables(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DEPOSIT COMMITMENT (%)</label>
+                      <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseFloat(e.target.value) || 0)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>AUTHORIZED CLIENT SIGNER</label>
+                      <input type="text" value={contractSignerName} onChange={(e) => setContractSignerName(e.target.value)} placeholder="e.g. GRAVEN MEDIA Representative" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                    </div>
+                  </div>
+
+                  <div style={{ marginBottom: '12px' }}>
+                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>FINAL BALANCE TRIGGER / TERMS</label>
+                    <input type="text" value={finalPaymentTrigger} onChange={(e) => setFinalPaymentTrigger(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>OPERATIONAL TERMS & POLICIES</label>
+                    <textarea rows={3} value={contractCustomTerms} onChange={(e) => setContractCustomTerms(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  </div>
                 </div>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>SCOPE OF WORK</label>
-                <textarea rows={2} value={contractScope} onChange={(e) => setContractScope(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DELIVERABLES</label>
-                <textarea rows={3} value={contractDeliverables} onChange={(e) => setContractDeliverables(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                <div>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DEPOSIT COMMITMENT (%)</label>
-                  <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseFloat(e.target.value) || 0)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                </div>
-                <div>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>AUTHORIZED CLIENT SIGNER NAME</label>
-                  <input type="text" value={contractSignerName} onChange={(e) => setContractSignerName(e.target.value)} placeholder="e.g. Engr. Babatunde Alabi" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>FINAL PAYMENT RELEASE TRIGGER</label>
-                <input type="text" value={finalPaymentTrigger} onChange={(e) => setFinalPaymentTrigger(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <input
-                  type="checkbox"
-                  id="includeEquipmentSafety"
-                  checked={includeEquipmentSafety}
-                  onChange={(e) => setIncludeEquipmentSafety(e.target.checked)}
-                  style={{ accentColor: '#38bdf8', width: '16px', height: '16px', cursor: 'pointer' }}
-                />
-                <label htmlFor="includeEquipmentSafety" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>
-                  Include on-site hardware protection and attendee liability clause
-                </label>
-              </div>
-
-              <div>
-                <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CUSTOM TERMS & CLIENT OBLIGATIONS</label>
-                <textarea rows={2} value={contractCustomTerms} onChange={(e) => setContractCustomTerms(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-              </div>
+              )}
             </div>
 
-            {/* RESTORED: CHECKBOX FOR TERMS & CONDITIONS AND INVOICE NOTES */}
+            {/* TERMS & CONDITIONS CHECKBOX & NOTES */}
             <div style={{ marginBottom: '16px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
                 <input
@@ -1009,15 +884,15 @@ export const Admin: React.FC = () => {
                   onChange={(e) => setIncludeTerms(e.target.checked)}
                   style={{ accentColor: '#38bdf8', width: '16px', height: '16px', cursor: 'pointer' }}
                 />
-                <label htmlFor="includeTerms" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>
-                  Include formal Terms of Service, overtime rates & payment conditions on printed invoice
+                <label htmlFor="includeTerms" style={{ fontSize: '12px', color: '#38bdf8', fontWeight: 'bold', cursor: 'pointer' }}>
+                  ✓ Include Formal Terms & Conditions (Payment Milestones, Revisions, Validity, Asset Ownership) on printed Invoice
                 </label>
               </div>
               <textarea
                 rows={2}
                 value={invNotes}
                 onChange={(e) => setInvNotes(e.target.value)}
-                placeholder="Invoice notes, wire instructions or special reminders..."
+                placeholder="Notes regarding delivery, wire confirmation..."
                 style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}
               />
             </div>
@@ -1036,68 +911,82 @@ export const Admin: React.FC = () => {
             </div>
           </div>
 
-          {/* RESTORED: VISIBLE ON-SCREEN LIVE PREVIEWS */}
-          <div style={{ marginBottom: '32px' }}>
+          {/* VISIBLE DOCUMENT PREVIEW - WITH GENEROUS TOP PADDING */}
+          <div style={{ marginTop: '24px', marginBottom: '36px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#38bdf8', margin: 0 }}>
                 DOCUMENT PREVIEW: {printDocumentMode === 'invoice' ? 'OFFICIAL INVOICE' : 'PRODUCTION SERVICES AGREEMENT'}
               </h3>
-              <span style={{ fontSize: '11px', color: '#888' }}>Live preview reflects inputs above</span>
+              <span style={{ fontSize: '11px', color: '#888' }}>Live document rendering</span>
             </div>
 
             <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', padding: '4px' }}>
               
-              {/* 1. LIVE INVOICE PREVIEW */}
+              {/* 1. EXACT ORIGINAL INVOICE PREVIEW */}
               {printDocumentMode === 'invoice' && (
-                <div id="printable-invoice-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+                <div id="printable-invoice-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
+                  
+                  {/* Top Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                     <div>
                       <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000', letterSpacing: '-0.5px' }}>INVOICE</h1>
                       <p style={{ margin: '6px 0 2px 0', fontSize: '13px', color: '#222' }}><strong>Invoice No:</strong> {invNumber}</p>
                       <p style={{ margin: '2px 0', fontSize: '13px', color: '#222' }}><strong>Date:</strong> {invIssueDate}</p>
-                      {invDueDate && <p style={{ margin: '2px 0', fontSize: '13px', color: '#b91c1c' }}><strong>Payment Due:</strong> {invDueDate}</p>}
+                      {invDueDate && <p style={{ margin: '2px 0', fontSize: '13px', color: '#b91c1c' }}><strong>Due Date:</strong> {invDueDate}</p>}
                     </div>
+
                     <div style={{ textAlign: 'right' }}>
-                      <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: '#000' }}>TONYSHOTIT STUDIOS</h2>
-                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>Live Broadcast & Commercial Digital Cinema</p>
-                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>RC/BN: 9926513 • TIN: 2622415188316</p>
-                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>anthony@tonyshotit.com • tonyshotit.com</p>
+                      <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: '#000' }}>TONYSHOTIT</h2>
+                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>anthony@tonyshotit.com</p>
+                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>tonyshotit.com</p>
+                      <p style={{ margin: '2px 0', fontSize: '10.5px', color: '#222', fontWeight: 'bold' }}>RC/BN: 9926513 • TIN: 2622415188316</p>
                     </div>
                   </div>
+
+                  <p style={{ fontSize: '11px', color: '#555', margin: '0 0 20px 0', fontStyle: 'italic' }}>
+                    Thank you for choosing Tonyshotit Studio - Professional Video & Broadcast Solutions.
+                  </p>
 
                   <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                    <div>
-                      <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>BILLED TO</p>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: '#000' }}>{invClientName || 'Client Name / Organization'}</h3>
-                      {invClientEmail && <p style={{ fontSize: '12px', margin: '2px 0', color: '#333' }}>{invClientEmail}</p>}
-                      {invProjectFor && <p style={{ fontSize: '12px', margin: '4px 0 0 0', color: '#0284c7', fontWeight: 600 }}>Project: {invProjectFor}</p>}
+                  {/* Two-Column Parties: FROM & BILL TO */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                    <div style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                      <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>FROM</p>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>Tonyshotit Studio</h3>
+                      <p style={{ margin: '2px 0', fontSize: '12px' }}>Sales Rep: Anthony Ibuzo</p>
+                      <p style={{ margin: '2px 0', fontSize: '12px' }}>anthony@tonyshotit.com</p>
+                      <p style={{ margin: '2px 0', fontSize: '12px' }}>tonyshotit.com</p>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <span style={{ display: 'inline-block', padding: '4px 12px', backgroundColor: invStatus === 'Paid' ? '#dcfce7' : '#fef3c7', color: invStatus === 'Paid' ? '#15803d' : '#b45309', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
-                        STATUS: {invStatus.toUpperCase()}
-                      </span>
+
+                    <div style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                      <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>BILL TO</p>
+                      <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>{invClientName || 'Client Name / Organization'}</h3>
+                      {invClientEmail && <p style={{ margin: '2px 0', fontSize: '12px' }}>{invClientEmail}</p>}
+                      {invProjectFor && <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#0284c7', fontWeight: 'bold' }}>For: {invProjectFor}</p>}
                     </div>
                   </div>
 
+                  {/* Items Table */}
                   <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
                     <thead>
                       <tr style={{ backgroundColor: '#000', color: '#fff' }}>
-                        <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '55%' }}>Description</th>
-                        <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '15%' }}>Qty</th>
-                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '15%' }}>Unit Rate</th>
-                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '15%' }}>Amount</th>
+                        <th style={{ textAlign: 'center', padding: '10px 8px', fontSize: '11px', textTransform: 'uppercase', width: '6%' }}>#</th>
+                        <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '54%' }}>ITEM DESCRIPTION</th>
+                        <th style={{ textAlign: 'center', padding: '10px 8px', fontSize: '11px', textTransform: 'uppercase', width: '8%' }}>QTY</th>
+                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '16%' }}>UNIT PRICE</th>
+                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '16%' }}>AMOUNT</th>
                       </tr>
                     </thead>
                     <tbody>
                       {invItems.map((item, idx) => (
                         <tr key={idx} style={{ borderBottom: '1px solid #e5e5e5' }}>
+                          <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: '12px', color: '#666' }}>{idx + 1}</td>
                           <td style={{ padding: '10px 12px', fontSize: '12px' }}>
                             <strong>{item.description || 'Service line item'}</strong>
                             {item.sub_description && <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{item.sub_description}</div>}
                           </td>
-                          <td style={{ textAlign: 'center', padding: '10px 12px', fontSize: '12px' }}>{item.quantity}</td>
+                          <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: '12px' }}>{item.quantity}</td>
                           <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
                           <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px', fontWeight: 'bold' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
                         </tr>
@@ -1105,30 +994,41 @@ export const Admin: React.FC = () => {
                     </tbody>
                   </table>
 
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
-                    <div style={{ width: '380px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee' }}>
-                        <span style={{ color: '#555' }}>Services Subtotal</span>
+                  {/* Payment Details & Calculations */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
+                    
+                    {/* Bank Details */}
+                    <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '14px' }}>
+                      <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold' }}>PAYMENT DETAILS</h4>
+                      <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Bank Name:</strong> {invBankName}</p>
+                      <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
+                      <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
+                    </div>
+
+                    {/* Totals Breakdown */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
+                        <span style={{ color: '#555' }}>Subtotal</span>
                         <span style={{ fontWeight: 600 }}>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
                       </div>
 
                       {discountAmount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee', color: '#16a34a' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee', color: '#16a34a', fontWeight: 'bold' }}>
                           <span>Discount Applied</span>
                           <span>- {currencySymbol}{discountAmount.toLocaleString()}</span>
                         </div>
                       )}
 
                       {showVatRow && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
                           <span style={{ color: '#555' }}>VAT ({safeTaxPercent}%)</span>
                           <span>{safeTaxPercent > 0 ? `${currencySymbol}${taxAmount.toLocaleString()}` : '0.00 (Small Business Exempt)'}</span>
                         </div>
                       )}
 
                       {extraFeeAmount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee' }}>
-                          <span style={{ color: '#555' }}>{invExtraFeeLabel || 'Delivery & Production Logistics'}</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
+                          <span style={{ color: '#555' }}>{invExtraFeeLabel || 'Transportation and Logistics'}</span>
                           <span style={{ fontWeight: 600 }}>{currencySymbol}{extraFeeAmount.toLocaleString()}</span>
                         </div>
                       )}
@@ -1140,73 +1040,133 @@ export const Admin: React.FC = () => {
                     </div>
                   </div>
 
-                  <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
-                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold' }}>Remittance / Banking Instructions</h4>
-                    <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Bank:</strong> {invBankName}</p>
-                    <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
-                    <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
-                  </div>
+                  {/* Notes */}
+                  {invNotes && (
+                    <div style={{ marginBottom: '20px' }}>
+                      <p style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 2px 0' }}>NOTES</p>
+                      <p style={{ fontSize: '12px', color: '#333', margin: 0, lineHeight: 1.5 }}>{invNotes}</p>
+                    </div>
+                  )}
 
+                  {/* Terms & Conditions */}
                   {includeTerms && (
-                    <div style={{ fontSize: '10px', color: '#666', borderTop: '1px solid #eee', paddingTop: '12px', lineHeight: 1.5 }}>
-                      <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#333' }}>TERMS & CONDITIONS:</p>
-                      <p style={{ margin: '0 0 2px 0' }}>1. A standard {depositPercent}% non-refundable commitment deposit confirms booking and equipment reservation.</p>
-                      <p style={{ margin: '0 0 2px 0' }}>2. Overtime beyond agreed call-sheet hours is billed at {overtimeRateFormatted} per additional hour.</p>
-                      <p style={{ margin: '0 0 2px 0' }}>3. Full high-resolution media master release occurs upon 100% final balance settlement.</p>
-                      {invNotes && <p style={{ margin: '6px 0 0 0', fontStyle: 'italic', color: '#444' }}>Notes: {invNotes}</p>}
+                    <div style={{ fontSize: '10px', color: '#555', borderTop: '1px solid #eee', paddingTop: '14px', lineHeight: 1.5 }}>
+                      <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#222' }}>TERMS & CONDITIONS</p>
+                      <p style={{ margin: '0 0 2px 0' }}><strong>Payment Milestones:</strong> An advance commitment deposit is required to confirm booking and mobilize crew/equipment. The remaining balance is strictly due within 24 hours of project completion / final deliverable handoff.</p>
+                      <p style={{ margin: '0 0 2px 0' }}><strong>Invoice Validity:</strong> This invoice and reserved equipment/dates remain valid until the specified Due Date. Once the due date has passed, this invoice becomes null and void, subject to schedule availability and price re-evaluation.</p>
+                      <p style={{ margin: '0 0 2px 0' }}><strong>Revisions & Scope:</strong> Agreed deliverables include complimentary review cycles. Additional days, overtime hours, or scope modifications outside the agreed line items will be billed separately.</p>
+                      <p style={{ margin: '0 0 2px 0' }}><strong>Asset Ownership:</strong> All hardware, broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.</p>
+                      <p style={{ margin: '0 0 2px 0' }}><strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.</p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* 2. LIVE AGREEMENT PREVIEW WITH SIGNATURE BARS */}
+              {/* 2. EXACT ORIGINAL AGREEMENT PREVIEW */}
               {printDocumentMode === 'contract' && (
-                <div id="printable-contract-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
-                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-                    <h1 style={{ fontSize: '1.6rem', fontWeight: 900, margin: '0 0 6px 0', textTransform: 'uppercase', color: '#000' }}>
+                <div id="printable-contract-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
+                  
+                  {/* Agreement Header */}
+                  <div style={{ marginBottom: '14px' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 6px 0', textTransform: 'uppercase', color: '#000' }}>
                       {contractTitle}
                     </h1>
-                    <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>Reference Document: {invNumber} • Effective Date: {invIssueDate}</p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#555' }}>
+                      <span>TONYSHOTIT STUDIO • TONYSHOTIT.COM • ANTHONY@TONYSHOTIT.COM</span>
+                      <span>Ref: <strong>{invNumber}</strong> • Date: <strong>{invIssueDate}</strong></span>
+                    </div>
                   </div>
 
-                  <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
+                  <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '18px' }} />
 
-                  <div style={{ fontSize: '12px', lineHeight: 1.6, color: '#222' }}>
-                    <p style={{ marginBottom: '14px' }}>
-                      This Agreement is executed between <strong>TONYSHOTIT STUDIOS</strong> (BN: 9926513 • TIN: 2622415188316), hereinafter referred to as the "Service Provider," and <strong>{invClientName || 'Client / Organization'}</strong>, hereinafter referred to as the "Client."
+                  {/* Intro Clause */}
+                  <p style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#222', marginBottom: '16px' }}>
+                    This Agreement is entered into as of <strong>{invIssueDate}</strong> by and between <strong>Tonyshotit Studio</strong>, represented by Anthony Ibuzo (the "Producer/Supplier"), and <strong>{invClientName || 'Client'}</strong> ({invClientEmail || 'client email'}) (the "Client").
+                  </p>
+
+                  {/* 1. PROJECT SCOPE & DELIVERABLES */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                      1. PROJECT SCOPE & DELIVERABLES
+                    </h3>
+                    <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Project / Event:</strong> {invProjectFor || 'Commercial Video Production'}</p>
+                    <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Dates & Fulfillment Window:</strong> {contractFulfillmentWindow}</p>
+                    <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Scope of Service:</strong> {contractScope}</p>
+                    <div style={{ whiteSpace: 'pre-line', fontSize: '11.5px', marginTop: '4px', lineHeight: 1.5 }}>
+                      {contractDeliverables}
+                    </div>
+                  </div>
+
+                  {/* 2. PAYMENT SCHEDULE & MILESTONES TABLE */}
+                  <div style={{ marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                      2. PAYMENT SCHEDULE & MILESTONES
+                    </h3>
+
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
+                      <thead>
+                        <tr style={{ backgroundColor: '#000', color: '#fff' }}>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '28%' }}>Milestone</th>
+                          <th style={{ textAlign: 'right', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '22%' }}>Amount Due</th>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '50%' }}>Trigger/Terms</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: '1px solid #eee' }}>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Commitment Deposit ({safeDepositPercent}%)</td>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{depositAmount.toLocaleString()}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Required upon signing to lock schedule, technical crew, and reserved hardware</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #eee' }}>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Final Balance ({100 - safeDepositPercent}%)</td>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>{finalPaymentTrigger}</td>
+                        </tr>
+                        <tr style={{ backgroundColor: '#f9fafb' }}>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Total Fee (After Discount)</td>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 900 }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Referenced in Invoice: {invNumber}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+
+                    <p style={{ fontSize: '10.5px', color: '#444', margin: 0 }}>
+                      <strong>Settlement Details:</strong> {invBankName} | Account: {invAccountNumber} ({invAccountName}). Late settlements exceeding 5 business days incur a 5% weekly late fee.
                     </p>
+                  </div>
 
-                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>1. Scope of Engagement & Equipment Schedule</h4>
-                    <p style={{ margin: '0 0 8px 0' }}>{contractScope}</p>
-                    {contractFulfillmentWindow && <p style={{ margin: '0 0 8px 0' }}><strong>Production Window:</strong> {contractFulfillmentWindow}</p>}
+                  {/* 3. KEY OPERATIONAL TERMS */}
+                  <div style={{ marginBottom: '22px' }}>
+                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                      3. KEY OPERATIONAL TERMS
+                    </h3>
+                    <div style={{ whiteSpace: 'pre-line', fontSize: '10.5px', lineHeight: 1.5, color: '#333' }}>
+                      {contractCustomTerms}
+                    </div>
+                  </div>
 
-                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>2. Master Deliverables & Archival Handoff</h4>
-                    <div style={{ whiteSpace: 'pre-line', margin: '0 0 8px 0' }}>{contractDeliverables}</div>
+                  {/* 4. SIGNATURES & ACCEPTANCE */}
+                  <div>
+                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 10px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                      4. SIGNATURES & ACCEPTANCE
+                    </h3>
 
-                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>3. Financial Consideration & Milestone Schedule</h4>
-                    <p style={{ margin: '0 0 4px 0' }}>Total Contract Sum: <strong>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</strong></p>
-                    <p style={{ margin: '0 0 4px 0' }}>• Initial Deposit ({safeDepositPercent}%): <strong>{currencySymbol}{depositAmount.toLocaleString()}</strong> due upon contract signing to lock dates and crew availability.</p>
-                    <p style={{ margin: '0 0 8px 0' }}>• Final Balance: <strong>{currencySymbol}{balanceAmount.toLocaleString()}</strong>. {finalPaymentTrigger}</p>
-
-                    {includeEquipmentSafety && (
-                      <>
-                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>4. On-Site Hardware Security & Production Environment</h4>
-                        <p style={{ margin: '0 0 8px 0' }}>{contractCustomTerms}</p>
-                      </>
-                    )}
-
-                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>5. Execution & Acceptance</h4>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '40px', marginTop: '48px' }}>
-                      <div style={{ borderTop: '2px solid #000', paddingTop: '8px' }}>
-                        <p style={{ margin: '0 0 2px 0', fontWeight: 'bold', fontSize: '13px' }}>TONYSHOTIT STUDIOS</p>
-                        <p style={{ margin: '0', fontSize: '11px', color: '#555' }}>Authorized Signature / Technical Director</p>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#888' }}>Date: ________________________</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '12px' }}>
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
+                        <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
+                        <p style={{ margin: '12px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: Anthony Ibuzo</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Lead Technical Director / Producer</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: {invIssueDate}</p>
                       </div>
 
-                      <div style={{ borderTop: '2px solid #000', paddingTop: '8px' }}>
-                        <p style={{ margin: '0 0 2px 0', fontWeight: 'bold', fontSize: '13px' }}>{contractSignerName || invClientName || 'Authorized Client Representative'}</p>
-                        <p style={{ margin: '0', fontSize: '11px', color: '#555' }}>Authorized Signature & Company Seal</p>
-                        <p style={{ margin: '4px 0 0 0', fontSize: '11px', color: '#888' }}>Date: ________________________</p>
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
+                        <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For the Client:</p>
+                        <p style={{ margin: '12px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: {contractSignerName || '________________________'}</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Organization: {invClientName || 'Client'}</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Authorized Representative</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: ________________________</p>
                       </div>
                     </div>
                   </div>
@@ -1323,7 +1283,7 @@ export const Admin: React.FC = () => {
                     {loading ? 'SAVING...' : editingPortId ? 'UPDATE PROJECT' : 'ADD TO PORTFOLIO'}
                   </button>
                   {editingPortId && (
-                    <button type="button" onClick={resetPortfolioForm} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                    <button type="button" onClick={() => setEditingPortId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                       CANCEL
                     </button>
                   )}
@@ -1338,7 +1298,17 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Category: <strong>{item.category}</strong> | Role: {item.role}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => handleEditPortfolio(item)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                      <button type="button" onClick={() => {
+                        setEditingPortId(item.id || null);
+                        setPortTitle(item.title);
+                        setPortCategory(item.category);
+                        setPortVideoSrc(item.video_src);
+                        setPortRole(item.role);
+                        setPortEquipment(Array.isArray(item.equipment) ? item.equipment.join(', ') : '');
+                        setPortDesc(item.description);
+                        setPortIsVertical(item.is_vertical);
+                        window.scrollTo({ top: 300, behavior: 'smooth' });
+                      }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
                       <button type="button" onClick={() => handleDeletePortfolio(Number(item.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                     </div>
                   </div>
@@ -1386,7 +1356,7 @@ export const Admin: React.FC = () => {
                     {loading ? 'SAVING...' : editingGearId ? 'UPDATE GEAR' : 'ADD TO ARSENAL'}
                   </button>
                   {editingGearId && (
-                    <button type="button" onClick={resetGearForm} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                    <button type="button" onClick={() => setEditingGearId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                       CANCEL
                     </button>
                   )}
@@ -1401,7 +1371,13 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Tag: <strong>{g.tag}</strong> | Category: {g.category}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => handleEditGear(g)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                      <button type="button" onClick={() => {
+                        setEditingGearId(g.id || null);
+                        setGearName(g.name);
+                        setGearCategory(g.category);
+                        setGearTag(g.tag);
+                        setGearDesc(g.description);
+                      }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
                       <button type="button" onClick={() => handleDeleteGear(Number(g.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                     </div>
                   </div>
@@ -1443,7 +1419,7 @@ export const Admin: React.FC = () => {
                     {loading ? 'SAVING...' : editingExpId ? 'UPDATE MILESTONE' : 'ADD MILESTONE'}
                   </button>
                   {editingExpId && (
-                    <button type="button" onClick={resetTimelineForm} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                    <button type="button" onClick={() => setEditingExpId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                       CANCEL
                     </button>
                   )}
@@ -1458,7 +1434,13 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>{t.company}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => handleEditTimeline(t)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                      <button type="button" onClick={() => {
+                        setEditingExpId(t.id || null);
+                        setExpYear(t.year);
+                        setExpTitle(t.title);
+                        setExpCompany(t.company);
+                        setExpResponsibilities(Array.isArray(t.responsibilities) ? t.responsibilities.join('\n') : '');
+                      }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
                       <button type="button" onClick={() => handleDeleteTimeline(Number(t.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                     </div>
                   </div>
