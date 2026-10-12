@@ -120,19 +120,9 @@ export const Admin: React.FC = () => {
     { description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }
   ]);
   const [invNotes, setInvNotes] = useState('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
-  const [includeTerms, setIncludeTerms] = useState(true);
 
   // Contract Customization States
-  const [contractTypePreset, setContractTypePreset] = useState<'broadcast' | 'video_edit'>('broadcast');
-  const [contractTitle, setContractTitle] = useState('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
-  const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('');
-  const [contractScope, setContractScope] = useState('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
-  const [contractDeliverables, setContractDeliverables] = useState('1. Live transmission to designated client destinations\n2. Master program archival recording delivered via Tonyshotit Client Portal\n3. Full-resolution backup media download access');
-  const [depositPercent, setDepositPercent] = useState<number>(70);
-  const [finalPaymentTrigger, setFinalPaymentTrigger] = useState('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
-  const [includeEquipmentSafety, setIncludeEquipmentSafety] = useState(true);
-  const [contractCustomTerms, setContractCustomTerms] = useState('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
-  const [contractSignerName, setContractSignerName] = useState('');
+  const [depositPercent] = useState<number>(70);
   const [printDocumentMode, setPrintDocumentMode] = useState<'invoice' | 'contract'>('invoice');
 
   // CMS Sub-Tabs
@@ -188,24 +178,6 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const handlePresetChange = (preset: 'broadcast' | 'video_edit') => {
-    setContractTypePreset(preset);
-    if (preset === 'broadcast') {
-      setContractTitle('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
-      setContractScope('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
-      setContractDeliverables('1. Live stream broadcast to client streaming endpoints\n2. Master archival program record\n3. Portal download link access');
-      setFinalPaymentTrigger('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
-      setIncludeEquipmentSafety(true);
-      setContractCustomTerms('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
-    } else {
-      setContractTitle('CINEMATOGRAPHY & VIDEO PRODUCTION AGREEMENT');
-      setContractScope('On-site cinematography, sound capture, lighting execution, and multi-stage post-production editing.');
-      setContractDeliverables('1. Master highlight reel (4K/1080p)\n2. Social media cutdowns / vertical deliverables\n3. Up to two (2) complimentary rounds of minor revisions');
-      setFinalPaymentTrigger('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and full asset release occur strictly upon confirmation of 100% balance settlement.');
-      setIncludeEquipmentSafety(false);
-    }
-  };
-
   // --- API FETCHERS ---
   const fetchProjects = async () => {
     try {
@@ -229,28 +201,31 @@ export const Admin: React.FC = () => {
 
   const fetchCmsPortfolio = async () => {
     try {
-      const { data } = await supabase.from('portfolio_projects').select('*').order('id', { ascending: true });
+      const { data, error } = await supabase.from('portfolio_projects').select('*').order('id', { ascending: true });
+      if (error) throw error;
       if (data) setCmsPortfolioList(data);
     } catch (err: any) {
-      console.error(err);
+      console.error('Error fetching portfolio:', err.message);
     }
   };
 
   const fetchCmsGear = async () => {
     try {
-      const { data } = await supabase.from('gear_items').select('*').order('id', { ascending: true });
+      const { data, error } = await supabase.from('gear_items').select('*').order('id', { ascending: true });
+      if (error) throw error;
       if (data) setCmsGearList(data);
     } catch (err: any) {
-      console.error(err);
+      console.error('Error fetching gear:', err.message);
     }
   };
 
   const fetchCmsTimeline = async () => {
     try {
-      const { data } = await supabase.from('experience_timeline').select('*').order('id', { ascending: true });
+      const { data, error } = await supabase.from('experience_timeline').select('*').order('id', { ascending: true });
+      if (error) throw error;
       if (data) setCmsTimelineList(data);
     } catch (err: any) {
-      console.error(err);
+      console.error('Error fetching timeline:', err.message);
     }
   };
 
@@ -279,14 +254,17 @@ export const Admin: React.FC = () => {
   };
 
   const handleDeleteProject = async (id: string) => {
+    if (!id) return;
     if (!window.confirm('Delete this client gallery?')) return;
     try {
+      setProjects((prev) => prev.filter((p) => p.id !== id));
       const { error } = await supabase.from('client_projects').delete().eq('id', id);
       if (error) throw error;
       setStatusMsg({ type: 'success', text: 'Client gallery deleted successfully!' });
       fetchProjects();
     } catch (err: any) {
       setStatusMsg({ type: 'error', text: err.message });
+      fetchProjects();
     }
   };
 
@@ -343,10 +321,10 @@ export const Admin: React.FC = () => {
         .getPublicUrl(cleanFileName);
 
       setPortVideoSrc(publicData.publicUrl);
-      setStatusMsg({ type: 'success', text: `Reel uploaded successfully to Supabase: ${cleanFileName}` });
+      setStatusMsg({ type: 'success', text: `Reel uploaded successfully: ${cleanFileName}` });
     } catch (err: any) {
       console.error('Storage Upload Error:', err);
-      alert(`Upload Failed: ${err.message}.`);
+      alert(`Upload Failed: ${err.message}`);
     } finally {
       setUploadingVideo(false);
     }
@@ -408,14 +386,33 @@ export const Admin: React.FC = () => {
     window.scrollTo({ top: 300, behavior: 'smooth' });
   };
 
-  const handleDeletePortfolio = async (id: number) => {
+  const handleDeletePortfolio = async (id?: number) => {
+    if (!id && id !== 0) {
+      alert('Error: Project ID is missing.');
+      return;
+    }
+
     if (!window.confirm('Delete this portfolio project?')) return;
+
     try {
-      const { error } = await supabase.from('portfolio_projects').delete().eq('id', id);
+      // 1. Instant optimistic local removal
+      setCmsPortfolioList((prev) => prev.filter((p) => p.id !== id));
+
+      // 2. Database deletion
+      const { error } = await supabase
+        .from('portfolio_projects')
+        .delete()
+        .eq('id', id);
+
       if (error) throw error;
+
+      setStatusMsg({ type: 'success', text: 'Portfolio project deleted successfully.' });
       fetchCmsPortfolio();
     } catch (err: any) {
+      console.error('Delete error:', err);
       alert(`Delete failed: ${err.message}`);
+      setStatusMsg({ type: 'error', text: `Delete failed: ${err.message}` });
+      fetchCmsPortfolio(); // Rollback if failed
     }
   };
 
@@ -463,10 +460,19 @@ export const Admin: React.FC = () => {
     setGearDesc(g.description);
   };
 
-  const handleDeleteGear = async (id: number) => {
+  const handleDeleteGear = async (id?: number) => {
+    if (!id && id !== 0) return;
     if (!window.confirm('Delete gear item?')) return;
-    await supabase.from('gear_items').delete().eq('id', id);
-    fetchCmsGear();
+    try {
+      setCmsGearList((prev) => prev.filter((g) => g.id !== id));
+      const { error } = await supabase.from('gear_items').delete().eq('id', id);
+      if (error) throw error;
+      setStatusMsg({ type: 'success', text: 'Gear item deleted!' });
+      fetchCmsGear();
+    } catch (err: any) {
+      alert(`Delete failed: ${err.message}`);
+      fetchCmsGear();
+    }
   };
 
   // --- TIMELINE CMS HANDLERS ---
@@ -513,10 +519,19 @@ export const Admin: React.FC = () => {
     setExpResponsibilities(Array.isArray(exp.responsibilities) ? exp.responsibilities.join('\n') : '');
   };
 
-  const handleDeleteTimeline = async (id: number) => {
+  const handleDeleteTimeline = async (id?: number) => {
+    if (!id && id !== 0) return;
     if (!window.confirm('Delete experience milestone?')) return;
-    await supabase.from('experience_timeline').delete().eq('id', id);
-    fetchCmsTimeline();
+    try {
+      setCmsTimelineList((prev) => prev.filter((t) => t.id !== id));
+      const { error } = await supabase.from('experience_timeline').delete().eq('id', id);
+      if (error) throw error;
+      setStatusMsg({ type: 'success', text: 'Experience milestone deleted!' });
+      fetchCmsTimeline();
+    } catch (err: any) {
+      alert(`Delete failed: ${err.message}`);
+      fetchCmsTimeline();
+    }
   };
 
   // --- INVOICE HANDLERS ---
@@ -573,6 +588,7 @@ export const Admin: React.FC = () => {
     if (!id) return;
     if (!window.confirm('Delete this invoice?')) return;
     try {
+      setInvoices((prev) => prev.filter((inv) => inv.id !== id));
       const { error } = await supabase.from('invoices').delete().eq('id', id);
       if (error) throw error;
       setStatusMsg({ type: 'success', text: 'Invoice record deleted!' });
@@ -580,6 +596,7 @@ export const Admin: React.FC = () => {
       fetchInvoices();
     } catch (err: any) {
       alert(`Delete failed: ${err.message}`);
+      fetchInvoices();
     }
   };
 
@@ -633,11 +650,7 @@ export const Admin: React.FC = () => {
   const taxAmount = Math.round(taxableBase * (safeTaxPercent / 100));
   const extraFeeAmount = Math.max(0, invExtraFeeAmount || 0);
   const invoiceGrandTotal = taxableBase + (showVatRow ? taxAmount : 0) + extraFeeAmount;
-  const safeDepositPercent = Math.min(100, Math.max(0, depositPercent || 70));
-  const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
-  const balanceAmount = invoiceGrandTotal - depositAmount;
   const currencySymbol = invCurrency === 'NGN' ? 'NGN ' : invCurrency === 'GBP' ? '£ ' : invCurrency === 'EUR' ? '€ ' : '$ ';
-  const overtimeRateFormatted = invCurrency === 'NGN' ? 'NGN 25,000' : invCurrency === 'USD' ? '$50' : invCurrency === 'GBP' ? '£40' : '€45';
 
   if (!isAdminAuthenticated) {
     return (
@@ -894,8 +907,8 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Category: <strong>{item.category}</strong> | Role: {item.role}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={() => handleEditPortfolio(item)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                      <button onClick={() => handleDeletePortfolio(item.id!)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                      <button type="button" onClick={() => handleEditPortfolio(item)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                      <button type="button" onClick={() => handleDeletePortfolio(Number(item.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                     </div>
                   </div>
                 ))}
@@ -957,8 +970,8 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Tag: <strong>{g.tag}</strong> | Category: {g.category}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={() => handleEditGear(g)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                      <button onClick={() => handleDeleteGear(g.id!)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                      <button type="button" onClick={() => handleEditGear(g)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                      <button type="button" onClick={() => handleDeleteGear(Number(g.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                     </div>
                   </div>
                 ))}
@@ -1014,8 +1027,8 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>{t.company}</p>
                     </div>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <button onClick={() => handleEditTimeline(t)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                      <button onClick={() => handleDeleteTimeline(t.id!)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                      <button type="button" onClick={() => handleEditTimeline(t)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                      <button type="button" onClick={() => handleDeleteTimeline(Number(t.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                     </div>
                   </div>
                 ))}
@@ -1146,8 +1159,8 @@ export const Admin: React.FC = () => {
                     <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Total: {inv.currency || 'NGN'} {(inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) || 0).toLocaleString()} | Status: {inv.status}</p>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                    <button onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                    <button type="button" onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                    <button type="button" onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                   </div>
                 </div>
               ))}
@@ -1155,6 +1168,39 @@ export const Admin: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* PRINTABLE AREA */}
+      <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
+        {printDocumentMode === 'invoice' && (
+          <div id="printable-invoice-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div>
+                <h1 style={{ fontSize: '2.5rem', fontWeight: '900', margin: 0, color: '#000' }}>INVOICE</h1>
+                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#333' }}><strong>Invoice No:</strong> {invNumber}</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#333' }}><strong>Date:</strong> {invIssueDate}</p>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: '#000' }}>TONYSHOTIT STUDIOS</h2>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>anthony@tonyshotit.com</p>
+                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>tonyshotit.com</p>
+              </div>
+            </div>
+            <hr style={{ border: 'none', borderTop: '1px solid #000', marginBottom: '24px' }} />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
+              <div style={{ width: '360px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd' }}>
+                  <span style={{ fontWeight: 'bold' }}>Subtotal</span>
+                  <span>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', padding: '8px 0', borderBottom: '2px solid #000' }}>
+                  <span>GRAND TOTAL</span>
+                  <span>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
