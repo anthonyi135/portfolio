@@ -10,88 +10,56 @@ interface Experience {
 }
 
 const experiences: Experience[] = [
-    {
+  {
     id: 1,
-    year: '2019 - Present',
-    title: 'Freelance Cinematographer',
-    company: 'Independent',
+    year: '2023 - Present',
+    title: 'Lead Technical Director & Broadcast Engineer',
+    company: 'Tonyshotit Studios / Pan-Atlantic University Broadcasts',
     responsibilities: [
-      'Shooting weddings, events, and corporate videos',
-      'Managing lighting setups for interviews and product shoots',
-      'Building client relationships and managing project workflows',
-      'Developing skills across multiple camera systems',
-      'Operating cinema cameras including RED and Canon C-series & R-series',
+      'Engineered multi-camera broadcast switching for convocation ceremonies, symposiums, and live concerts',
+      'Orchestrated multi-bus signal routing utilizing ATEM 2 M/E, Osee GoStream Duet, and NDI streams',
+      'Configured redundant RTMP live transmission to concurrent client destinations',
+      'Trained junior broadcast operators and camera personnel on live call sheets and tally workflows',
     ],
   },
-    {
+  {
     id: 2,
-    year: '2021 - Present',
-    title: 'Freelance Video Editor',
-    company: 'Independent',
+    year: '2024',
+    title: 'Head of Videography & Visual Coverage',
+    company: 'TEDxPan-Atlantic University',
     responsibilities: [
-      'Shooting and editing branded content for Fortune 500 clients',
-      'Editing & Color grading in DaVinci Resolve',
-      'Creating highlight reels and delivering final products on tight deadlines',
-      'Developing skills across multiple editing platforms',
+      'Directed multi-camera stage coverage and primary speaker cinematography',
+      'Supervised sound capture and continuous low-latency signal distribution',
+      'Managed rapid-turnaround post-production editing for global TEDx publication standards',
     ],
   },
   {
     id: 3,
     year: '2022 - Present',
     title: 'Lead Vision Mixer',
-    company: 'St. Agnes Catholic Church, Lagos.',
+    company: 'St. Agnes Catholic Church, Lagos',
     responsibilities: [
-      'Managing multi-camera live broadcasts for corporate events and conferences',
-      'Operating ATEM switchers and coordinating camera operators',
-      'Implementing NDI workflows for IP-based video production',
-      'Training junior operators on broadcast equipment and protocols',
-    ],
-  },
-    {
-    id: 4,
-    year: '2022 - Present',
-    title: 'Lead Vision Mixer',
-    company: 'St. Agnes Catholic Church, Lagos.',
-    responsibilities: [
+      'Executed weekly live broadcast switching for service audiences exceeding 2,000+ online viewers',
+      'Managed PTZ and manual camera operators across complex multi-angle hall architecture',
+      'Implemented real-time liturgical lower-thirds, hymn overlays, and clean master program recordings',
     ],
   },
   {
-    id: 5,
-    year: '2023 - Present',
-    title: 'Camera Operator & Stream Manager',
-    company: 'Pan-Atlantic University',
+    id: 4,
+    year: '2021 - Present',
+    title: 'Commercial Cinematographer & Colorist',
+    company: 'Independent Commercial Productions',
     responsibilities: [
-      'Operating PTZ and manual cameras for live gaming tournaments',
-      'Managing OBS Studio for multi-stream outputs to Twitch and YouTube',
-      'Coordinating with commentators and production team during live events',
-      'Troubleshooting technical issues in real-time broadcast scenarios',
-    ],
-  },
-    {
-    id: 6,
-    year: '2023 - Present',
-    title: 'Drone Pilot',
-    company: 'Independent',
-    responsibilities: [
-      'Flying drones for aerial photography and videography',
-      'Planning and executing drone flight paths for optimal shots',
-      'Ensuring compliance with local regulations and safety guidelines',
-      'Editing aerial footage and integrating it into final projects',
-    ],
-  },
-     {
-    id: 7,
-    year: 'Nov 2024',
-    title: 'Head, Videography and Photography',
-    company: 'TEDxPan-Atlantic University',
-    responsibilities: [
+      'Operated digital cinema platforms including Canon C-series, Sony FX-series, and BMPCC 6K rigs',
+      'Delivered end-to-end editorial and color grading workflows inside DaVinci Resolve Studio',
+      'Supplied drone aerial cinematography compliant with safety protocols for commercial clients',
     ],
   },
 ];
 
 const Timeline = () => {
   return (
-    <section className="py-24 px-4 bg-black">
+    <section id="experience" className="py-24 sm:py-32 px-4 bg-black border-t border-zinc-900">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -100,40 +68,45 @@ const Timeline = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
         >
-          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
-            Production Experience
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-semibold tracking-widest text-sky-400 uppercase mb-4">
+            <Briefcase className="w-3.5 h-3.5" /> Proven Track Record
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight mb-4">
+            Production & Engineering Track
           </h2>
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            A journey through technical directing, camera operation, and broadcast management
+          <p className="text-sm sm:text-base md:text-lg text-zinc-400 max-w-2xl mx-auto">
+            A verified timeline of live multi-camera broadcast directing, camera operations, and media leadership.
           </p>
         </motion.div>
 
         <div className="relative">
-          <div className="absolute left-0 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-600 via-cyan-500 to-blue-600 transform md:-translate-x-1/2"></div>
+          {/* Vertical Track Line */}
+          <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-zinc-800 transform md:-translate-x-1/2" />
 
           {experiences.map((exp, index) => (
             <motion.div
               key={exp.id}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.2 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
               className={`relative mb-12 md:mb-16 flex flex-col md:flex-row ${
                 index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-              } items-center gap-8`}
+              } items-start md:items-center gap-8 pl-10 md:pl-0`}
             >
               <div className={`w-full md:w-5/12 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                <div className="bg-gray-900 p-6 rounded-xl shadow-xl hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Calendar className="w-5 h-5 text-blue-500" />
-                    <span className="text-blue-400 font-semibold">{exp.year}</span>
+                <div className="bg-zinc-950 p-6 rounded-2xl border border-zinc-800/80 shadow-2xl hover:border-zinc-700 transition-colors">
+                  <div className={`flex items-center gap-2 mb-2 ${index % 2 === 0 ? 'md:justify-end' : 'md:justify-start'}`}>
+                    <Calendar className="w-4 h-4 text-sky-400" />
+                    <span className="text-xs font-bold text-sky-400 tracking-wider uppercase">{exp.year}</span>
                   </div>
-                  <h3 className="text-2xl font-bold text-white mb-2">{exp.title}</h3>
-                  <p className="text-cyan-400 font-medium mb-4">{exp.company}</p>
-                  <ul className={`space-y-2 text-gray-400 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
+                  <h3 className="text-xl font-bold text-white mb-1">{exp.title}</h3>
+                  <p className="text-sm font-semibold text-zinc-400 mb-4">{exp.company}</p>
+                  
+                  <ul className="space-y-2 text-xs sm:text-sm text-zinc-400 text-left">
                     {exp.responsibilities.map((resp, i) => (
                       <li key={i} className="flex items-start gap-2">
-                        <span className="text-blue-500 flex-shrink-0">•</span>
+                        <span className="text-sky-400 shrink-0 font-bold">•</span>
                         <span>{resp}</span>
                       </li>
                     ))}
@@ -141,11 +114,12 @@ const Timeline = () => {
                 </div>
               </div>
 
-              <div className="absolute left-0 md:left-1/2 w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-cyan-600 flex items-center justify-center transform md:-translate-x-1/2 shadow-lg shadow-blue-500/50 z-10">
-                <Briefcase className="w-6 h-6 text-white" />
+              {/* Node Icon on Track */}
+              <div className="absolute left-4 md:left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-zinc-900 border-2 border-sky-400 flex items-center justify-center shadow-lg shadow-sky-500/20 z-10">
+                <div className="w-2 h-2 rounded-full bg-white" />
               </div>
 
-              <div className="w-full md:w-5/12"></div>
+              <div className="hidden md:block w-full md:w-5/12" />
             </motion.div>
           ))}
         </div>

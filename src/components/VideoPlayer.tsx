@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -12,11 +12,11 @@ function isYouTubeUrl(url: string) {
   return /youtube\.com|youtu\.be/.test(url);
 }
 
-const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, poster, isVertical }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [showControls, setShowControls] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
 
   const togglePlay = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
@@ -26,16 +26,10 @@ const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
         videoRef.current.pause();
         setIsPlaying(false);
       } else {
-        const playPromise = videoRef.current.play();
-        if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              setIsPlaying(true);
-            })
-            .catch((err) => {
-              console.log("Playback error on mobile:", err);
-            });
-        }
+        videoRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch((err) => console.log('Playback error:', err));
       }
     }
   };
@@ -56,34 +50,35 @@ const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
       } else if (videoRef.current.requestFullscreen) {
         videoRef.current.requestFullscreen();
       } else if ((videoRef.current as any).webkitEnterFullscreen) {
-        // iOS Chrome/Safari native fullscreen fallback
         (videoRef.current as any).webkitEnterFullscreen();
       }
     }
   };
 
-  // 1. YOUTUBE EMBED (For Live Broadcasts)
+  // 1. YouTube Live Embed
   if (isYouTubeUrl(src)) {
     return (
-      <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden border border-gray-800">
+      <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden border border-zinc-800 shadow-2xl">
         <iframe
           src={src}
-          title="YouTube video player"
+          title="Live Broadcast Player"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          className="w-full h-full rounded-lg border-0"
+          className="w-full h-full border-0"
         />
       </div>
     );
   }
 
-  // 2. HTML5 NATIVE VIDEO PLAYER (Mobile WebKit Compatible)
+  // 2. Native HTML5 Video
   return (
     <div
       className={`relative w-full ${
-        isVertical ? 'aspect-[9/16] max-h-[500px]' : 'aspect-video'
-      } bg-black/90 rounded-lg overflow-hidden group border border-gray-800 flex items-center justify-center`}
-      onClick={(e) => togglePlay(e)}
+        isVertical ? 'aspect-[9/16] max-h-[520px]' : 'aspect-video'
+      } bg-zinc-950 rounded-xl overflow-hidden group border border-zinc-800/80 shadow-2xl flex items-center justify-center cursor-pointer`}
+      onClick={togglePlay}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <video
         ref={videoRef}
@@ -97,50 +92,54 @@ const VideoPlayer = ({ src, poster, isVertical }: VideoPlayerProps) => {
         onEnded={() => setIsPlaying(false)}
       />
 
+      {/* Center Big Play Button */}
+      {!isPlaying && (
+        <motion.button
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          whileHover={{ scale: 1.1 }}
+          onClick={togglePlay}
+          className="absolute z-20 w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white text-black flex items-center justify-center shadow-2xl transition-transform"
+        >
+          <Play className="w-7 h-7 sm:w-8 sm:h-8 fill-black ml-1" />
+        </motion.button>
+      )}
+
+      {/* Bottom Floating Control Bar */}
       <AnimatePresence>
-        {showControls && (
+        {(isHovered || !isPlaying) && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-center justify-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            className="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-center justify-between z-20"
           >
-            {!isPlaying && (
-              <motion.button
-                initial={{ scale: 0.8 }}
-                animate={{ scale: 1 }}
-                whileHover={{ scale: 1.1 }}
-                onClick={(e) => togglePlay(e)}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-blue-600 flex items-center justify-center shadow-2xl hover:bg-blue-500 transition-colors z-20"
-              >
-                <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
-              </motion.button>
-            )}
-
-            <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center gap-3 z-20">
+            <div className="flex items-center gap-3">
               <button
-                onClick={(e) => togglePlay(e)}
-                className="text-white hover:text-blue-400 transition-colors"
+                type="button"
+                onClick={togglePlay}
+                className="text-white hover:text-sky-400 transition-colors"
               >
-                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 fill-white" />}
               </button>
 
               <button
-                onClick={(e) => toggleMute(e)}
-                className="text-white hover:text-blue-400 transition-colors"
+                type="button"
+                onClick={toggleMute}
+                className="text-white hover:text-sky-400 transition-colors"
               >
-                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-              </button>
-
-              <div className="flex-1"></div>
-
-              <button
-                onClick={(e) => toggleFullscreen(e)}
-                className="text-white hover:text-blue-400 transition-colors"
-              >
-                <Maximize className="w-6 h-6" />
+                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="text-white hover:text-sky-400 transition-colors"
+            >
+              <Maximize className="w-5 h-5" />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>

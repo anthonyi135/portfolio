@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Film, Radio, Camera, Cpu } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Film, Radio, Camera, Cpu, Layers } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 
 interface Project {
@@ -20,12 +20,11 @@ const projects: Project[] = [
     id: 1,
     title: 'WHAT A FINALIST FEELS LIKE',
     category: 'video',
-    // FIXED: Supabase domain name corrected (added 'i')
     videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/FINALIST%20EP%201%20FINAL.mp4',
     poster: '',
-    role: 'Director of Photography, Editor',
-    equipment: ['SONY A7III', 'Davinci Resolve Studio'],
-    description: 'This is what it feels like to be a Final Year Student in University. The project captures the essence of the final year experience, highlighting the emotions, challenges, and triumphs of students as they navigate their last year of academic life.',
+    role: 'Director of Photography • Lead Editor',
+    equipment: ['Sony A7III', 'DaVinci Resolve Studio', 'S-Log3 Color Science'],
+    description: 'A cinematic documentary piece capturing the emotional, academic, and personal journey of university final-year students navigating their transition into industry.',
     isVertical: true,
   },
   {
@@ -34,43 +33,40 @@ const projects: Project[] = [
     category: 'live',
     videoSrc: 'https://www.youtube.com/embed/LjIgZi8yz1s?si=dTRXEfO7GtaSXURy&start=17343',
     poster: '/tony_youtube.png',
-    role: 'Technical Director',
-    equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
-    description: 'Multi-camera live broadcast for a 1000+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
+    role: 'Technical Director • Vision Mixer',
+    equipment: ['ATEM Mini Pro', 'Osee GoStream Duet', 'Canon C300 Mark II', 'Sony PXW-Z150', 'BMPCC 6K', 'Hollyland Pyro H System'],
+    description: 'Turnkey live multi-camera broadcast for a live audience of 1,000+ attendees. Engineered 6 synchronous camera feeds, multi-bus audio routing, and low-latency master program delivery.',
   },
   {
     id: 3,
     title: 'PAU IS COMMUNITY',
     category: 'video',
-    // FIXED: Supabase domain name corrected (added 'i')
     videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/PAU%20IN%20COMMUNITY%20FINAL.mp4',
     poster: '',
-    role: 'Director of Photography, Editor',
-    equipment: ['DJI Mini 3', 'SONY A7III', 'DJI RS 5', 'Davinci Resolve Studio'],
-    description: 'This project showcases the core values of Pan-Atlantic University, emphasizing the importance of community engagement, social responsibility, and the impact of collective efforts in fostering a supportive and inclusive environment.',
-    // ADDED: Set to true so this vertical video renders without black side bars
+    role: 'Director of Photography • Colorist',
+    equipment: ['DJI Mini 3', 'Sony A7III', 'DJI RS 5', 'DaVinci Resolve Studio'],
+    description: 'Corporate brand anthem emphasizing collective civic responsibility, inclusivity, and campus community engagement across Pan-Atlantic University.',
     isVertical: true,
   },
-     {
+  {
     id: 4,
     title: 'MEDIA RE-IMAGINED',
     category: 'live',
     videoSrc: 'https://www.youtube.com/embed/wDLlOgtKl9U?si=uWd1kH9CkpE9M3FB',
     poster: '/tony_youtube.png',
-    role: 'Technical Director',
-    equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon c300 Mark II', 'Sony PXW-Z150', 'Blackmagic Pocket Cinema Camera 6K', 'Hollyland Pyro H Wireless Transmitter System'],
-    description: 'Multi-camera live broadcast for a 500+ viewer event. Managed 6 camera angles, audio mixing, and real-time graphics overlay.',
+    role: 'Technical Director • Signal Router',
+    equipment: ['ATEM Mini Pro', 'Sony A7III', 'Osee GoStream Duet', 'Canon C300 Mark II', 'Sony PXW-Z150', 'Hollyland Pyro Systems'],
+    description: 'Symposium broadcast engineering featuring live multi-endpoint transmission, lower-third graphic overlays, and clean HDMI/SDI matrix switching.',
   },
-    {
+  {
     id: 5,
     title: 'STORY BEHIND CROWNEDBYANNIE',
     category: 'video',
-    // FIXED: Supabase domain name corrected (added 'i')
     videoSrc: 'https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/CROWNED%20-%20EP%201%20F.mp4',
     poster: '',
-    role: 'Director of Photography, Editor',
-    equipment: ['SONY A7III', 'Davinci Resolve Studio'],
-    description: 'This is the story behing a Canadian based hairstylist and entrepreneur, CrownedbyAnnie. The project captures the essence of her journey, highlighting the challenges, triumphs, and inspirations that have shaped her career in the beauty industry.',
+    role: 'Cinematographer • Post-Production Lead',
+    equipment: ['Sony A7III', 'DaVinci Resolve Studio', 'Wireless Audio Sync'],
+    description: 'Mini-documentary profile capturing the entrepreneurial trajectory, international expansion, and craft of Canadian-based hairstylist CrownedbyAnnie.',
     isVertical: true,
   },
 ];
@@ -83,8 +79,11 @@ const Portfolio = () => {
   );
 
   return (
-    <section id="portfolio" className="py-16 sm:py-24 px-4 bg-gray-950">
-      <div className="max-w-7xl mx-auto">
+    <section id="portfolio" className="relative py-24 sm:py-32 px-4 bg-black overflow-hidden">
+      {/* Background radial atmosphere */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-blue-950/20 blur-[130px] rounded-full pointer-events-none" />
+
+      <div className="relative max-w-7xl mx-auto z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -92,118 +91,131 @@ const Portfolio = () => {
           transition={{ duration: 0.6 }}
           className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-4 sm:mb-6">
-            Featured Work
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900 border border-zinc-800 text-[11px] font-semibold tracking-widest text-sky-400 uppercase mb-4">
+            <Layers className="w-3.5 h-3.5" /> Selected Productions
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tight mb-4 sm:mb-6">
+            Featured Broadcasts & Films
           </h2>
-          <p className="text-base sm:text-xl text-gray-400 max-w-3xl mx-auto px-2">
-            A curated selection of video production projects and live broadcast experiences
+          <p className="text-sm sm:text-base md:text-lg text-zinc-400 max-w-2xl mx-auto px-2">
+            Explore commercial cinematography, multi-camera live switching, and institutional video productions.
           </p>
         </motion.div>
 
-        <div className="flex flex-wrap justify-center gap-2 sm:gap-4 mb-12 sm:mb-16">
+        {/* Filter Switcher */}
+        <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-14 sm:mb-20">
           <button
             onClick={() => setActiveCategory('all')}
-            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 ${
+            className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide uppercase transition-all duration-300 ${
               activeCategory === 'all'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-white text-black shadow-lg shadow-white/10 scale-105'
+                : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
             }`}
           >
-            All Projects
-          </button>
-          <button
-            onClick={() => setActiveCategory('video')}
-            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center gap-2 ${
-              activeCategory === 'video'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-            }`}
-          >
-            <Film className="w-4 h-4 sm:w-5 sm:h-5" />
-            Video Production
+            All Work ({projects.length})
           </button>
           <button
             onClick={() => setActiveCategory('live')}
-            className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base font-semibold transition-all duration-300 flex items-center gap-2 ${
+            className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide uppercase transition-all duration-300 flex items-center gap-2 ${
               activeCategory === 'live'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50'
-                : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                ? 'bg-sky-500 text-black shadow-lg shadow-sky-500/20 scale-105'
+                : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
             }`}
           >
-            <Radio className="w-4 h-4 sm:w-5 sm:h-5" />
-            Live Broadcasting
+            <Radio className="w-4 h-4" />
+            Live Broadcast ({projects.filter((p) => p.category === 'live').length})
+          </button>
+          <button
+            onClick={() => setActiveCategory('video')}
+            className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide uppercase transition-all duration-300 flex items-center gap-2 ${
+              activeCategory === 'video'
+                ? 'bg-amber-400 text-black shadow-lg shadow-amber-400/20 scale-105'
+                : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
+            }`}
+          >
+            <Film className="w-4 h-4" />
+            Cinematography ({projects.filter((p) => p.category === 'video').length})
           </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 sm:gap-12">
-          {filteredProjects.map((project, index) => (
-            <motion.div
-              key={`${project.id}-${index}`}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: index * 0.1 }}
-              className="bg-gray-900 rounded-xl overflow-hidden shadow-2xl border border-gray-800/50"
-            >
-              <div className="grid md:grid-cols-2 gap-6 md:gap-8 p-4 sm:p-6 md:p-8">
-                {/* 
-                  The layout forces a 50/50 grid. 
-                  VideoPlayer handles internally how the video sits within its half based on isVertical.
-                */}
-                <div className="w-full flex items-center justify-center">
-                  <VideoPlayer 
-                    src={project.videoSrc} 
-                    poster={project.poster} 
-                    isVertical={project.isVertical}
-                  />
-                </div>
-
-                <div className="flex flex-col justify-center mt-2 md:mt-0">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-3">
-                    {project.category === 'video' ? (
-                      <Film className="w-5 h-5 text-blue-500" />
-                    ) : (
-                      <Radio className="w-5 h-5 text-cyan-500" />
-                    )}
-                    <span className="text-xs sm:text-sm text-gray-400 uppercase tracking-wider">
-                      {project.category === 'video' ? 'Video Production' : 'Live Broadcasting'}
-                    </span>
+        {/* Project Cards */}
+        <div className="grid grid-cols-1 gap-12 sm:gap-16">
+          <AnimatePresence mode="popLayout">
+            {filteredProjects.map((project, index) => (
+              <motion.div
+                key={project.id}
+                layout
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.5, delay: index * 0.05 }}
+                className="bg-zinc-950/90 rounded-2xl overflow-hidden border border-zinc-900 hover:border-zinc-800 transition-all duration-300 shadow-2xl backdrop-blur-sm"
+              >
+                <div className="grid md:grid-cols-12 gap-6 md:gap-8 p-5 sm:p-7 md:p-10 items-center">
+                  {/* Media Section */}
+                  <div className={`w-full flex items-center justify-center ${project.isVertical ? 'md:col-span-5' : 'md:col-span-7'}`}>
+                    <div className="w-full max-w-md mx-auto">
+                      <VideoPlayer 
+                        src={project.videoSrc} 
+                        poster={project.poster} 
+                        isVertical={project.isVertical}
+                      />
+                    </div>
                   </div>
 
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4 leading-tight">{project.title}</h3>
-
-                  <div className="mb-4 sm:mb-6">
-                    <div className="flex items-start gap-2 mb-3">
-                      <Camera className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">Role</p>
-                        <p className="text-white text-sm sm:text-base font-medium">{project.role}</p>
-                      </div>
+                  {/* Project Info Section */}
+                  <div className={`flex flex-col justify-center ${project.isVertical ? 'md:col-span-7' : 'md:col-span-5'}`}>
+                    <div className="flex items-center gap-2.5 mb-3">
+                      {project.category === 'video' ? (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/30 text-[11px] font-bold text-amber-400 tracking-widest uppercase">
+                          <Film className="w-3 h-3" /> Digital Cinema
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-500/10 border border-sky-500/30 text-[11px] font-bold text-sky-400 tracking-widest uppercase">
+                          <Radio className="w-3 h-3" /> Live Multi-Cam
+                        </span>
+                      )}
                     </div>
 
-                    <div className="flex items-start gap-2 mb-4">
-                      <Cpu className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Equipment Used</p>
-                        <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                          {project.equipment.map((item, i) => (
-                            <span
-                              key={i}
-                              className="px-2.5 py-1 bg-gray-800 rounded-full text-xs sm:text-sm text-gray-300"
-                            >
-                              {item}
-                            </span>
-                          ))}
+                    <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-4 leading-tight">
+                      {project.title}
+                    </h3>
+
+                    <div className="space-y-3 mb-6">
+                      <div className="flex items-start gap-2.5">
+                        <Camera className="w-4 h-4 text-zinc-400 mt-1 shrink-0" />
+                        <div>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Production Role</p>
+                          <p className="text-sm font-semibold text-zinc-200">{project.role}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2.5">
+                        <Cpu className="w-4 h-4 text-zinc-400 mt-1 shrink-0" />
+                        <div>
+                          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-1.5">Hardware & Pipeline</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {project.equipment.map((item, i) => (
+                              <span
+                                key={i}
+                                className="px-2.5 py-0.5 bg-zinc-900 border border-zinc-800 rounded-md text-[11px] font-medium text-zinc-300"
+                              >
+                                {item}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
 
-                  <p className="text-gray-400 text-sm sm:text-base leading-relaxed">{project.description}</p>
+                    <p className="text-sm text-zinc-400 leading-relaxed">
+                      {project.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       </div>
     </section>
