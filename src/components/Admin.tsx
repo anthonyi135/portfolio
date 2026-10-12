@@ -30,6 +30,7 @@ interface Invoice {
   invoice_number: string;
   client_name: string;
   client_email: string;
+  client_address?: string;
   project_for?: string;
   issue_date: string;
   due_date: string;
@@ -103,6 +104,7 @@ export const Admin: React.FC = () => {
   const [invNumber, setInvNumber] = useState(`TS-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-01`);
   const [invClientName, setInvClientName] = useState('');
   const [invClientEmail, setInvClientEmail] = useState('');
+  const [invClientAddress, setInvClientAddress] = useState('');
   const [invProjectFor, setInvProjectFor] = useState('');
   const [invIssueDate, setInvIssueDate] = useState(new Date().toISOString().split('T')[0]);
   const [invDueDate, setInvDueDate] = useState('');
@@ -307,11 +309,9 @@ export const Admin: React.FC = () => {
 
     try {
       if (editingProjectId) {
-        const { error } = await supabase.from('client_projects').update(payload).eq('id', editingProjectId);
-        if (error) throw error;
+        await supabase.from('client_projects').update(payload).eq('id', editingProjectId);
       } else {
-        const { error } = await supabase.from('client_projects').insert([payload]);
-        if (error) throw error;
+        await supabase.from('client_projects').insert([payload]);
       }
       resetGalleryForm();
       fetchProjects();
@@ -440,6 +440,7 @@ export const Admin: React.FC = () => {
     setInvNumber(`TS-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-01`);
     setInvClientName('');
     setInvClientEmail('');
+    setInvClientAddress('');
     setInvProjectFor('');
     setInvIssueDate(new Date().toISOString().split('T')[0]);
     setInvDueDate('');
@@ -463,6 +464,7 @@ export const Admin: React.FC = () => {
     setInvNumber(inv.invoice_number);
     setInvClientName(inv.client_name);
     setInvClientEmail(inv.client_email || '');
+    setInvClientAddress(inv.client_address || '');
     setInvProjectFor(inv.project_for || '');
     setInvIssueDate(inv.issue_date);
     setInvDueDate(inv.due_date || '');
@@ -499,6 +501,7 @@ export const Admin: React.FC = () => {
       invoice_number: invNumber,
       client_name: invClientName,
       client_email: invClientEmail,
+      client_address: invClientAddress,
       project_for: invProjectFor,
       issue_date: invIssueDate,
       due_date: invDueDate,
@@ -544,6 +547,7 @@ export const Admin: React.FC = () => {
   const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
   const balanceAmount = invoiceGrandTotal - depositAmount;
   const currencySymbol = invCurrency === 'NGN' ? 'NGN ' : invCurrency === 'GBP' ? '£ ' : invCurrency === 'EUR' ? '€ ' : '$ ';
+  const overtimeRateFormatted = invCurrency === 'NGN' ? 'NGN 25,000' : invCurrency === 'USD' ? '$50' : invCurrency === 'GBP' ? '£40' : '€45';
 
   if (!isAdminAuthenticated) {
     return (
@@ -650,6 +654,20 @@ export const Admin: React.FC = () => {
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>FOR (PROJECT / EVENT)</label>
                 <input type="text" value={invProjectFor} onChange={(e) => setInvProjectFor(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
+            </div>
+
+            {/* OPTIONAL MULTI-LINE ADDRESS FIELD */}
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+                CLIENT PHYSICAL / BILLING ADDRESS (OPTIONAL - MULTI-LINE)
+              </label>
+              <textarea 
+                rows={2} 
+                value={invClientAddress} 
+                onChange={(e) => setInvClientAddress(e.target.value)} 
+                placeholder="e.g. Km 52, Lekki-Epe Expressway,&#10;Ibeju-Lekki, Lagos, Nigeria&#10;(Leave empty if not required)" 
+                style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }} 
+              />
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' }}>
@@ -922,11 +940,11 @@ export const Admin: React.FC = () => {
 
             <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', padding: '4px' }}>
               
-              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH RELOCATED TIN & BN */}
+              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH OPTIONAL MULTI-LINE ADDRESS */}
               {printDocumentMode === 'invoice' && (
                 <div id="printable-invoice-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
                   
-                  {/* Clean Top Header (Uncluttered) */}
+                  {/* Clean Top Header */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                     <div>
                       <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000', letterSpacing: '-0.5px' }}>INVOICE</h1>
@@ -948,7 +966,7 @@ export const Admin: React.FC = () => {
 
                   <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
 
-                  {/* Two-Column Parties: FROM & BILL TO */}
+                  {/* Two-Column Parties: FROM & BILL TO (WITH CONDITIONAL MULTI-LINE ADDRESS) */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
                     <div style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
                       <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>FROM</p>
@@ -962,6 +980,14 @@ export const Admin: React.FC = () => {
                       <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>BILL TO</p>
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>{invClientName || 'Client Name / Organization'}</h3>
                       {invClientEmail && <p style={{ margin: '2px 0', fontSize: '12px' }}>{invClientEmail}</p>}
+                      
+                      {/* CONDITIONAL MULTI-LINE ADDRESS */}
+                      {invClientAddress && invClientAddress.trim() && (
+                        <p style={{ margin: '4px 0 2px 0', fontSize: '11.5px', color: '#4b5563', whiteSpace: 'pre-line', lineHeight: 1.4 }}>
+                          {invClientAddress.trim()}
+                        </p>
+                      )}
+
                       {invProjectFor && <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#0284c7', fontWeight: 'bold' }}>For: {invProjectFor}</p>}
                     </div>
                   </div>
