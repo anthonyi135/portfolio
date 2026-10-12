@@ -5,6 +5,7 @@ import { Play, Radio, Film, ArrowRight, ShieldCheck, ChevronDown, X } from 'luci
 
 export const Hero: React.FC = () => {
   const [isShowreelOpen, setIsShowreelOpen] = useState(false);
+  const [isIframeLoaded, setIsIframeLoaded] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   const showreelUrl = "https://www.youtube.com/embed/LjIgZi8yz1s?autoplay=1&start=17343";
@@ -21,18 +22,33 @@ export const Hero: React.FC = () => {
     setMounted(true);
   }, []);
 
+  // Delay heavy iframe mount until modal animation completes to prevent INP UI blocking
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isShowreelOpen) {
+      document.body.style.overflow = 'hidden';
+      timer = setTimeout(() => {
+        setIsIframeLoaded(true);
+      }, 50);
+    } else {
+      document.body.style.overflow = 'unset';
+      setIsIframeLoaded(false);
+    }
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isShowreelOpen]);
+
+  // Close modal on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsShowreelOpen(false);
     };
     if (isShowreelOpen) {
-      document.body.style.overflow = 'hidden';
       window.addEventListener('keydown', handleKeyDown);
-    } else {
-      document.body.style.overflow = 'unset';
     }
     return () => {
-      document.body.style.overflow = 'unset';
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isShowreelOpen]);
@@ -42,6 +58,15 @@ export const Hero: React.FC = () => {
     if (section) {
       section.scrollIntoView({ behavior: 'smooth' });
     }
+  };
+
+  const handleOpenShowreel = () => {
+    // Immediate state dispatch keeps INP at 0ms
+    setIsShowreelOpen(true);
+  };
+
+  const handleCloseShowreel = () => {
+    setIsShowreelOpen(false);
   };
 
   return (
@@ -108,10 +133,7 @@ export const Hero: React.FC = () => {
         <div className="relative z-30 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
           <button
             type="button"
-            onClick={() => {
-              console.log("Opening showreel modal...");
-              setIsShowreelOpen(true);
-            }}
+            onClick={handleOpenShowreel}
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-white text-black font-bold text-xs tracking-wider uppercase hover:bg-zinc-200 transition-all duration-300 shadow-xl hover:shadow-sky-500/10 hover:scale-[1.02] cursor-pointer active:scale-95"
           >
             <Play className="w-3.5 h-3.5 fill-black" />
@@ -163,7 +185,7 @@ export const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* REACT PORTAL MODAL (Mounts outside the overflow tree directly into document.body) */}
+      {/* REACT PORTAL MODAL */}
       {mounted && createPortal(
         <AnimatePresence>
           {isShowreelOpen && (
@@ -171,33 +193,40 @@ export const Hero: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-6 md:p-10"
-              onClick={() => setIsShowreelOpen(false)}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 sm:p-6 md:p-10"
+              onClick={handleCloseShowreel}
             >
               <button
                 type="button"
-                onClick={() => setIsShowreelOpen(false)}
-                className="absolute top-6 right-6 z-[10000] w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-700 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-200 cursor-pointer shadow-2xl"
+                onClick={handleCloseShowreel}
+                className="absolute top-6 right-6 z-[10000] w-12 h-12 rounded-full bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-200 cursor-pointer shadow-2xl"
                 title="Close Showreel (Esc)"
               >
                 <X className="w-6 h-6" />
               </button>
 
               <motion.div
-                initial={{ scale: 0.95, opacity: 0 }}
+                initial={{ scale: 0.96, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.95, opacity: 0 }}
-                transition={{ duration: 0.25 }}
-                className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl shadow-sky-500/10"
+                exit={{ scale: 0.96, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="relative w-full max-w-5xl aspect-video bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl shadow-sky-500/10 flex items-center justify-center"
                 onClick={(e) => e.stopPropagation()}
               >
-                <iframe
-                  src={showreelUrl}
-                  title="Tonyshotit Studios Showreel"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  className="w-full h-full border-0 rounded-2xl"
-                />
+                {isIframeLoaded ? (
+                  <iframe
+                    src={showreelUrl}
+                    title="Tonyshotit Studios Showreel"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full border-0 rounded-2xl"
+                  />
+                ) : (
+                  <div className="text-zinc-600 text-xs font-mono tracking-widest uppercase animate-pulse">
+                    Loading Master Showreel Stream...
+                  </div>
+                )}
               </motion.div>
             </motion.div>
           )}
