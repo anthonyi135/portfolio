@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Radio, Film, ArrowRight, ShieldCheck, ChevronDown, X } from 'lucide-react';
 
 export const Hero: React.FC = () => {
   const [isShowreelOpen, setIsShowreelOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  // Default featured showreel video embed (Nostalgia Concert / Broadcast highlight)
   const showreelUrl = "https://www.youtube.com/embed/LjIgZi8yz1s?autoplay=1&start=17343";
 
   const clientList = [
@@ -16,7 +17,10 @@ export const Hero: React.FC = () => {
     'WHITESANDS SCHOOL',
   ];
 
-  // Close modal on ESC key
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsShowreelOpen(false);
@@ -41,11 +45,11 @@ export const Hero: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-white flex flex-col justify-between overflow-hidden pt-28 md:pt-36">
+    <div className="relative min-h-screen bg-black text-white flex flex-col justify-between pt-28 md:pt-36">
       {/* Background Lighting & Grid Texture */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/25 via-black to-black pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/25 via-black to-black pointer-events-none z-0" />
       <div 
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        className="absolute inset-0 opacity-[0.03] pointer-events-none z-0"
         style={{
           backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
           backgroundSize: '48px 48px',
@@ -53,7 +57,7 @@ export const Hero: React.FC = () => {
       />
 
       {/* Main Content Container */}
-      <div className="relative max-w-6xl mx-auto px-5 w-full flex-1 flex flex-col justify-center items-center text-center z-10 py-10">
+      <div className="relative max-w-6xl mx-auto px-5 w-full flex-1 flex flex-col justify-center items-center text-center z-10 py-10 pointer-events-auto">
         
         {/* Dual Pillar Pill Badge */}
         <motion.div
@@ -101,17 +105,14 @@ export const Hero: React.FC = () => {
         </motion.p>
 
         {/* Interactive CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto"
-        >
-          {/* Watch Showreel Button triggering Cinema Modal */}
+        <div className="relative z-30 flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto">
           <button
             type="button"
-            onClick={() => setIsShowreelOpen(true)}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-white text-black font-bold text-xs tracking-wider uppercase hover:bg-zinc-200 transition-all duration-300 shadow-xl hover:shadow-sky-500/10 hover:scale-[1.02] cursor-pointer"
+            onClick={() => {
+              console.log("Opening showreel modal...");
+              setIsShowreelOpen(true);
+            }}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-white text-black font-bold text-xs tracking-wider uppercase hover:bg-zinc-200 transition-all duration-300 shadow-xl hover:shadow-sky-500/10 hover:scale-[1.02] cursor-pointer active:scale-95"
           >
             <Play className="w-3.5 h-3.5 fill-black" />
             Watch Showreel
@@ -124,13 +125,13 @@ export const Hero: React.FC = () => {
             Request Production Quote
             <ArrowRight className="w-3.5 h-3.5" />
           </a>
-        </motion.div>
+        </div>
 
         {/* Scroll Prompt Arrow */}
         <motion.div
           animate={{ y: [0, 6, 0] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="mt-14 text-zinc-600 hidden md:block cursor-pointer hover:text-zinc-400 transition-colors"
+          className="mt-14 text-zinc-600 hidden md:block cursor-pointer hover:text-zinc-400 transition-colors z-20"
           onClick={scrollToPortfolio}
         >
           <ChevronDown className="w-5 h-5" />
@@ -138,7 +139,7 @@ export const Hero: React.FC = () => {
       </div>
 
       {/* Selected Clients & Institutions Ticker Ribbon */}
-      <div className="relative w-full border-y border-zinc-900/90 bg-zinc-950/70 backdrop-blur-md py-4 overflow-hidden z-20">
+      <div className="relative w-full border-y border-zinc-900/90 bg-zinc-950/70 backdrop-blur-md py-4 overflow-hidden z-10">
         <div className="max-w-7xl mx-auto px-4 mb-2 flex items-center justify-center gap-2">
           <span className="h-px w-8 bg-zinc-800" />
           <p className="text-[10px] tracking-widest text-zinc-500 uppercase font-semibold text-center">
@@ -147,7 +148,6 @@ export const Hero: React.FC = () => {
           <span className="h-px w-8 bg-zinc-800" />
         </div>
 
-        {/* Infinite CSS Animation Track */}
         <div className="flex overflow-hidden select-none whitespace-nowrap">
           <div className="flex shrink-0 animate-marquee items-center justify-around gap-12 sm:gap-20 text-xs sm:text-sm font-bold tracking-widest text-zinc-400">
             {clientList.concat(clientList).map((client, idx) => (
@@ -163,45 +163,47 @@ export const Hero: React.FC = () => {
         </div>
       </div>
 
-      {/* FULLSCREEN CINEMA SHOWREEL MODAL */}
-      <AnimatePresence>
-        {isShowreelOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-6 md:p-10"
-            onClick={() => setIsShowreelOpen(false)}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setIsShowreelOpen(false)}
-              className="absolute top-6 right-6 z-50 w-11 h-11 rounded-full bg-zinc-900/80 border border-zinc-700/80 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-200"
-              title="Close (Esc)"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Video Container */}
+      {/* REACT PORTAL MODAL (Mounts outside the overflow tree directly into document.body) */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {isShowreelOpen && (
             <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3 }}
-              className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl shadow-sky-500/10"
-              onClick={(e) => e.stopPropagation()}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-6 md:p-10"
+              onClick={() => setIsShowreelOpen(false)}
             >
-              <iframe
-                src={showreelUrl}
-                title="Tonyshotit Studios Showreel"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full border-0 rounded-2xl"
-              />
+              <button
+                type="button"
+                onClick={() => setIsShowreelOpen(false)}
+                className="absolute top-6 right-6 z-[10000] w-12 h-12 rounded-full bg-zinc-900/90 border border-zinc-700 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-200 cursor-pointer shadow-2xl"
+                title="Close Showreel (Esc)"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+                transition={{ duration: 0.25 }}
+                className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl shadow-sky-500/10"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <iframe
+                  src={showreelUrl}
+                  title="Tonyshotit Studios Showreel"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  className="w-full h-full border-0 rounded-2xl"
+                />
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };
