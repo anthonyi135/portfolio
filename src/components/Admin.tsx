@@ -83,7 +83,7 @@ export const Admin: React.FC = () => {
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [adminPinInput, setAdminPinInput] = useState('');
   const [pinError, setPinError] = useState('');
-  const [activeTab, setActiveTab] = useState<'invoices' | 'galleries' | 'cms'>('invoices');
+  const [activeTab, setActiveTab] = useState<'invoices' | 'galleries' | 'cms'>('galleries');
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   // Gallery States
@@ -208,28 +208,119 @@ export const Admin: React.FC = () => {
 
   // --- API FETCHERS ---
   const fetchProjects = async () => {
-    const { data } = await supabase.from('client_projects').select('*').order('created_at', { ascending: false });
-    if (data) setProjects(data);
+    try {
+      const { data, error } = await supabase.from('client_projects').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      if (data) setProjects(data);
+    } catch (err: any) {
+      console.error('Error fetching galleries:', err.message);
+    }
   };
 
   const fetchInvoices = async () => {
-    const { data } = await supabase.from('invoices').select('*').order('created_at', { ascending: false });
-    if (data) setInvoices(data);
+    try {
+      const { data, error } = await supabase.from('invoices').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      if (data) setInvoices(data);
+    } catch (err: any) {
+      console.error('Error fetching invoices:', err.message);
+    }
   };
 
   const fetchCmsPortfolio = async () => {
-    const { data } = await supabase.from('portfolio_projects').select('*').order('id', { ascending: true });
-    if (data) setCmsPortfolioList(data);
+    try {
+      const { data } = await supabase.from('portfolio_projects').select('*').order('id', { ascending: true });
+      if (data) setCmsPortfolioList(data);
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
   const fetchCmsGear = async () => {
-    const { data } = await supabase.from('gear_items').select('*').order('id', { ascending: true });
-    if (data) setCmsGearList(data);
+    try {
+      const { data } = await supabase.from('gear_items').select('*').order('id', { ascending: true });
+      if (data) setCmsGearList(data);
+    } catch (err: any) {
+      console.error(err);
+    }
   };
 
   const fetchCmsTimeline = async () => {
-    const { data } = await supabase.from('experience_timeline').select('*').order('id', { ascending: true });
-    if (data) setCmsTimelineList(data);
+    try {
+      const { data } = await supabase.from('experience_timeline').select('*').order('id', { ascending: true });
+      if (data) setCmsTimelineList(data);
+    } catch (err: any) {
+      console.error(err);
+    }
+  };
+
+  // --- GALLERY HANDLERS ---
+  const resetGalleryForm = () => {
+    setEditingProjectId(null);
+    setClientName('');
+    setProjectTitle('');
+    setSlug('');
+    setPin('');
+    setDownloadUrl('');
+    setDirectorNotes('');
+    setVideos([{ title: 'Main Stream', url: '' }]);
+  };
+
+  const handleEditProject = (proj: Project) => {
+    setEditingProjectId(proj.id || null);
+    setClientName(proj.client_name || '');
+    setProjectTitle(proj.project_title || '');
+    setSlug(proj.slug || '');
+    setPin(proj.pin || '');
+    setDownloadUrl(proj.download_url || '');
+    setDirectorNotes(proj.director_notes || '');
+    setVideos(Array.isArray(proj.videos) && proj.videos.length > 0 ? proj.videos : [{ title: 'Main Stream', url: (proj as any).video_url || '' }]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    if (!window.confirm('Delete this client gallery?')) return;
+    try {
+      const { error } = await supabase.from('client_projects').delete().eq('id', id);
+      if (error) throw error;
+      setStatusMsg({ type: 'success', text: 'Client gallery deleted successfully!' });
+      fetchProjects();
+    } catch (err: any) {
+      setStatusMsg({ type: 'error', text: err.message });
+    }
+  };
+
+  const handleGallerySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const payload = {
+      client_name: clientName,
+      project_title: projectTitle,
+      slug,
+      pin,
+      videos,
+      video_url: videos[0]?.url || '',
+      download_url: downloadUrl,
+      director_notes: directorNotes,
+    };
+
+    try {
+      if (editingProjectId) {
+        const { error } = await supabase.from('client_projects').update(payload).eq('id', editingProjectId);
+        if (error) throw error;
+        setStatusMsg({ type: 'success', text: 'Client gallery updated!' });
+      } else {
+        const { error } = await supabase.from('client_projects').insert([payload]);
+        if (error) throw error;
+        setStatusMsg({ type: 'success', text: 'Client gallery published!' });
+      }
+      resetGalleryForm();
+      fetchProjects();
+    } catch (err: any) {
+      setStatusMsg({ type: 'error', text: err.message });
+    } finally {
+      setLoading(false);
+    }
   };
 
   // --- SUPABASE STORAGE REEL UPLOAD ---
@@ -255,7 +346,7 @@ export const Admin: React.FC = () => {
       setStatusMsg({ type: 'success', text: `Reel uploaded successfully to Supabase: ${cleanFileName}` });
     } catch (err: any) {
       console.error('Storage Upload Error:', err);
-      alert(`Upload Failed: ${err.message}. Make sure your 'portfolio-videos' bucket allows public inserts.`);
+      alert(`Upload Failed: ${err.message}.`);
     } finally {
       setUploadingVideo(false);
     }
@@ -428,6 +519,112 @@ export const Admin: React.FC = () => {
     fetchCmsTimeline();
   };
 
+  // --- INVOICE HANDLERS ---
+  const resetInvoiceForm = () => {
+    setEditingInvoiceId(null);
+    setInvNumber(`TS-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-01`);
+    setInvClientName('');
+    setInvClientEmail('');
+    setInvProjectFor('');
+    setInvIssueDate(new Date().toISOString().split('T')[0]);
+    setInvDueDate('');
+    setInvCurrency('NGN');
+    setInvStatus('Sent');
+    setInvBankName('GT Bank');
+    setInvAccountNumber('0430859996');
+    setInvAccountName('Anthony Ibuzo');
+    setInvDiscount(0);
+    setInvTaxPercent(0);
+    setShowVatRow(true);
+    setInvExtraFeeLabel('');
+    setInvExtraFeeAmount(0);
+    setInvItems([{ description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }]);
+    setInvNotes('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
+  };
+
+  const handleEditInvoice = (inv: Invoice) => {
+    setEditingInvoiceId(inv.id || null);
+    setInvNumber(inv.invoice_number);
+    setInvClientName(inv.client_name);
+    setInvClientEmail(inv.client_email || '');
+    setInvProjectFor(inv.project_for || '');
+    setInvIssueDate(inv.issue_date);
+    setInvDueDate(inv.due_date || '');
+    setInvCurrency(inv.currency || 'NGN');
+    setInvStatus(inv.status || 'Sent');
+    setInvBankName(inv.bank_name || 'GT Bank');
+    setInvAccountNumber(inv.account_number || '0430859996');
+    setInvAccountName(inv.account_name || 'Anthony Ibuzo');
+    setInvDiscount(inv.discount || 0);
+    setInvTaxPercent(inv.tax_percent || 0);
+    setShowVatRow(inv.show_vat_row !== undefined ? inv.show_vat_row : true);
+    setInvExtraFeeLabel(inv.extra_fee_label || '');
+    setInvExtraFeeAmount(inv.extra_fee_amount || 0);
+    setInvItems(
+      inv.items && inv.items.length > 0
+        ? inv.items.map(item => ({ ...item, sub_description: item.sub_description || '' }))
+        : [{ description: '', sub_description: '', quantity: 1, rate: 0 }]
+    );
+    setInvNotes(inv.notes || '');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteInvoice = async (id?: string) => {
+    if (!id) return;
+    if (!window.confirm('Delete this invoice?')) return;
+    try {
+      const { error } = await supabase.from('invoices').delete().eq('id', id);
+      if (error) throw error;
+      setStatusMsg({ type: 'success', text: 'Invoice record deleted!' });
+      if (editingInvoiceId === id) resetInvoiceForm();
+      fetchInvoices();
+    } catch (err: any) {
+      alert(`Delete failed: ${err.message}`);
+    }
+  };
+
+  const handleInvoiceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const payload = {
+      invoice_number: invNumber,
+      client_name: invClientName,
+      client_email: invClientEmail,
+      project_for: invProjectFor,
+      issue_date: invIssueDate,
+      due_date: invDueDate,
+      currency: invCurrency,
+      status: invStatus,
+      bank_name: invBankName,
+      account_number: invAccountNumber,
+      account_name: invAccountName,
+      discount: invDiscount || 0,
+      tax_percent: invTaxPercent || 0,
+      show_vat_row: showVatRow,
+      extra_fee_label: invExtraFeeLabel || '',
+      extra_fee_amount: invExtraFeeAmount || 0,
+      items: invItems,
+      notes: invNotes,
+    };
+
+    try {
+      if (editingInvoiceId) {
+        const { error } = await supabase.from('invoices').update(payload).eq('id', editingInvoiceId);
+        if (error) throw error;
+        setStatusMsg({ type: 'success', text: 'Invoice updated!' });
+      } else {
+        const { error } = await supabase.from('invoices').insert([payload]);
+        if (error) throw error;
+        setStatusMsg({ type: 'success', text: 'Invoice saved!' });
+      }
+      fetchInvoices();
+    } catch (err: any) {
+      setStatusMsg({ type: 'error', text: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Financial calculations
   const servicesSubtotal = invItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.rate || 0), 0);
   const discountAmount = Math.max(0, invDiscount || 0);
@@ -481,14 +678,14 @@ export const Admin: React.FC = () => {
 
       {/* TOP TABS */}
       <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', borderBottom: '1px solid #222', paddingBottom: '16px', marginBottom: '24px' }}>
-        <button onClick={() => setActiveTab('invoices')} style={{ flex: '1 1 auto', minWidth: '150px', padding: '10px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: activeTab === 'invoices' ? '#fff' : '#111', color: activeTab === 'invoices' ? '#000' : '#888', border: '1px solid #333' }}>
-          🧾 Invoices & Agreements
+        <button onClick={() => setActiveTab('galleries')} style={{ flex: '1 1 auto', minWidth: '130px', padding: '10px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: activeTab === 'galleries' ? '#fff' : '#111', color: activeTab === 'galleries' ? '#000' : '#888', border: '1px solid #333' }}>
+          🎬 Client Deliveries ({projects.length})
         </button>
         <button onClick={() => setActiveTab('cms')} style={{ flex: '1 1 auto', minWidth: '150px', padding: '10px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: activeTab === 'cms' ? '#38bdf8' : '#111', color: activeTab === 'cms' ? '#000' : '#888', border: '1px solid #333' }}>
           🌐 Website CMS (Portfolio & Gear)
         </button>
-        <button onClick={() => setActiveTab('galleries')} style={{ flex: '1 1 auto', minWidth: '130px', padding: '10px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: activeTab === 'galleries' ? '#fff' : '#111', color: activeTab === 'galleries' ? '#000' : '#888', border: '1px solid #333' }}>
-          🎬 Client Deliveries
+        <button onClick={() => setActiveTab('invoices')} style={{ flex: '1 1 auto', minWidth: '150px', padding: '10px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: activeTab === 'invoices' ? '#fff' : '#111', color: activeTab === 'invoices' ? '#000' : '#888', border: '1px solid #333' }}>
+          🧾 Invoices & Agreements ({invoices.length})
         </button>
       </div>
 
@@ -498,10 +695,106 @@ export const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* ===================== TAB 1: WEBSITE CMS ===================== */}
+      {/* ===================== TAB 1: CLIENT DELIVERIES & GALLERIES ===================== */}
+      {activeTab === 'galleries' && (
+        <div className="no-print">
+          <form onSubmit={handleGallerySubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
+              {editingProjectId ? 'EDIT CLIENT GALLERY LINK' : 'CREATE NEW CLIENT DELIVERY GALLERY'}
+            </h2>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>CLIENT / ORGANIZATION</label>
+                <input type="text" required value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="e.g. Pan-Atlantic University" style={{ width: '100%', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>PROJECT TITLE</label>
+                <input type="text" required value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder="e.g. Convocation 2026 Master Delivery" style={{ width: '100%', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '20px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>URL SLUG (tonyshotit.com/client/[slug])</label>
+                <input type="text" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="e.g. pau-convocation" style={{ width: '100%', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>CLIENT ACCESS PIN</label>
+                <input type="text" required value={pin} onChange={(e) => setPin(e.target.value)} placeholder="e.g. 2026" style={{ width: '100%', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px', borderTop: '1px solid #222', paddingTop: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold' }}>VIDEO STREAMS ({videos.length})</label>
+                <button type="button" onClick={() => setVideos([...videos, { title: `Stream ${videos.length + 1}`, url: '' }])} style={{ padding: '6px 12px', fontSize: '11px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer' }}>
+                  + Add Another Video Stream
+                </button>
+              </div>
+
+              {videos.map((vid, idx) => (
+                <div key={idx} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
+                  <input type="text" placeholder="Title (e.g. Day 1 Morning Session)" value={vid.title} onChange={(e) => { const updated = [...videos]; updated[idx].title = e.target.value; setVideos(updated); }} style={{ flex: '1 1 140px', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" placeholder="Direct Video URL (.mp4 or embed)" value={vid.url} onChange={(e) => { const updated = [...videos]; updated[idx].url = e.target.value; setVideos(updated); }} style={{ flex: '2 1 200px', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  {videos.length > 1 && (
+                    <button type="button" onClick={() => setVideos(videos.filter((_, i) => i !== idx))} style={{ padding: '8px 12px', backgroundColor: '#300', color: '#f88', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✕</button>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: '14px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>FULL RESOLUTION DOWNLOAD LINK (Google Drive / Dropbox ZIP)</label>
+              <input type="text" value={downloadUrl} onChange={(e) => setDownloadUrl(e.target.value)} placeholder="https://drive.google.com/..." style={{ width: '100%', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>DIRECTOR NOTES & HANDOFF INSTRUCTIONS</label>
+              <textarea rows={3} value={directorNotes} onChange={(e) => setDirectorNotes(e.target.value)} placeholder="Notes for the client regarding download expiry, revisions, or color profiles..." style={{ width: '100%', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              <button type="submit" disabled={loading} style={{ flex: 1, minWidth: '160px', padding: '12px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                {loading ? 'SAVING...' : editingProjectId ? 'UPDATE GALLERY LINK' : 'PUBLISH CLIENT GALLERY'}
+              </button>
+              {editingProjectId && (
+                <button type="button" onClick={resetGalleryForm} style={{ padding: '12px 18px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  CANCEL
+                </button>
+              )}
+            </div>
+          </form>
+
+          {/* PUBLISHED LIST */}
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '16px', borderBottom: '1px solid #222', paddingBottom: '8px' }}>
+            ACTIVE CLIENT GALLERIES ({projects.length})
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {projects.map((proj) => (
+              <div key={proj.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '14px', borderRadius: '6px', border: '1px solid #222', gap: '10px' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', color: '#fff' }}>{proj.client_name} - {proj.project_title}</h3>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Slug: <code style={{ color: '#38bdf8' }}>/client/{proj.slug}</code> | PIN: <strong style={{ color: '#fff' }}>{proj.pin}</strong></p>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  <a href={`/client/${proj.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 10px', backgroundColor: '#1e293b', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '4px', fontSize: '11px', textDecoration: 'none', fontWeight: 'bold' }}>
+                    View ↗
+                  </a>
+                  <button type="button" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/client/${proj.slug}`); alert('Link copied!'); }} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#ccc', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Copy</button>
+                  <button type="button" onClick={() => handleEditProject(proj)} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                  <button type="button" onClick={() => handleDeleteProject(proj.id!)} style={{ padding: '6px 10px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ===================== TAB 2: WEBSITE CMS ===================== */}
       {activeTab === 'cms' && (
         <div className="no-print">
-          {/* CMS Sub-Switcher */}
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', backgroundColor: '#0a0a0a', padding: '6px', borderRadius: '8px', border: '1px solid #222' }}>
             <button onClick={() => setCmsSubTab('portfolio')} style={{ flex: 1, padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: cmsSubTab === 'portfolio' ? '#fff' : 'transparent', color: cmsSubTab === 'portfolio' ? '#000' : '#888', border: 'none' }}>
               🎥 Portfolio Projects ({cmsPortfolioList.length})
@@ -536,7 +829,6 @@ export const Admin: React.FC = () => {
                   </div>
                 </div>
 
-                {/* VIDEO SOURCE & SUPABASE DIRECT STORAGE UPLOAD */}
                 <div style={{ backgroundColor: '#18181b', padding: '12px', borderRadius: '6px', border: '1px solid #27272a', marginBottom: '14px' }}>
                   <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
                     VIDEO URL (Supabase Storage .mp4 or YouTube Embed)
@@ -594,7 +886,6 @@ export const Admin: React.FC = () => {
                 </div>
               </form>
 
-              {/* LIST */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {cmsPortfolioList.map((item) => (
                   <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
@@ -643,7 +934,7 @@ export const Admin: React.FC = () => {
 
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ fontSize: '11px', color: '#888' }}>DESCRIPTION</label>
-                  <textarea rows={2} required value={gearDesc} onChange={(e) => setGearDesc(e.target.value)} placeholder="Technical specifications and use case..." style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <textarea rows={2} required value={gearDesc} onChange={(e) => setGearDesc(e.target.value)} placeholder="Technical specifications..." style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -734,7 +1025,7 @@ export const Admin: React.FC = () => {
         </div>
       )}
 
-      {/* ===================== TAB 2: INVOICES ===================== */}
+      {/* ===================== TAB 3: INVOICES & AGREEMENTS ===================== */}
       {activeTab === 'invoices' && (
         <div>
           <div className="no-print" style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
@@ -750,7 +1041,6 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* INVOICE META ROW 1 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888' }}>INVOICE NUMBER</label>
@@ -766,7 +1056,6 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* INVOICE META ROW 2 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '12px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888' }}>CLIENT / COMPANY</label>
@@ -782,7 +1071,6 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* INVOICE META ROW 3 */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888' }}>CURRENCY</label>
@@ -811,7 +1099,6 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* LINE ITEMS */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
                 TAXABLE SERVICE LINE ITEMS
@@ -835,53 +1122,37 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
-            {/* ACTION BUTTONS */}
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px' }}>
-              <button type="button" onClick={() => window.print()} style={{ flex: 1, padding: '12px', backgroundColor: '#1e293b', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                🖨️ PRINT PREVIEW
+              <button type="button" onClick={handleInvoiceSubmit} disabled={loading} style={{ flex: 2, padding: '12px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                {loading ? 'SAVING...' : editingInvoiceId ? 'UPDATE RECORD' : 'SAVE TO DATABASE'}
+              </button>
+              <button type="button" onClick={() => { setPrintDocumentMode('invoice'); setTimeout(() => window.print(), 100); }} style={{ flex: 1, padding: '12px', backgroundColor: '#1e293b', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                🖨️ PRINT INVOICE
+              </button>
+              <button type="button" onClick={() => { setPrintDocumentMode('contract'); setTimeout(() => window.print(), 100); }} style={{ flex: 1, padding: '12px', backgroundColor: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                📄 PRINT AGREEMENT
               </button>
             </div>
           </div>
 
-          {/* PRINTABLE AREA */}
-          <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)' }}>
-            {printDocumentMode === 'invoice' && (
-              <div id="printable-invoice-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+          {/* INVOICE SAVED RECORDS */}
+          <div className="no-print" style={{ marginTop: '24px' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px' }}>SAVED INVOICES ({invoices.length})</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {invoices.map((inv) => (
+                <div key={inv.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222' }}>
                   <div>
-                    <h1 style={{ fontSize: '2.5rem', fontWeight: '900', margin: 0, color: '#000' }}>INVOICE</h1>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#333' }}><strong>Invoice No:</strong> {invNumber}</p>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#333' }}><strong>Date:</strong> {invIssueDate}</p>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{inv.invoice_number} - {inv.client_name}</h4>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Total: {inv.currency || 'NGN'} {(inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) || 0).toLocaleString()} | Status: {inv.status}</p>
                   </div>
-                  <div style={{ textAlign: 'right' }}>
-                    <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: '#000' }}>TONYSHOTIT STUDIOS</h2>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>anthony@tonyshotit.com</p>
-                    <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>tonyshotit.com</p>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                    <button onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                   </div>
                 </div>
-                <hr style={{ border: 'none', borderTop: '1px solid #000', marginBottom: '24px' }} />
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
-                  <div style={{ width: '360px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd' }}>
-                      <span style={{ fontWeight: 'bold' }}>Subtotal</span>
-                      <span>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', padding: '8px 0', borderBottom: '2px solid #000' }}>
-                      <span>GRAND TOTAL</span>
-                      <span>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* ===================== TAB 3: CLIENT DELIVERIES ===================== */}
-      {activeTab === 'galleries' && (
-        <div className="no-print">
-          <p style={{ color: '#888', fontSize: '13px' }}>Client portal management is active.</p>
         </div>
       )}
     </div>
