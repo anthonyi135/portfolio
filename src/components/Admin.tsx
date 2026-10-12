@@ -120,8 +120,19 @@ export const Admin: React.FC = () => {
     { description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }
   ]);
   const [invNotes, setInvNotes] = useState('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
+  const [includeTerms, setIncludeTerms] = useState(true);
 
   // Contract Customization States
+  const [contractTypePreset, setContractTypePreset] = useState<'broadcast' | 'video_edit'>('broadcast');
+  const [contractTitle, setContractTitle] = useState('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
+  const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('');
+  const [contractScope, setContractScope] = useState('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
+  const [contractDeliverables, setContractDeliverables] = useState('1. Live transmission to designated client destinations\n2. Master program archival recording delivered via Tonyshotit Client Portal\n3. Full-resolution backup media download access');
+  const [depositPercent, setDepositPercent] = useState<number>(70);
+  const [finalPaymentTrigger, setFinalPaymentTrigger] = useState('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
+  const [includeEquipmentSafety, setIncludeEquipmentSafety] = useState(true);
+  const [contractCustomTerms, setContractCustomTerms] = useState('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
+  const [contractSignerName, setContractSignerName] = useState('');
   const [printDocumentMode, setPrintDocumentMode] = useState<'invoice' | 'contract'>('invoice');
 
   // CMS Sub-Tabs
@@ -174,6 +185,24 @@ export const Admin: React.FC = () => {
       setPinError('');
     } else {
       setPinError('Invalid Admin Passcode');
+    }
+  };
+
+  const handlePresetChange = (preset: 'broadcast' | 'video_edit') => {
+    setContractTypePreset(preset);
+    if (preset === 'broadcast') {
+      setContractTitle('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
+      setContractScope('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
+      setContractDeliverables('1. Live stream broadcast to client streaming endpoints\n2. Master archival program record\n3. Portal download link access');
+      setFinalPaymentTrigger('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
+      setIncludeEquipmentSafety(true);
+      setContractCustomTerms('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
+    } else {
+      setContractTitle('CINEMATOGRAPHY & VIDEO PRODUCTION AGREEMENT');
+      setContractScope('On-site cinematography, sound capture, lighting execution, and multi-stage post-production editing.');
+      setContractDeliverables('1. Master highlight reel (4K/1080p)\n2. Social media cutdowns / vertical deliverables\n3. Up to two (2) complimentary rounds of minor revisions');
+      setFinalPaymentTrigger('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and full asset release occur strictly upon confirmation of 100% balance settlement.');
+      setIncludeEquipmentSafety(false);
     }
   };
 
@@ -390,9 +419,7 @@ export const Admin: React.FC = () => {
       alert('Error: Project ID is missing.');
       return;
     }
-
     if (!window.confirm('Delete this portfolio project?')) return;
-
     try {
       setCmsPortfolioList((prev) => prev.filter((p) => p.id !== id));
       const { error } = await supabase.from('portfolio_projects').delete().eq('id', id);
@@ -641,9 +668,13 @@ export const Admin: React.FC = () => {
   const taxAmount = Math.round(taxableBase * (safeTaxPercent / 100));
   const extraFeeAmount = Math.max(0, invExtraFeeAmount || 0);
   const invoiceGrandTotal = taxableBase + (showVatRow ? taxAmount : 0) + extraFeeAmount;
+  const safeDepositPercent = Math.min(100, Math.max(0, depositPercent || 70));
+  const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
+  const balanceAmount = invoiceGrandTotal - depositAmount;
   const currencySymbol = invCurrency === 'NGN' ? 'NGN ' : invCurrency === 'GBP' ? '£ ' : invCurrency === 'EUR' ? '€ ' : '$ ';
+  const overtimeRateFormatted = invCurrency === 'NGN' ? 'NGN 25,000' : invCurrency === 'USD' ? '$50' : invCurrency === 'GBP' ? '£40' : '€45';
 
-  // Reusable input styling for mobile responsive stability
+  // Responsive styling helpers
   const inputStyle: React.CSSProperties = {
     width: '100%',
     maxWidth: '100%',
@@ -706,7 +737,7 @@ export const Admin: React.FC = () => {
         </button>
       </div>
 
-      {/* TOP TABS - Horizontal scrollable & tap-friendly on mobile */}
+      {/* TOP TABS */}
       <div className="no-print" style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '20px', WebkitOverflowScrolling: 'touch' }}>
         <button 
           onClick={() => setActiveTab('invoices')} 
@@ -844,7 +875,7 @@ export const Admin: React.FC = () => {
               </div>
             </div>
 
-            {/* LINE ITEMS SECTION - FULLY RESPONSIVE */}
+            {/* LINE ITEMS SECTION */}
             <div style={{ marginBottom: '16px', borderTop: '1px solid #27272a', paddingTop: '14px' }}>
               <label style={{ fontSize: '11px', color: '#a1a1aa', fontWeight: 'bold', display: 'block', marginBottom: '10px', textTransform: 'uppercase' }}>
                 TAXABLE SERVICE LINE ITEMS
@@ -852,8 +883,6 @@ export const Admin: React.FC = () => {
 
               {invItems.map((item, idx) => (
                 <div key={idx} style={{ backgroundColor: '#141416', padding: '12px', borderRadius: '8px', border: '1px solid #27272a', marginBottom: '10px', boxSizing: 'border-box', width: '100%', overflow: 'hidden' }}>
-                  
-                  {/* Top Line: Item Name & Delete Button */}
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px' }}>
                     <input 
                       type="text" 
@@ -877,7 +906,6 @@ export const Admin: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Bottom Line: Qty & Rate (Clean mobile flex that does not overflow) */}
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '100%' }}>
                     <div style={{ width: '80px', flexShrink: 0 }}>
                       <input 
@@ -918,6 +946,175 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
+            {/* RESTORED: FINANCIAL ADJUSTMENTS & VAT / TAX CONTROLS */}
+            <div style={{ backgroundColor: '#141416', padding: '14px', borderRadius: '8px', border: '1px solid #27272a', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '12px' }}>
+                Discounts, VAT & Disbursements
+              </h3>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={labelStyle}>DISCOUNT ({currencySymbol.trim()})</label>
+                  <input
+                    type="number"
+                    value={invDiscount === 0 ? '' : invDiscount}
+                    onChange={(e) => setInvDiscount(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>VAT / TAX PERCENT (%)</label>
+                  <input
+                    type="number"
+                    value={invTaxPercent === 0 ? '' : invTaxPercent}
+                    onChange={(e) => setInvTaxPercent(parseFloat(e.target.value) || 0)}
+                    placeholder="e.g. 7.5"
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                <input
+                  type="checkbox"
+                  id="showVatRow"
+                  checked={showVatRow}
+                  onChange={(e) => setShowVatRow(e.target.checked)}
+                  style={{ accentColor: '#38bdf8', width: '16px', height: '16px' }}
+                />
+                <label htmlFor="showVatRow" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>
+                  Show VAT row on invoice (check to include explicit tax row or exemption note)
+                </label>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px' }}>
+                <div>
+                  <label style={labelStyle}>EXTRA DISBURSEMENT / FEE LABEL</label>
+                  <input
+                    type="text"
+                    value={invExtraFeeLabel}
+                    onChange={(e) => setInvExtraFeeLabel(e.target.value)}
+                    placeholder="e.g. Generator Fuel & Logistics"
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label style={labelStyle}>EXTRA FEE AMOUNT ({currencySymbol.trim()})</label>
+                  <input
+                    type="number"
+                    value={invExtraFeeAmount === 0 ? '' : invExtraFeeAmount}
+                    onChange={(e) => setInvExtraFeeAmount(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* RESTORED: AGREEMENT CUSTOMIZATION OPTIONS */}
+            <div style={{ backgroundColor: '#141416', padding: '14px', borderRadius: '8px', border: '1px solid #27272a', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', textTransform: 'uppercase', margin: 0 }}>
+                  Agreement / Contract Terms & Structure
+                </h3>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button
+                    type="button"
+                    onClick={() => handlePresetChange('broadcast')}
+                    style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: contractTypePreset === 'broadcast' ? '#38bdf8' : '#27272a', color: contractTypePreset === 'broadcast' ? '#000' : '#aaa', border: 'none' }}
+                  >
+                    Broadcast Preset
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handlePresetChange('video_edit')}
+                    style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: contractTypePreset === 'video_edit' ? '#38bdf8' : '#27272a', color: contractTypePreset === 'video_edit' ? '#000' : '#aaa', border: 'none' }}
+                  >
+                    Cinema Preset
+                  </button>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+                <div>
+                  <label style={labelStyle}>AGREEMENT TITLE</label>
+                  <input type="text" value={contractTitle} onChange={(e) => setContractTitle(e.target.value)} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>FULFILLMENT / PRODUCTION WINDOW</label>
+                  <input type="text" value={contractFulfillmentWindow} onChange={(e) => setContractFulfillmentWindow(e.target.value)} placeholder="e.g. October 24 – 26, 2026" style={inputStyle} />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '10px' }}>
+                <label style={labelStyle}>SCOPE OF PRODUCTION WORK</label>
+                <textarea rows={2} value={contractScope} onChange={(e) => setContractScope(e.target.value)} style={{ ...inputStyle, minHeight: '55px' }} />
+              </div>
+
+              <div style={{ marginBottom: '10px' }}>
+                <label style={labelStyle}>DELIVERABLES & ARCHIVAL SPECIFICATIONS</label>
+                <textarea rows={3} value={contractDeliverables} onChange={(e) => setContractDeliverables(e.target.value)} style={{ ...inputStyle, minHeight: '65px' }} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '10px', marginBottom: '10px' }}>
+                <div>
+                  <label style={labelStyle}>DEPOSIT COMMITMENT (%)</label>
+                  <input type="number" value={depositPercent} onChange={(e) => setDepositPercent(parseFloat(e.target.value) || 0)} style={inputStyle} />
+                </div>
+                <div>
+                  <label style={labelStyle}>AUTHORIZED CLIENT SIGNER NAME</label>
+                  <input type="text" value={contractSignerName} onChange={(e) => setContractSignerName(e.target.value)} placeholder="e.g. Engr. Babatunde Alabi" style={inputStyle} />
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '10px' }}>
+                <label style={labelStyle}>FINAL PAYMENT RELEASE TRIGGER</label>
+                <input type="text" value={finalPaymentTrigger} onChange={(e) => setFinalPaymentTrigger(e.target.value)} style={inputStyle} />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                <input
+                  type="checkbox"
+                  id="includeEquipmentSafety"
+                  checked={includeEquipmentSafety}
+                  onChange={(e) => setIncludeEquipmentSafety(e.target.checked)}
+                  style={{ accentColor: '#38bdf8', width: '16px', height: '16px' }}
+                />
+                <label htmlFor="includeEquipmentSafety" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>
+                  Include on-site hardware protection and attendee liability clause
+                </label>
+              </div>
+
+              <div>
+                <label style={labelStyle}>CUSTOM OPERATIONAL TERMS & CLIENT OBLIGATIONS</label>
+                <textarea rows={2} value={contractCustomTerms} onChange={(e) => setContractCustomTerms(e.target.value)} style={{ ...inputStyle, minHeight: '50px' }} />
+              </div>
+            </div>
+
+            {/* GENERAL INVOICE NOTES & TERMS */}
+            <div style={{ marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <input
+                  type="checkbox"
+                  id="includeTerms"
+                  checked={includeTerms}
+                  onChange={(e) => setIncludeTerms(e.target.checked)}
+                  style={{ accentColor: '#38bdf8', width: '16px', height: '16px' }}
+                />
+                <label htmlFor="includeTerms" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>
+                  Include formal terms of service & payment conditions on printed document
+                </label>
+              </div>
+              <textarea
+                rows={2}
+                value={invNotes}
+                onChange={(e) => setInvNotes(e.target.value)}
+                placeholder="Invoice notes, wire instructions or special reminders..."
+                style={{ ...inputStyle, minHeight: '50px' }}
+              />
+            </div>
+
             {/* ACTION BUTTONS */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '8px', marginTop: '16px' }}>
               <button 
@@ -942,6 +1139,192 @@ export const Admin: React.FC = () => {
               >
                 📄 PRINT AGREEMENT
               </button>
+            </div>
+          </div>
+
+          {/* RESTORED: LIVE DOCUMENT PREVIEW CONTAINER (VISIBLE ON SCREEN) */}
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#38bdf8', margin: 0 }}>
+                LIVE PREVIEW: {printDocumentMode === 'invoice' ? 'OFFICIAL INVOICE' : 'PRODUCTION SERVICES AGREEMENT'}
+              </h3>
+              <span style={{ fontSize: '11px', color: '#71717a' }}>Changes above update here instantly</span>
+            </div>
+
+            <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', padding: '6px' }}>
+              
+              {/* 1. VISIBLE INVOICE PREVIEW */}
+              {printDocumentMode === 'invoice' && (
+                <div id="printable-invoice-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, Helvetica, sans-serif', boxSizing: 'border-box' }}>
+                  
+                  {/* Invoice Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+                    <div>
+                      <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000', letterSpacing: '-0.5px' }}>INVOICE</h1>
+                      <p style={{ margin: '6px 0 2px 0', fontSize: '13px', color: '#222' }}><strong>Invoice No:</strong> {invNumber}</p>
+                      <p style={{ margin: '2px 0', fontSize: '13px', color: '#222' }}><strong>Date of Issue:</strong> {invIssueDate}</p>
+                      {invDueDate && <p style={{ margin: '2px 0', fontSize: '13px', color: '#b91c1c' }}><strong>Payment Due:</strong> {invDueDate}</p>}
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: '#000' }}>TONYSHOTIT STUDIOS</h2>
+                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>Live Broadcast & Commercial Digital Cinema</p>
+                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>RC/BN: 9926513 • TIN: 2622415188316</p>
+                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>anthony@tonyshotit.com • tonyshotit.com</p>
+                    </div>
+                  </div>
+
+                  <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
+
+                  {/* Client Billing Info */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+                    <div>
+                      <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>BILLED TO</p>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0, color: '#000' }}>{invClientName || 'Client Name / Organization'}</h3>
+                      {invClientEmail && <p style={{ fontSize: '12px', margin: '2px 0', color: '#333' }}>{invClientEmail}</p>}
+                      {invProjectFor && <p style={{ fontSize: '12px', margin: '4px 0 0 0', color: '#0284c7', fontWeight: 600 }}>Project: {invProjectFor}</p>}
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ display: 'inline-block', padding: '4px 12px', backgroundColor: invStatus === 'Paid' ? '#dcfce7' : '#fef3c7', color: invStatus === 'Paid' ? '#15803d' : '#b45309', borderRadius: '4px', fontSize: '12px', fontWeight: 'bold' }}>
+                        STATUS: {invStatus.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Items Table */}
+                  <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#000', color: '#fff' }}>
+                        <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '55%' }}>Description</th>
+                        <th style={{ textAlign: 'center', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '15%' }}>Qty</th>
+                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '15%' }}>Unit Rate</th>
+                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '15%' }}>Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {invItems.map((item, idx) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #e5e5e5' }}>
+                          <td style={{ padding: '10px 12px', fontSize: '12px' }}>
+                            <strong>{item.description || 'Service line item'}</strong>
+                            {item.sub_description && <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{item.sub_description}</div>}
+                          </td>
+                          <td style={{ textAlign: 'center', padding: '10px 12px', fontSize: '12px' }}>{item.quantity}</td>
+                          <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
+                          <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px', fontWeight: 'bold' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {/* Calculations & Totals */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
+                    <div style={{ width: '380px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee' }}>
+                        <span style={{ color: '#555' }}>Services Subtotal</span>
+                        <span style={{ fontWeight: 600 }}>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
+                      </div>
+
+                      {discountAmount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee', color: '#16a34a' }}>
+                          <span>Discount Applied</span>
+                          <span>- {currencySymbol}{discountAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+
+                      {showVatRow && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee' }}>
+                          <span style={{ color: '#555' }}>VAT ({safeTaxPercent}%)</span>
+                          <span>{safeTaxPercent > 0 ? `${currencySymbol}${taxAmount.toLocaleString()}` : '0.00 (Small Business Exempt)'}</span>
+                        </div>
+                      )}
+
+                      {extraFeeAmount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '5px 0', borderBottom: '1px solid #eee' }}>
+                          <span style={{ color: '#555' }}>{invExtraFeeLabel || 'Disbursements / Logistics'}</span>
+                          <span style={{ fontWeight: 600 }}>{currencySymbol}{extraFeeAmount.toLocaleString()}</span>
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 900, padding: '10px 0', borderBottom: '2px solid #000' }}>
+                        <span>GRAND TOTAL</span>
+                        <span>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Banking & Remittance */}
+                  <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '6px', padding: '16px', marginBottom: '20px' }}>
+                    <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold' }}>Remittance / Banking Instructions</h4>
+                    <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Bank:</strong> {invBankName}</p>
+                    <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
+                    <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
+                  </div>
+
+                  {/* Terms & Notes */}
+                  {includeTerms && (
+                    <div style={{ fontSize: '10px', color: '#666', borderTop: '1px solid #eee', paddingTop: '12px', lineHeight: 1.5 }}>
+                      <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#333' }}>TERMS & CONDITIONS:</p>
+                      <p style={{ margin: '0 0 2px 0' }}>1. A standard {depositPercent}% non-refundable commitment deposit confirms booking and gear lock.</p>
+                      <p style={{ margin: '0 0 2px 0' }}>2. Overtime beyond agreed call-sheet hours is billed at {overtimeRateFormatted} per additional hour.</p>
+                      <p style={{ margin: '0 0 2px 0' }}>3. Full high-resolution media master release occurs upon 100% final balance settlement.</p>
+                      {invNotes && <p style={{ margin: '6px 0 0 0', fontStyle: 'italic', color: '#444' }}>Notes: {invNotes}</p>}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 2. VISIBLE AGREEMENT PREVIEW */}
+              {printDocumentMode === 'contract' && (
+                <div id="printable-contract-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, Helvetica, sans-serif', boxSizing: 'border-box' }}>
+                  
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                    <h1 style={{ fontSize: '1.6rem', fontWeight: 900, margin: '0 0 6px 0', textTransform: 'uppercase', color: '#000' }}>
+                      {contractTitle}
+                    </h1>
+                    <p style={{ fontSize: '12px', color: '#555', margin: 0 }}>Reference Document: {invNumber} • Effective Date: {invIssueDate}</p>
+                  </div>
+
+                  <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
+
+                  <div style={{ fontSize: '12px', lineHeight: 1.6, color: '#222' }}>
+                    <p style={{ marginBottom: '14px' }}>
+                      This Agreement is executed between <strong>TONYSHOTIT STUDIOS</strong> (BN: 9926513), hereinafter referred to as the "Service Provider," and <strong>{invClientName || 'Client / Organization'}</strong>, hereinafter referred to as the "Client."
+                    </p>
+
+                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>1. Scope of Engagement & Equipment Schedule</h4>
+                    <p style={{ margin: '0 0 8px 0' }}>{contractScope}</p>
+                    {contractFulfillmentWindow && <p style={{ margin: '0 0 8px 0' }}><strong>Production Window:</strong> {contractFulfillmentWindow}</p>}
+
+                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>2. Master Deliverables & Archival Handoff</h4>
+                    <div style={{ whiteSpace: 'pre-line', margin: '0 0 8px 0' }}>{contractDeliverables}</div>
+
+                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>3. Financial Consideration & Milestone Schedule</h4>
+                    <p style={{ margin: '0 0 4px 0' }}>Total Contract Sum: <strong>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</strong></p>
+                    <p style={{ margin: '0 0 4px 0' }}>• Initial Deposit ({safeDepositPercent}%): <strong>{currencySymbol}{depositAmount.toLocaleString()}</strong> due upon contract signing to lock dates and crew availability.</p>
+                    <p style={{ margin: '0 0 8px 0' }}>• Final Balance: <strong>{currencySymbol}{balanceAmount.toLocaleString()}</strong>. {finalPaymentTrigger}</p>
+
+                    {includeEquipmentSafety && (
+                      <>
+                        <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>4. On-Site Hardware Security & Production Environment</h4>
+                        <p style={{ margin: '0 0 8px 0' }}>{contractCustomTerms}</p>
+                      </>
+                    )}
+
+                    <h4 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '14px 0 4px 0' }}>5. Execution & Acceptance</h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '36px' }}>
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '8px' }}>
+                        <p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>TONYSHOTIT STUDIOS</p>
+                        <p style={{ margin: '0', fontSize: '11px', color: '#555' }}>Authorized Signature / Technical Director</p>
+                      </div>
+
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '8px' }}>
+                        <p style={{ margin: '0 0 2px 0', fontWeight: 'bold' }}>{contractSignerName || invClientName || 'Authorized Client Representative'}</p>
+                        <p style={{ margin: '0', fontSize: '11px', color: '#555' }}>Signature & Date</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1290,41 +1673,8 @@ export const Admin: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* PRINTABLE AREA (Hidden on screen, isolated for clean PDF printing) */}
-      <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '4px', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', display: 'none' }}>
-        {printDocumentMode === 'invoice' && (
-          <div id="printable-invoice-document" style={{ minWidth: '700px', backgroundColor: '#fff', color: '#000', padding: '40px', fontFamily: 'Arial, sans-serif' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-              <div>
-                <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000' }}>INVOICE</h1>
-                <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#333' }}><strong>Invoice No:</strong> {invNumber}</p>
-                <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#333' }}><strong>Date:</strong> {invIssueDate}</p>
-              </div>
-              <div style={{ textAlign: 'right' }}>
-                <h2 style={{ fontSize: '1.8rem', fontWeight: 'bold', margin: 0, color: '#000' }}>TONYSHOTIT STUDIOS</h2>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>anthony@tonyshotit.com</p>
-                <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#555' }}>tonyshotit.com</p>
-              </div>
-            </div>
-            <hr style={{ border: 'none', borderTop: '1px solid #000', marginBottom: '24px' }} />
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
-              <div style={{ width: '360px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd' }}>
-                  <span style={{ fontWeight: 'bold' }}>Subtotal</span>
-                  <span>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', padding: '8px 0', borderBottom: '2px solid #000' }}>
-                  <span>GRAND TOTAL</span>
-                  <span>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   );
 };
 
-export default Admin; 
+export default Admin;
