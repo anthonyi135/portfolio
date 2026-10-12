@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Camera, Mic, Monitor, Cpu, Video, Sliders, ShieldCheck } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface GearItem {
   id: number;
@@ -11,7 +12,7 @@ interface GearItem {
   description: string;
 }
 
-const gearItems: GearItem[] = [
+const defaultGearItems: GearItem[] = [
   {
     id: 1,
     name: 'Blackmagic ATEM Multi-Bus Switchers',
@@ -86,10 +87,58 @@ const gearItems: GearItem[] = [
   },
 ];
 
+const getTagIcon = (tag: string) => {
+  switch (tag) {
+    case 'vision':
+      return Sliders;
+    case 'cinema':
+      return Camera;
+    case 'wireless':
+      return Monitor;
+    case 'audio':
+      return Mic;
+    case 'aerial':
+      return Camera;
+    default:
+      return Cpu;
+  }
+};
+
 const GearKit = () => {
   const [filter, setFilter] = useState<'all' | 'vision' | 'cinema' | 'wireless' | 'audio'>('all');
+  const [gearList, setGearList] = useState<GearItem[]>(defaultGearItems);
 
-  const filteredGear = gearItems.filter((item) =>
+  // Fetch real-time gear list from Supabase CMS table
+  useEffect(() => {
+    const fetchLiveGear = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('gear_items')
+          .select('*')
+          .order('display_order', { ascending: true })
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const mapped: GearItem[] = data.map((d) => ({
+            id: d.id,
+            name: d.name,
+            category: d.category,
+            tag: d.tag,
+            icon: getTagIcon(d.tag),
+            description: d.description,
+          }));
+          setGearList(mapped);
+        }
+      } catch (err) {
+        console.log('Using static gear fallback:', err);
+      }
+    };
+
+    fetchLiveGear();
+  }, []);
+
+  const filteredGear = gearList.filter((item) =>
     filter === 'all' ? true : item.tag === filter
   );
 

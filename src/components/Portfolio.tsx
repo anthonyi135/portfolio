@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Film, Radio, Camera, Cpu, Layers } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
+import { supabase } from '../lib/supabase';
 
 interface Project {
   id: number;
@@ -15,7 +16,7 @@ interface Project {
   isVertical?: boolean;
 }
 
-const projects: Project[] = [
+const defaultProjects: Project[] = [
   {
     id: 1,
     title: 'WHAT A FINALIST FEELS LIKE',
@@ -73,8 +74,42 @@ const projects: Project[] = [
 
 const Portfolio = () => {
   const [activeCategory, setActiveCategory] = useState<'all' | 'video' | 'live'>('all');
+  const [projectsList, setProjectsList] = useState<Project[]>(defaultProjects);
 
-  const filteredProjects = projects.filter((project) =>
+  // Fetch real-time portfolio items from Supabase CMS table
+  useEffect(() => {
+    const fetchLiveProjects = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('portfolio_projects')
+          .select('*')
+          .order('display_order', { ascending: true })
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const mapped: Project[] = data.map((d) => ({
+            id: d.id,
+            title: d.title,
+            category: d.category,
+            videoSrc: d.video_src,
+            poster: d.poster || '',
+            role: d.role,
+            equipment: Array.isArray(d.equipment) ? d.equipment : [],
+            description: d.description,
+            isVertical: d.is_vertical,
+          }));
+          setProjectsList(mapped);
+        }
+      } catch (err) {
+        console.log('Using static portfolio fallback:', err);
+      }
+    };
+
+    fetchLiveProjects();
+  }, []);
+
+  const filteredProjects = projectsList.filter((project) =>
     activeCategory === 'all' ? true : project.category === activeCategory
   );
 
@@ -112,7 +147,7 @@ const Portfolio = () => {
                 : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'
             }`}
           >
-            All Work ({projects.length})
+            All Work ({projectsList.length})
           </button>
           <button
             onClick={() => setActiveCategory('live')}
@@ -123,7 +158,7 @@ const Portfolio = () => {
             }`}
           >
             <Radio className="w-4 h-4" />
-            Live Broadcast ({projects.filter((p) => p.category === 'live').length})
+            Live Broadcast ({projectsList.filter((p) => p.category === 'live').length})
           </button>
           <button
             onClick={() => setActiveCategory('video')}
@@ -134,7 +169,7 @@ const Portfolio = () => {
             }`}
           >
             <Film className="w-4 h-4" />
-            Cinematography ({projects.filter((p) => p.category === 'video').length})
+            Cinematography ({projectsList.filter((p) => p.category === 'video').length})
           </button>
         </div>
 

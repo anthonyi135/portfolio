@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Briefcase, Calendar } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface Experience {
   id: number;
@@ -9,7 +11,7 @@ interface Experience {
   responsibilities: string[];
 }
 
-const experiences: Experience[] = [
+const defaultExperiences: Experience[] = [
   {
     id: 1,
     year: '2023 - Present',
@@ -58,6 +60,37 @@ const experiences: Experience[] = [
 ];
 
 const Timeline = () => {
+  const [experiencesList, setExperiencesList] = useState<Experience[]>(defaultExperiences);
+
+  // Fetch real-time experience timeline from Supabase CMS table
+  useEffect(() => {
+    const fetchLiveTimeline = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('experience_timeline')
+          .select('*')
+          .order('display_order', { ascending: true })
+          .order('id', { ascending: true });
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          const mapped: Experience[] = data.map((d) => ({
+            id: d.id,
+            year: d.year,
+            title: d.title,
+            company: d.company,
+            responsibilities: Array.isArray(d.responsibilities) ? d.responsibilities : [],
+          }));
+          setExperiencesList(mapped);
+        }
+      } catch (err) {
+        console.log('Using static timeline fallback:', err);
+      }
+    };
+
+    fetchLiveTimeline();
+  }, []);
+
   return (
     <section id="experience" className="py-24 sm:py-32 px-4 bg-black border-t border-zinc-900">
       <div className="max-w-5xl mx-auto">
@@ -83,7 +116,7 @@ const Timeline = () => {
           {/* Vertical Track Line */}
           <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-px bg-zinc-800 transform md:-translate-x-1/2" />
 
-          {experiences.map((exp, index) => (
+          {experiencesList.map((exp, index) => (
             <motion.div
               key={exp.id}
               initial={{ opacity: 0, y: 30 }}
