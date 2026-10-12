@@ -1,8 +1,13 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Play, Radio, Film, ArrowRight, ShieldCheck, ChevronDown } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Play, Radio, Film, ArrowRight, ShieldCheck, ChevronDown, X } from 'lucide-react';
 
 export const Hero: React.FC = () => {
+  const [isShowreelOpen, setIsShowreelOpen] = useState(false);
+
+  // Default featured showreel video embed (Nostalgia Concert / Broadcast highlight)
+  const showreelUrl = "https://www.youtube.com/embed/LjIgZi8yz1s?autoplay=1&start=17343";
+
   const clientList = [
     'PAN-ATLANTIC UNIVERSITY',
     'LAGOS BUSINESS SCHOOL',
@@ -10,6 +15,23 @@ export const Hero: React.FC = () => {
     'SCHOOL OF MEDIA & COMMUNICATION (SMC)',
     'WHITESANDS SCHOOL',
   ];
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsShowreelOpen(false);
+    };
+    if (isShowreelOpen) {
+      document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isShowreelOpen]);
 
   const scrollToPortfolio = () => {
     const section = document.getElementById('portfolio');
@@ -85,9 +107,11 @@ export const Hero: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="flex flex-col sm:flex-row items-center gap-3.5 w-full sm:w-auto"
         >
+          {/* Watch Showreel Button triggering Cinema Modal */}
           <button
-            onClick={scrollToPortfolio}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-white text-black font-bold text-xs tracking-wider uppercase hover:bg-zinc-200 transition-all duration-300 shadow-xl hover:shadow-sky-500/10 hover:scale-[1.02]"
+            type="button"
+            onClick={() => setIsShowreelOpen(true)}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-full bg-white text-black font-bold text-xs tracking-wider uppercase hover:bg-zinc-200 transition-all duration-300 shadow-xl hover:shadow-sky-500/10 hover:scale-[1.02] cursor-pointer"
           >
             <Play className="w-3.5 h-3.5 fill-black" />
             Watch Showreel
@@ -138,6 +162,46 @@ export const Hero: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* FULLSCREEN CINEMA SHOWREEL MODAL */}
+      <AnimatePresence>
+        {isShowreelOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-xl p-4 sm:p-6 md:p-10"
+            onClick={() => setIsShowreelOpen(false)}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setIsShowreelOpen(false)}
+              className="absolute top-6 right-6 z-50 w-11 h-11 rounded-full bg-zinc-900/80 border border-zinc-700/80 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-200"
+              title="Close (Esc)"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Video Container */}
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl shadow-sky-500/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <iframe
+                src={showreelUrl}
+                title="Tonyshotit Studios Showreel"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full border-0 rounded-2xl"
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
