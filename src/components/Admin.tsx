@@ -38,6 +38,9 @@ interface Invoice {
   items: InvoiceItem[];
   discount?: number;
   tax_percent?: number;
+  show_vat_row?: boolean;
+  extra_fee_label?: string;
+  extra_fee_amount?: number;
   bank_name?: string;
   account_number?: string;
   account_name?: string;
@@ -81,6 +84,9 @@ export const Admin: React.FC = () => {
   const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
   const [invDiscount, setInvDiscount] = useState<number>(0);
   const [invTaxPercent, setInvTaxPercent] = useState<number>(0);
+  const [showVatRow, setShowVatRow] = useState<boolean>(true);
+  const [invExtraFeeLabel, setInvExtraFeeLabel] = useState<string>('');
+  const [invExtraFeeAmount, setInvExtraFeeAmount] = useState<number>(0);
   const [invItems, setInvItems] = useState<InvoiceItem[]>([
     { description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }
   ]);
@@ -242,6 +248,9 @@ export const Admin: React.FC = () => {
     setInvAccountName(inv.account_name || 'Anthony Ibuzo');
     setInvDiscount(inv.discount || 0);
     setInvTaxPercent(inv.tax_percent || 0);
+    setShowVatRow(inv.show_vat_row !== undefined ? inv.show_vat_row : true);
+    setInvExtraFeeLabel(inv.extra_fee_label || '');
+    setInvExtraFeeAmount(inv.extra_fee_amount || 0);
     setInvItems(
       inv.items && inv.items.length > 0
         ? inv.items.map(item => ({ ...item, sub_description: item.sub_description || '' }))
@@ -280,6 +289,9 @@ export const Admin: React.FC = () => {
       account_name: invAccountName,
       discount: invDiscount || 0,
       tax_percent: invTaxPercent || 0,
+      show_vat_row: showVatRow,
+      extra_fee_label: invExtraFeeLabel || '',
+      extra_fee_amount: invExtraFeeAmount || 0,
       items: invItems,
       notes: invNotes,
     };
@@ -302,13 +314,15 @@ export const Admin: React.FC = () => {
     }
   };
 
-  const invoiceSubtotal = invItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.rate || 0), 0);
+  const servicesSubtotal = invItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.rate || 0), 0);
   const discountAmount = Math.max(0, invDiscount || 0);
-  const discountedSubtotal = Math.max(0, invoiceSubtotal - discountAmount);
+  const taxableBase = Math.max(0, servicesSubtotal - discountAmount);
   
   const safeTaxPercent = Math.max(0, invTaxPercent || 0);
-  const taxAmount = Math.round(discountedSubtotal * (safeTaxPercent / 100));
-  const invoiceGrandTotal = discountedSubtotal + taxAmount;
+  const taxAmount = Math.round(taxableBase * (safeTaxPercent / 100));
+  const extraFeeAmount = Math.max(0, invExtraFeeAmount || 0);
+
+  const invoiceGrandTotal = taxableBase + (showVatRow ? taxAmount : 0) + extraFeeAmount;
 
   const safeDepositPercent = Math.min(100, Math.max(0, depositPercent || 70));
   const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
@@ -590,7 +604,7 @@ export const Admin: React.FC = () => {
             {/* LINE ITEMS */}
             <div style={{ marginBottom: '16px' }}>
               <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
-                LINE ITEMS & SPECIFICATIONS
+                TAXABLE SERVICE LINE ITEMS & SPECIFICATIONS
               </label>
               {invItems.map((item, idx) => (
                 <div key={idx} style={{ backgroundColor: '#0a0a0a', padding: '12px', borderRadius: '6px', border: '1px solid #222', marginBottom: '10px' }}>
@@ -672,8 +686,8 @@ export const Admin: React.FC = () => {
               </button>
             </div>
 
-            {/* DISCOUNT, TAX (VAT) & TERMS */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #222' }}>
+            {/* FINANCIAL SETTINGS: DISCOUNT, VAT, AND NON-TAXABLE FEE */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #222' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
                   DISCOUNT ALLOCATED ({currencySymbol.trim()})
@@ -689,7 +703,7 @@ export const Admin: React.FC = () => {
 
               <div>
                 <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
-                  TAX / VAT RATE (% - Usually 0)
+                  VAT RATE (% - Set 0 for Exempt)
                 </label>
                 <input
                   type="number"
@@ -700,7 +714,49 @@ export const Admin: React.FC = () => {
                 />
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingTop: '16px' }}>
+              <div>
+                <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                  POST-VAT FEE LABEL (OPTIONAL)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Delivery & Logistics, Fuel Transit"
+                  value={invExtraFeeLabel}
+                  onChange={(e) => setInvExtraFeeLabel(e.target.value)}
+                  style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                  POST-VAT AMOUNT ({currencySymbol.trim()})
+                </label>
+                <input
+                  type="number"
+                  placeholder="0"
+                  value={invExtraFeeAmount === 0 ? '' : invExtraFeeAmount}
+                  onChange={(e) => setInvExtraFeeAmount(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+                  style={{ width: '100%', padding: '8px', backgroundColor: '#000', border: '1px solid #38bdf8', color: '#38bdf8', borderRadius: '4px', fontWeight: 'bold' }}
+                />
+              </div>
+            </div>
+
+            {/* CHECKBOXES */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '20px', marginTop: '14px', paddingTop: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="checkbox"
+                  id="showVatRowCheckbox"
+                  checked={showVatRow}
+                  onChange={(e) => setShowVatRow(e.target.checked)}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer', accentColor: '#38bdf8' }}
+                />
+                <label htmlFor="showVatRowCheckbox" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer', userSelect: 'none' }}>
+                  Show VAT row on printed invoice (displays Small Business Exemption note if 0%)
+                </label>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <input
                   type="checkbox"
                   id="includeTermsCheckbox"
@@ -722,7 +778,6 @@ export const Admin: React.FC = () => {
                     ✍️ Customize Agreement Terms & Signers
                   </h3>
 
-                  {/* PRESET SELECTOR FOR DIFFERENT WORKFLOWS */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontSize: '11px', color: '#aaa' }}>Contract Mode:</span>
                     <select
@@ -759,7 +814,6 @@ export const Admin: React.FC = () => {
                   </div>
                 </div>
 
-                {/* EDITABLE FINAL PAYMENT BALANCE TRIGGER */}
                 <div style={{ marginBottom: '12px' }}>
                   <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
                     BALANCE PAYMENT TRIGGER & RELEASE CONDITION (Section 2)
@@ -772,7 +826,6 @@ export const Admin: React.FC = () => {
                   />
                 </div>
 
-                {/* EDITABLE FULFILLMENT / EVENT WINDOW */}
                 <div style={{ marginBottom: '12px' }}>
                   <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
                     PROJECT DATES & FULFILLMENT WINDOW
@@ -786,7 +839,6 @@ export const Admin: React.FC = () => {
                   />
                 </div>
 
-                {/* DEDICATED CLIENT SIGNER INPUT */}
                 <div style={{ marginBottom: '12px' }}>
                   <label style={{ fontSize: '11px', color: '#aaa', display: 'block', marginBottom: '4px' }}>
                     CLIENT REPRESENTATIVE / SIGNER NAME (Leave blank to keep write-in line)
@@ -821,7 +873,6 @@ export const Admin: React.FC = () => {
                   </div>
                 </div>
 
-                {/* EQUIPMENT SAFETY CHECKBOX & FIELD */}
                 <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid #27272a' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                     <input
@@ -903,7 +954,7 @@ export const Admin: React.FC = () => {
                     <p style={{ fontSize: '11px', fontWeight: 'bold', color: '#888', textTransform: 'uppercase', margin: '0 0 4px 0' }}>FROM</p>
                     <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0, color: '#000' }}>Tonyshotit Studios</p>
                     <p style={{ fontSize: '11px', color: '#555', margin: '1px 0 0 0' }}>BN: <strong>9926513</strong> | TIN: <strong>2622415188316</strong></p>
-                    <p style={{ fontSize: '11.5px', color: '#444', margin: '2px 0 0 0' }}>Plot 5 Otuyelu Close, Mende, Maryland, Lagos</p>
+                    <p style={{ fontSize: '11.5px', color: '#444', margin: '2px 0 0 0' }}>5, Plot 5 Otuyelu Close, Mende, Maryland, Lagos</p>
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>Lead: Anthony Ibuzo • anthony@tonyshotit.com</p>
                     <p style={{ fontSize: '12px', color: '#333', margin: '2px 0 0 0' }}>tonyshotit.com</p>
                   </div>
@@ -946,11 +997,12 @@ export const Admin: React.FC = () => {
                   </tbody>
                 </table>
 
+                {/* TAX COMPLIANT SUMMARY: SERVICES BASE -> DISCOUNT -> VAT -> NON-TAXABLE FEE -> GRAND TOTAL */}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '28px' }}>
-                  <div style={{ width: '320px' }}>
+                  <div style={{ width: '360px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd' }}>
                       <span style={{ fontWeight: 'bold' }}>Subtotal</span>
-                      <span>{currencySymbol}{invoiceSubtotal.toLocaleString()}</span>
+                      <span>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
                     </div>
 
                     {discountAmount > 0 && (
@@ -960,10 +1012,25 @@ export const Admin: React.FC = () => {
                       </div>
                     )}
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd', color: safeTaxPercent === 0 ? '#64748b' : '#000' }}>
-                      <span style={{ fontWeight: 'bold' }}>VAT ({safeTaxPercent}%)</span>
-                      <span>{currencySymbol}{taxAmount.toLocaleString()}</span>
-                    </div>
+                    {showVatRow && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12.5px', padding: '4px 0', borderBottom: '1px solid #ddd', color: safeTaxPercent === 0 ? '#475569' : '#000' }}>
+                        <span style={{ fontWeight: 'bold' }}>
+                          {safeTaxPercent === 0 ? 'VAT (7.5%):' : `VAT (${safeTaxPercent}%):`}
+                        </span>
+                        <span>
+                          {safeTaxPercent === 0 
+                            ? `${currencySymbol}0.00 (Exempt – Small Business Threshold)`
+                            : `${currencySymbol}${taxAmount.toLocaleString()}`}
+                        </span>
+                      </div>
+                    )}
+
+                    {extraFeeAmount > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '4px 0', borderBottom: '1px solid #ddd', color: '#166534' }}>
+                        <span style={{ fontWeight: 'bold' }}>{invExtraFeeLabel.trim() || 'Additional Non-Taxable Fee'}</span>
+                        <span>+ {currencySymbol}{extraFeeAmount.toLocaleString()}</span>
+                      </div>
+                    )}
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: 'bold', padding: '8px 0', borderBottom: '2px solid #000' }}>
                       <span>GRAND TOTAL</span>
@@ -1081,7 +1148,7 @@ export const Admin: React.FC = () => {
                         </td>
                       </tr>
                       <tr style={{ borderBottom: '2px solid #0f172a', backgroundColor: '#f1f5f9', fontWeight: 'bold' }}>
-                        <td style={{ padding: '6px 8px' }}>Total Fee (After Discount & Taxes)</td>
+                        <td style={{ padding: '6px 8px' }}>Total Fee (Inclusive of Disbursements & Tax)</td>
                         <td style={{ padding: '6px 8px' }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
                         <td style={{ padding: '6px 8px' }}>Referenced in Invoice: {invNumber}</td>
                       </tr>
@@ -1165,7 +1232,11 @@ export const Admin: React.FC = () => {
                   <div>
                     <h3 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', color: '#fff' }}>{inv.invoice_number} - {inv.client_name}</h3>
                     <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>
-                      Date: {inv.issue_date} | Due: {inv.due_date || 'N/A'} | Status: {inv.status} | Total: {inv.currency || 'NGN'} {(inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) - (inv.discount || 0)).toLocaleString()}
+                      Date: {inv.issue_date} | Due: {inv.due_date || 'N/A'} | Status: {inv.status} | Total: {inv.currency || 'NGN'} {(
+                        Math.max(0, (inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) - (inv.discount || 0))) +
+                        (inv.show_vat_row !== false ? Math.round(Math.max(0, (inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) - (inv.discount || 0))) * ((inv.tax_percent || 0) / 100)) : 0) +
+                        (inv.extra_fee_amount || 0)
+                      ).toLocaleString()}
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
