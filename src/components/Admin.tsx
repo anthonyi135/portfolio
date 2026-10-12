@@ -453,7 +453,7 @@ export const Admin: React.FC = () => {
     setShowVatRow(true);
     setInvExtraFeeLabel('Transportation and Logistics');
     setInvExtraFeeAmount(0);
-    setInvItems([{ description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }]);
+    setInvItems([{ description: 'On-site location shooting', sub_description: '', quantity: 1, rate: 0 }]);
     setInvNotes('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
     setIncludeTerms(true);
   };
@@ -911,7 +911,7 @@ export const Admin: React.FC = () => {
             </div>
           </div>
 
-          {/* VISIBLE DOCUMENT PREVIEW - WITH GENEROUS TOP PADDING */}
+          {/* VISIBLE DOCUMENT PREVIEW */}
           <div style={{ marginTop: '24px', marginBottom: '36px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#38bdf8', margin: 0 }}>
@@ -922,11 +922,11 @@ export const Admin: React.FC = () => {
 
             <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', padding: '4px' }}>
               
-              {/* 1. EXACT ORIGINAL INVOICE PREVIEW */}
+              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH RELOCATED TIN & BN */}
               {printDocumentMode === 'invoice' && (
                 <div id="printable-invoice-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
                   
-                  {/* Top Header */}
+                  {/* Clean Top Header (Uncluttered) */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                     <div>
                       <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000', letterSpacing: '-0.5px' }}>INVOICE</h1>
@@ -937,9 +937,8 @@ export const Admin: React.FC = () => {
 
                     <div style={{ textAlign: 'right' }}>
                       <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: '#000' }}>TONYSHOTIT</h2>
-                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>anthony@tonyshotit.com</p>
-                      <p style={{ margin: '2px 0', fontSize: '11px', color: '#444' }}>tonyshotit.com</p>
-                      <p style={{ margin: '2px 0', fontSize: '10.5px', color: '#222', fontWeight: 'bold' }}>RC/BN: 9926513 • TIN: 2622415188316</p>
+                      <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#444' }}>anthony@tonyshotit.com</p>
+                      <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#444' }}>tonyshotit.com</p>
                     </div>
                   </div>
 
@@ -994,15 +993,27 @@ export const Admin: React.FC = () => {
                     </tbody>
                   </table>
 
-                  {/* Payment Details & Calculations */}
+                  {/* Payment Details (With Relocated BN and TIN) & Totals */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
                     
-                    {/* Bank Details */}
+                    {/* Bank & Tax Remittance Details Block */}
                     <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '14px' }}>
-                      <h4 style={{ margin: '0 0 6px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold' }}>PAYMENT DETAILS</h4>
-                      <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Bank Name:</strong> {invBankName}</p>
-                      <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
-                      <p style={{ margin: '2px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
+                      <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                        PAYMENT & REMITTANCE DETAILS
+                      </h4>
+                      <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Bank Name:</strong> {invBankName}</p>
+                      <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
+                      <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
+                      
+                      {/* RELOCATED TAX IDENTIFIERS */}
+                      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #d1d5db' }}>
+                        <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#1f2937' }}>
+                          <strong>Business Reg (BN):</strong> 9926513
+                        </p>
+                        <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#1f2937' }}>
+                          <strong>Tax ID (TIN):</strong> 2622415188316
+                        </p>
+                      </div>
                     </div>
 
                     {/* Totals Breakdown */}
@@ -1131,7 +1142,7 @@ export const Admin: React.FC = () => {
                     </table>
 
                     <p style={{ fontSize: '10.5px', color: '#444', margin: 0 }}>
-                      <strong>Settlement Details:</strong> {invBankName} | Account: {invAccountNumber} ({invAccountName}). Late settlements exceeding 5 business days incur a 5% weekly late fee.
+                      <strong>Settlement Details:</strong> {invBankName} | Account: {invAccountNumber} ({invAccountName}) | BN: 9926513 • TIN: 2622415188316. Late settlements exceeding 5 business days incur a 5% weekly late fee.
                     </p>
                   </div>
 
