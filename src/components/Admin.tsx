@@ -233,6 +233,28 @@ export const Admin: React.FC = () => {
     }
   };
 
+  const resetInvoiceForm = () => {
+    setEditingInvoiceId(null);
+    setInvNumber(`TS-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-01`);
+    setInvClientName('');
+    setInvClientEmail('');
+    setInvProjectFor('');
+    setInvIssueDate(new Date().toISOString().split('T')[0]);
+    setInvDueDate('');
+    setInvCurrency('NGN');
+    setInvStatus('Sent');
+    setInvBankName('GT Bank');
+    setInvAccountNumber('0430859996');
+    setInvAccountName('Anthony Ibuzo');
+    setInvDiscount(0);
+    setInvTaxPercent(0);
+    setShowVatRow(true);
+    setInvExtraFeeLabel('');
+    setInvExtraFeeAmount(0);
+    setInvItems([{ description: 'Service Line Item', sub_description: '', quantity: 1, rate: 0 }]);
+    setInvNotes('Kindly confirm receipt of this invoice and reach out with any questions regarding pricing, delivery, or payment.');
+  };
+
   const handleEditInvoice = (inv: Invoice) => {
     setEditingInvoiceId(inv.id || null);
     setInvNumber(inv.invoice_number);
@@ -260,15 +282,26 @@ export const Admin: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteInvoice = async (id: string) => {
+  const handleDeleteInvoice = async (id?: string) => {
+    if (!id) {
+      alert('Error: Record ID is missing.');
+      return;
+    }
     if (!window.confirm('Delete this invoice?')) return;
+
     try {
       const { error } = await supabase.from('invoices').delete().eq('id', id);
       if (error) throw error;
-      setStatusMsg({ type: 'success', text: 'Invoice deleted!' });
+
+      setStatusMsg({ type: 'success', text: 'Invoice record deleted successfully!' });
+      if (editingInvoiceId === id) {
+        resetInvoiceForm();
+      }
       fetchInvoices();
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message });
+      console.error('Invoice deletion error:', err.message);
+      alert(`Deletion blocked: ${err.message}. Ensure Row-Level Security on the 'invoices' table is disabled in Supabase.`);
+      setStatusMsg({ type: 'error', text: `Delete failed: ${err.message}` });
     }
   };
 
@@ -1241,7 +1274,7 @@ export const Admin: React.FC = () => {
                   </div>
                   <div style={{ display: 'flex', gap: '8px' }}>
                     <button onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                    <button onClick={() => handleDeleteInvoice(inv.id!)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                    <button onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
                   </div>
                 </div>
               ))}
