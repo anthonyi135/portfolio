@@ -53,7 +53,29 @@ img {
 }
 
 /* ==========================================================================
-   PRINT MEDIA STYLES - ISOLATES CLEAN PDF INVOICE
+   CLIENT MARQUEE TICKER ANIMATION (HERO SECTION)
+   ========================================================================== */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 26s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   PRINT MEDIA STYLES - ISOLATES CLEAN PDF INVOICE & AGREEMENT
    ========================================================================== */
 @media print {
   /* Hide all dashboard UI, navigation, forms, and background wrappers */
@@ -69,8 +91,9 @@ img {
     padding: 0 !important;
   }
 
-  /* Make ONLY the PDF template visible */
-  #printable-invoice-document {
+  /* Make ONLY the active printable document visible */
+  #printable-invoice-document,
+  #printable-contract-document {
     display: block !important;
     position: absolute !important;
     left: 0 !important;
@@ -82,7 +105,8 @@ img {
     color: #000000 !important;
   }
 
-  #printable-invoice-document * {
+  #printable-invoice-document *,
+  #printable-contract-document * {
     color: #000000 !important;
   }
 }
