@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Radio, Film, ArrowRight, ShieldCheck, ChevronDown, X } from 'lucide-react';
@@ -22,28 +22,40 @@ export const Hero: React.FC = () => {
     setMounted(true);
   }, []);
 
-  // Delay heavy iframe mount until modal animation completes to prevent INP UI blocking
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isShowreelOpen) {
-      document.body.style.overflow = 'hidden';
-      timer = setTimeout(() => {
+  // Open handler: mount backdrop first, then render iframe
+  const handleOpenShowreel = useCallback(() => {
+    setIsShowreelOpen(true);
+    requestAnimationFrame(() => {
+      setTimeout(() => {
         setIsIframeLoaded(true);
       }, 50);
+    });
+  }, []);
+
+  // Optimized Close handler: unmount heavy iframe first to prevent main-thread freeze
+  const handleCloseShowreel = useCallback(() => {
+    setIsIframeLoaded(false);
+    requestAnimationFrame(() => {
+      setIsShowreelOpen(false);
+    });
+  }, []);
+
+  // Prevent scroll when open
+  useEffect(() => {
+    if (isShowreelOpen) {
+      document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
-      setIsIframeLoaded(false);
     }
     return () => {
-      clearTimeout(timer);
       document.body.style.overflow = 'unset';
     };
   }, [isShowreelOpen]);
 
-  // Close modal on ESC key
+  // Close on ESC
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsShowreelOpen(false);
+      if (e.key === 'Escape') handleCloseShowreel();
     };
     if (isShowreelOpen) {
       window.addEventListener('keydown', handleKeyDown);
@@ -51,22 +63,13 @@ export const Hero: React.FC = () => {
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isShowreelOpen]);
+  }, [isShowreelOpen, handleCloseShowreel]);
 
   const scrollToPortfolio = () => {
     const section = document.getElementById('portfolio');
     if (section) {
       section.scrollIntoView({ behavior: 'smooth' });
     }
-  };
-
-  const handleOpenShowreel = () => {
-    // Immediate state dispatch keeps INP at 0ms
-    setIsShowreelOpen(true);
-  };
-
-  const handleCloseShowreel = () => {
-    setIsShowreelOpen(false);
   };
 
   return (
@@ -193,24 +196,20 @@ export const Hero: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
               className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 backdrop-blur-md p-4 sm:p-6 md:p-10"
               onClick={handleCloseShowreel}
             >
               <button
                 type="button"
                 onClick={handleCloseShowreel}
-                className="absolute top-6 right-6 z-[10000] w-12 h-12 rounded-full bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-200 cursor-pointer shadow-2xl"
+                className="absolute top-6 right-6 z-[10000] w-12 h-12 rounded-full bg-zinc-900 border border-zinc-700 text-white flex items-center justify-center hover:bg-white hover:text-black transition-all duration-150 cursor-pointer shadow-2xl"
                 title="Close Showreel (Esc)"
               >
-                <X className="w-6 h-6" />
+                <X className="w-6 h-6 pointer-events-none" />
               </button>
 
-              <motion.div
-                initial={{ scale: 0.96, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.96, opacity: 0 }}
-                transition={{ duration: 0.2 }}
+              <div
                 className="relative w-full max-w-5xl aspect-video bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl shadow-sky-500/10 flex items-center justify-center"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -224,10 +223,10 @@ export const Hero: React.FC = () => {
                   />
                 ) : (
                   <div className="text-zinc-600 text-xs font-mono tracking-widest uppercase animate-pulse">
-                    Loading Master Showreel Stream...
+                    Preparing Showreel Stream...
                   </div>
                 )}
-              </motion.div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>,
