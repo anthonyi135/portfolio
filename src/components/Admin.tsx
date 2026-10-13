@@ -25,6 +25,8 @@ interface InvoiceItem {
   rate: number;
 }
 
+type InvoiceStatus = 'Paid' | 'Sent' | 'Part Payment' | 'Declined' | 'Draft';
+
 interface Invoice {
   id?: string;
   invoice_number: string;
@@ -35,7 +37,7 @@ interface Invoice {
   issue_date: string;
   due_date: string;
   currency: string;
-  status: 'Draft' | 'Sent' | 'Paid';
+  status: InvoiceStatus;
   items: InvoiceItem[];
   discount?: number;
   tax_percent?: number;
@@ -109,7 +111,7 @@ export const Admin: React.FC = () => {
   const [invIssueDate, setInvIssueDate] = useState(new Date().toISOString().split('T')[0]);
   const [invDueDate, setInvDueDate] = useState('');
   const [invCurrency, setInvCurrency] = useState('NGN');
-  const [invStatus, setInvStatus] = useState<'Draft' | 'Sent' | 'Paid'>('Sent');
+  const [invStatus, setInvStatus] = useState<InvoiceStatus>('Sent');
   const [invBankName, setInvBankName] = useState('GT Bank');
   const [invAccountNumber, setInvAccountNumber] = useState('0430859996');
   const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
@@ -484,6 +486,24 @@ export const Admin: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // Instant update for status in the saved invoices list
+  const handleQuickStatusChange = async (invoiceId: string, newStatus: InvoiceStatus) => {
+    setInvoices((prev) =>
+      prev.map((inv) => (inv.id === invoiceId ? { ...inv, status: newStatus } : inv))
+    );
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({ status: newStatus })
+        .eq('id', invoiceId);
+      if (error) throw error;
+      setStatusMsg({ type: 'success', text: `Invoice status updated to ${newStatus}` });
+    } catch (err: any) {
+      alert(`Status update failed: ${err.message}`);
+      fetchInvoices();
+    }
+  };
+
   const handleDeleteInvoice = async (id?: string) => {
     if (!id || !window.confirm('Delete invoice?')) return;
     setInvoices((prev) => prev.filter((inv) => inv.id !== id));
@@ -529,6 +549,23 @@ export const Admin: React.FC = () => {
       setStatusMsg({ type: 'error', text: err.message });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Status badge styling helper
+  const getStatusBadgeStyle = (status: InvoiceStatus) => {
+    switch (status) {
+      case 'Paid':
+        return { bg: '#14532d', color: '#4ade80', border: '#22c55e' };
+      case 'Sent':
+        return { bg: '#713f12', color: '#facc15', border: '#eab308' };
+      case 'Part Payment':
+        return { bg: '#27272a', color: '#ffffff', border: '#e4e4e7' };
+      case 'Declined':
+        return { bg: '#450a0a', color: '#f87171', border: '#ef4444' };
+      case 'Draft':
+      default:
+        return { bg: '#18181b', color: '#a1a1aa', border: '#52525b' };
     }
   };
 
@@ -675,7 +712,8 @@ export const Admin: React.FC = () => {
               />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+            {/* CURRENCY, STATUS, BANK, ACCOUNT NUMBER AND NEW ACCOUNT NAME FIELD */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CURRENCY</label>
                 <select value={invCurrency} onChange={(e) => setInvCurrency(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}>
@@ -688,18 +726,24 @@ export const Admin: React.FC = () => {
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>STATUS</label>
                 <select value={invStatus} onChange={(e) => setInvStatus(e.target.value as any)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}>
-                  <option value="Draft">Draft</option>
-                  <option value="Sent">Sent</option>
+                  <option value="Sent">Sent (Pending)</option>
                   <option value="Paid">Paid</option>
+                  <option value="Part Payment">Part Payment</option>
+                  <option value="Declined">Declined</option>
+                  <option value="Draft">Draft</option>
                 </select>
               </div>
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>BANK NAME</label>
-                <input type="text" value={invBankName} onChange={(e) => setInvBankName(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={invBankName} onChange={(e) => setInvBankName(e.target.value)} placeholder="GT Bank" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>ACCOUNT NO.</label>
-                <input type="text" value={invAccountNumber} onChange={(e) => setInvAccountNumber(e.target.value)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" value={invAccountNumber} onChange={(e) => setInvAccountNumber(e.target.value)} placeholder="0430859996" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>ACCOUNT NAME</label>
+                <input type="text" value={invAccountName} onChange={(e) => setInvAccountName(e.target.value)} placeholder="Anthony Ibuzo" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #38bdf8', color: '#fff', borderRadius: '4px', fontWeight: 600 }} />
               </div>
             </div>
 
@@ -1185,7 +1229,7 @@ export const Admin: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 4. SIGNATURES & ACCEPTANCE (MATCHING WHITESANDS FORMAT) */}
+                  {/* 4. SIGNATURES & ACCEPTANCE */}
                   <div>
                     <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 10px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
                       4. SIGNATURES & ACCEPTANCE
@@ -1215,22 +1259,67 @@ export const Admin: React.FC = () => {
             </div>
           </div>
 
-          {/* SAVED INVOICES RECORDS */}
+          {/* SAVED INVOICES RECORDS WITH QUICK STATUS BADGES & DROPDOWNS */}
           <div className="no-print" style={{ marginTop: '24px' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px' }}>SAVED INVOICES ({invoices.length})</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {invoices.map((inv) => (
-                <div key={inv.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
-                  <div>
-                    <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{inv.invoice_number} • {inv.client_name}</h4>
-                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Total: {inv.currency || 'NGN'} {(inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) || 0).toLocaleString()} • Status: {inv.status}</p>
+              {invoices.map((inv) => {
+                const badge = getStatusBadgeStyle(inv.status);
+                return (
+                  <div key={inv.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px 14px', borderRadius: '6px', border: '1px solid #222', gap: '10px' }}>
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                        <h4 style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 'bold' }}>
+                          {inv.invoice_number} • {inv.client_name}
+                        </h4>
+                        <span style={{ 
+                          fontSize: '10px', 
+                          fontWeight: 'bold', 
+                          padding: '2px 7px', 
+                          borderRadius: '4px', 
+                          backgroundColor: badge.bg, 
+                          color: badge.color, 
+                          border: `1px solid ${badge.border}`,
+                          textTransform: 'uppercase'
+                        }}>
+                          {inv.status}
+                        </span>
+                      </div>
+                      <p style={{ margin: 0, fontSize: '11.5px', color: '#888' }}>
+                        Total: <strong style={{ color: '#fff' }}>{inv.currency || 'NGN'} {(inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) || 0).toLocaleString()}</strong>
+                        {inv.project_for && <span> • For: {inv.project_for}</span>}
+                      </p>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      {/* STATUS DROPDOWN */}
+                      <select
+                        value={inv.status}
+                        onChange={(e) => handleQuickStatusChange(inv.id!, e.target.value as InvoiceStatus)}
+                        style={{
+                          padding: '5px 8px',
+                          backgroundColor: badge.bg,
+                          color: badge.color,
+                          border: `1px solid ${badge.border}`,
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="Sent" style={{ backgroundColor: '#111', color: '#facc15' }}>🟡 Pending (Sent)</option>
+                        <option value="Paid" style={{ backgroundColor: '#111', color: '#4ade80' }}>🟢 Paid</option>
+                        <option value="Part Payment" style={{ backgroundColor: '#111', color: '#ffffff' }}>⚪ Part Payment</option>
+                        <option value="Declined" style={{ backgroundColor: '#111', color: '#f87171' }}>🔴 Declined</option>
+                        <option value="Draft" style={{ backgroundColor: '#111', color: '#a1a1aa' }}>🔘 Draft</option>
+                      </select>
+
+                      <button type="button" onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Edit</button>
+                      <button type="button" onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Delete</button>
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button type="button" onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                    <button type="button" onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
