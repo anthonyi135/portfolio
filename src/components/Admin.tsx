@@ -112,9 +112,9 @@ export const Admin: React.FC = () => {
   const [invDueDate, setInvDueDate] = useState('');
   const [invCurrency, setInvCurrency] = useState('NGN');
   const [invStatus, setInvStatus] = useState<InvoiceStatus>('Sent');
-  const [invBankName, setInvBankName] = useState('GT Bank');
-  const [invAccountNumber, setInvAccountNumber] = useState('0430859996');
-  const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
+  const [invBankName, setInvBankName] = useState('Moniepoint MFB');
+  const [invAccountNumber, setInvAccountNumber] = useState('6478474528');
+  const [invAccountName, setInvAccountName] = useState('Tonyshotit Studios - Anthony Ibuzo');
 
   // Financial Controls
   const [invDiscount, setInvDiscount] = useState<number>(0);
