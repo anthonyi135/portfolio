@@ -130,13 +130,12 @@ export const Admin: React.FC = () => {
   const [showAgreementEditor, setShowAgreementEditor] = useState(false);
   const [contractTypePreset, setContractTypePreset] = useState<'video_edit' | 'broadcast'>('video_edit');
   const [contractTitle, setContractTitle] = useState('CINEMATOGRAPHY & VIDEO PRODUCTION AGREEMENT');
-  const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('Through Project/Event Conclusion. Final edits delivered within 5 business days.');
+  const [contractFulfillmentWindow, setContractFulfillmentWindow] = useState('Through Project/Event Conclusion. Final edits delivered within 5 business days post-event.');
   const [contractScope, setContractScope] = useState('On-site cinematography, sound capture, lighting execution, and multi-stage post-production editing.');
-  const [contractDeliverables, setContractDeliverables] = useState('• Key Deliverables & Handoff:\n- Highlight Event Video\n- Interview Session Cutdown\n- Social Media Vertical Reel\n*Includes up to 2 rounds of minor editorial revisions.');
+  const [contractDeliverables, setContractDeliverables] = useState('4 Fully Edited Videos:\n• Highlight Event Video\n• Interview Session Video\n• Social Media Reel Deliverable\n*Includes up to 2 rounds of minor editorial revisions.');
   const [depositPercent, setDepositPercent] = useState<number>(70);
   const [finalPaymentTrigger, setFinalPaymentTrigger] = useState('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and full asset release occur strictly upon confirmation of 100% balance settlement.');
-  const [includeEquipmentSafety, setIncludeEquipmentSafety] = useState(false);
-  const [contractCustomTerms, setContractCustomTerms] = useState('Overtime: On-site coverage exceeding the agreed scope window will be billed at an additional rate of NGN 25,000 per hour (or part thereof).\nRescheduling: Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit.\nAsset & Media Rights: All raw captured media remain the sole property of Tonyshotit Studio until the total project fee is paid in full.\nCancellation: Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit.');
+  const [contractCustomTerms, setContractCustomTerms] = useState('• Overtime: On-site coverage exceeding the agreed scope window will be billed at an additional rate of NGN 25,000 per hour (or part thereof).\n• Rescheduling: Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit and require a new booking fee subject to crew and gear availability.\n• Asset & Media Rights: All raw captured media, working project files, and intellectual property remain the sole property of Tonyshotit Studio until the total project fee is paid in full. Previews are supplied for client approval purposes only.\n• Cancellation: Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit to cover equipment holding and crew retainers.');
   const [contractSignerName, setContractSignerName] = useState('');
   const [printDocumentMode, setPrintDocumentMode] = useState<'invoice' | 'contract'>('invoice');
 
@@ -194,17 +193,15 @@ export const Admin: React.FC = () => {
     if (preset === 'video_edit') {
       setContractTitle('CINEMATOGRAPHY & VIDEO PRODUCTION AGREEMENT');
       setContractScope('On-site cinematography, sound capture, lighting execution, and multi-stage post-production editing.');
-      setContractDeliverables('• Key Deliverables & Handoff:\n- Highlight Event Video\n- Interview Session Cutdown\n- Social Media Vertical Reel\n*Includes up to 2 rounds of minor editorial revisions.');
+      setContractDeliverables('4 Fully Edited Videos:\n• Highlight Event Video\n• Interview Session Video\n• Social Media Reel Deliverable\n*Includes up to 2 rounds of minor editorial revisions.');
       setFinalPaymentTrigger('Final 30% balance is due upon presentation of draft preview exports. Final, unwatermarked high-resolution masters and full asset release occur strictly upon confirmation of 100% balance settlement.');
-      setIncludeEquipmentSafety(false);
-      setContractCustomTerms('Overtime: On-site coverage exceeding the agreed scope window will be billed at an additional rate of NGN 25,000 per hour (or part thereof).\nRescheduling: Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit.\nAsset & Media Rights: All raw captured media remain the sole property of Tonyshotit Studio until the total project fee is paid in full.\nCancellation: Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit.');
+      setContractCustomTerms('• Overtime: On-site coverage exceeding the agreed scope window will be billed at an additional rate of NGN 25,000 per hour (or part thereof).\n• Rescheduling: Date changes requested less than 48 hours prior to call time forfeit the initial commitment deposit and require a new booking fee subject to crew and gear availability.\n• Asset & Media Rights: All raw captured media, working project files, and intellectual property remain the sole property of Tonyshotit Studio until the total project fee is paid in full. Previews are supplied for client approval purposes only.\n• Cancellation: Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit to cover equipment holding and crew retainers.');
     } else {
       setContractTitle('LIVE BROADCAST & EVENT PRODUCTION SERVICES AGREEMENT');
       setContractScope('Live multi-camera broadcast engineering, video switching, audio routing, and equipment provision as itemized in the attached invoice.');
       setContractDeliverables('1. Live stream transmission to designated client streaming endpoints\n2. Master program archival recording delivered via Tonyshotit Client Portal\n3. Full-resolution backup media download access');
       setFinalPaymentTrigger('Final 30% balance is strictly due on on-site setup / call day prior to equipment activation or live transmission.');
-      setIncludeEquipmentSafety(true);
-      setContractCustomTerms('Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.');
+      setContractCustomTerms('• Overtime: Broadcast operations exceeding scheduled run times are billed at NGN 35,000 per additional hour.\n• Power & Venue: Client guarantees secure overnight hold, stable uninterrupted generator power, and full liability for any physical damage caused by event attendees.\n• Cancellation: Cancellations inside 48 hours of scheduled call time strictly forfeit the initial commitment deposit to cover equipment holding and crew retainers.');
     }
   };
 
@@ -547,7 +544,6 @@ export const Admin: React.FC = () => {
   const depositAmount = Math.round(invoiceGrandTotal * (safeDepositPercent / 100));
   const balanceAmount = invoiceGrandTotal - depositAmount;
   const currencySymbol = invCurrency === 'NGN' ? 'NGN ' : invCurrency === 'GBP' ? '£ ' : invCurrency === 'EUR' ? '€ ' : '$ ';
-  const overtimeRateFormatted = invCurrency === 'NGN' ? 'NGN 25,000' : invCurrency === 'USD' ? '$50' : invCurrency === 'GBP' ? '£40' : '€45';
 
   if (!isAdminAuthenticated) {
     return (
@@ -614,7 +610,16 @@ export const Admin: React.FC = () => {
           <div className="no-print" style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px', boxSizing: 'border-box' }}>
             
             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0 }}>INVOICE & AGREEMENT BUILDER</h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', margin: 0 }}>INVOICE & AGREEMENT BUILDER</h2>
+                <button 
+                  type="button" 
+                  onClick={resetInvoiceForm} 
+                  style={{ padding: '4px 10px', fontSize: '11px', backgroundColor: '#222', color: '#38bdf8', border: '1px solid #333', borderRadius: '4px', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  + New Blank Invoice
+                </button>
+              </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%', maxWidth: '420px' }}>
                 <button type="button" onClick={() => setPrintDocumentMode('invoice')} style={{ flex: '1 1 auto', padding: '8px 12px', borderRadius: '4px', fontSize: '11.5px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: printDocumentMode === 'invoice' ? '#fff' : '#222', color: printDocumentMode === 'invoice' ? '#000' : '#888', border: '1px solid #444' }}>
                   👁 Preview Invoice
@@ -940,7 +945,7 @@ export const Admin: React.FC = () => {
 
             <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', padding: '4px' }}>
               
-              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH OPTIONAL MULTI-LINE ADDRESS */}
+              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH TWO HORIZONTAL HEADER LINES */}
               {printDocumentMode === 'invoice' && (
                 <div id="printable-invoice-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
                   
@@ -966,7 +971,7 @@ export const Admin: React.FC = () => {
 
                   <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
 
-                  {/* Two-Column Parties: FROM & BILL TO (WITH CONDITIONAL MULTI-LINE ADDRESS) */}
+                  {/* Two-Column Parties: FROM & BILL TO (WITH MULTI-LINE ADDRESS) */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
                     <div style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
                       <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>FROM</p>
@@ -981,7 +986,6 @@ export const Admin: React.FC = () => {
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>{invClientName || 'Client Name / Organization'}</h3>
                       {invClientEmail && <p style={{ margin: '2px 0', fontSize: '12px' }}>{invClientEmail}</p>}
                       
-                      {/* CONDITIONAL MULTI-LINE ADDRESS */}
                       {invClientAddress && invClientAddress.trim() && (
                         <p style={{ margin: '4px 0 2px 0', fontSize: '11.5px', color: '#4b5563', whiteSpace: 'pre-line', lineHeight: 1.4 }}>
                           {invClientAddress.trim()}
@@ -992,28 +996,28 @@ export const Admin: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Items Table */}
+                  {/* ITEMS TABLE WITH THE EXACT TWO-LINE SEPARATION (TOP AND BOTTOM BORDERS) */}
                   <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#000', color: '#fff' }}>
-                        <th style={{ textAlign: 'center', padding: '10px 8px', fontSize: '11px', textTransform: 'uppercase', width: '6%' }}>#</th>
-                        <th style={{ textAlign: 'left', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '54%' }}>ITEM DESCRIPTION</th>
-                        <th style={{ textAlign: 'center', padding: '10px 8px', fontSize: '11px', textTransform: 'uppercase', width: '8%' }}>QTY</th>
-                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '16%' }}>UNIT PRICE</th>
-                        <th style={{ textAlign: 'right', padding: '10px 12px', fontSize: '11px', textTransform: 'uppercase', width: '16%' }}>AMOUNT</th>
+                      <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
+                        <th style={{ textAlign: 'center', padding: '8px 6px', fontSize: '11px', textTransform: 'uppercase', width: '5%', fontWeight: 800 }}>#</th>
+                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '55%', fontWeight: 800 }}>ITEM DESCRIPTION</th>
+                        <th style={{ textAlign: 'center', padding: '8px 6px', fontSize: '11px', textTransform: 'uppercase', width: '8%', fontWeight: 800 }}>QTY</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '16%', fontWeight: 800 }}>UNIT PRICE</th>
+                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '16%', fontWeight: 800 }}>AMOUNT</th>
                       </tr>
                     </thead>
                     <tbody>
                       {invItems.map((item, idx) => (
                         <tr key={idx} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                          <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: '12px', color: '#666' }}>{idx + 1}</td>
-                          <td style={{ padding: '10px 12px', fontSize: '12px' }}>
-                            <strong>{item.description || 'Service line item'}</strong>
-                            {item.sub_description && <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{item.sub_description}</div>}
+                          <td style={{ textAlign: 'center', padding: '12px 6px', fontSize: '12px', color: '#444' }}>{idx + 1}</td>
+                          <td style={{ padding: '12px 10px', fontSize: '12px' }}>
+                            <strong style={{ display: 'block', color: '#000' }}>{item.description || 'Service line item'}</strong>
+                            {item.sub_description && <div style={{ fontSize: '11px', color: '#555', marginTop: '2px', lineHeight: 1.4 }}>{item.sub_description}</div>}
                           </td>
-                          <td style={{ textAlign: 'center', padding: '10px 8px', fontSize: '12px' }}>{item.quantity}</td>
-                          <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
-                          <td style={{ textAlign: 'right', padding: '10px 12px', fontSize: '12px', fontWeight: 'bold' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
+                          <td style={{ textAlign: 'center', padding: '12px 6px', fontSize: '12px' }}>{item.quantity}</td>
+                          <td style={{ textAlign: 'right', padding: '12px 10px', fontSize: '12px' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
+                          <td style={{ textAlign: 'right', padding: '12px 10px', fontSize: '12px', fontWeight: 'bold' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1031,7 +1035,6 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
                       <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
                       
-                      {/* RELOCATED TAX IDENTIFIERS */}
                       <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #d1d5db' }}>
                         <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#1f2937' }}>
                           <strong>Business Reg (BN):</strong> 9926513
@@ -1099,16 +1102,16 @@ export const Admin: React.FC = () => {
                 </div>
               )}
 
-              {/* 2. EXACT ORIGINAL AGREEMENT PREVIEW */}
+              {/* 2. EXACT ORIGINAL AGREEMENT PREVIEW WITH REFINED SECTIONS & SIGNATURES */}
               {printDocumentMode === 'contract' && (
                 <div id="printable-contract-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
                   
                   {/* Agreement Header */}
                   <div style={{ marginBottom: '14px' }}>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 6px 0', textTransform: 'uppercase', color: '#000' }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 6px 0', textTransform: 'uppercase', color: '#000', letterSpacing: '-0.3px' }}>
                       {contractTitle}
                     </h1>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#555' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#444' }}>
                       <span>TONYSHOTIT STUDIO • TONYSHOTIT.COM • ANTHONY@TONYSHOTIT.COM</span>
                       <span>Ref: <strong>{invNumber}</strong> • Date: <strong>{invIssueDate}</strong></span>
                     </div>
@@ -1134,7 +1137,7 @@ export const Admin: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 2. PAYMENT SCHEDULE & MILESTONES TABLE */}
+                  {/* 2. PAYMENT SCHEDULE & MILESTONES TABLE (WITH TWO-LINE HEADER) */}
                   <div style={{ marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
                       2. PAYMENT SCHEDULE & MILESTONES
@@ -1142,10 +1145,10 @@ export const Admin: React.FC = () => {
 
                     <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
                       <thead>
-                        <tr style={{ backgroundColor: '#000', color: '#fff' }}>
-                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '28%' }}>Milestone</th>
-                          <th style={{ textAlign: 'right', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '22%' }}>Amount Due</th>
-                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '50%' }}>Trigger/Terms</th>
+                        <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '28%', fontWeight: 800 }}>Milestone</th>
+                          <th style={{ textAlign: 'right', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '22%', fontWeight: 800 }}>Amount Due</th>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '50%', fontWeight: 800 }}>Trigger/Terms</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1159,7 +1162,7 @@ export const Admin: React.FC = () => {
                           <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
                           <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>{finalPaymentTrigger}</td>
                         </tr>
-                        <tr style={{ backgroundColor: '#f9fafb' }}>
+                        <tr style={{ backgroundColor: '#f9fafb', borderTop: '1px solid #000' }}>
                           <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Total Fee (After Discount)</td>
                           <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 900 }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
                           <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Referenced in Invoice: {invNumber}</td>
@@ -1182,7 +1185,7 @@ export const Admin: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 4. SIGNATURES & ACCEPTANCE */}
+                  {/* 4. SIGNATURES & ACCEPTANCE (MATCHING WHITESANDS FORMAT) */}
                   <div>
                     <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 10px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
                       4. SIGNATURES & ACCEPTANCE
@@ -1191,7 +1194,7 @@ export const Admin: React.FC = () => {
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '12px' }}>
                       <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
                         <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
-                        <p style={{ margin: '12px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                        <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
                         <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: Anthony Ibuzo</p>
                         <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Lead Technical Director / Producer</p>
                         <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: {invIssueDate}</p>
@@ -1199,7 +1202,7 @@ export const Admin: React.FC = () => {
 
                       <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
                         <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For the Client:</p>
-                        <p style={{ margin: '12px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                        <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
                         <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: {contractSignerName || '________________________'}</p>
                         <p style={{ margin: '2px 0', fontSize: '11px' }}>Organization: {invClientName || 'Client'}</p>
                         <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Authorized Representative</p>
