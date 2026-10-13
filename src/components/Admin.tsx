@@ -469,9 +469,9 @@ export const Admin: React.FC = () => {
     setInvDueDate(inv.due_date || '');
     setInvCurrency(inv.currency || 'NGN');
     setInvStatus(inv.status || 'Sent');
-    setInvBankName(inv.bank_name || 'GT Bank');
-    setInvAccountNumber(inv.account_number || '0430859996');
-    setInvAccountName(inv.account_name || 'Anthony Ibuzo');
+    setInvBankName(inv.bank_name || 'Moniepoint MFB');
+    setInvAccountNumber(inv.account_number || '6478474528');
+    setInvAccountName(inv.account_name || 'Tonyshotit Studios - Anthony Ibuzo');
     setInvDiscount(inv.discount || 0);
     setInvTaxPercent(inv.tax_percent || 0);
     setShowVatRow(inv.show_vat_row !== undefined ? inv.show_vat_row : true);
