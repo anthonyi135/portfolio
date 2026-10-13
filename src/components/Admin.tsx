@@ -433,7 +433,7 @@ export const Admin: React.FC = () => {
     fetchCmsTimeline();
   };
 
-  // --- INVOICE HANDLERS ---
+  // --- INVOICE HANDLERS WITH GUARANTEED STATE UPDATES ---
   const resetInvoiceForm = () => {
     setEditingInvoiceId(null);
     setInvNumber(`TS-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-01`);
@@ -459,13 +459,13 @@ export const Admin: React.FC = () => {
   };
 
   const handleEditInvoice = (inv: Invoice) => {
-    setEditingInvoiceId(inv.id || null);
-    setInvNumber(inv.invoice_number);
-    setInvClientName(inv.client_name);
+    setEditingInvoiceId(String(inv.id));
+    setInvNumber(inv.invoice_number || '');
+    setInvClientName(inv.client_name || '');
     setInvClientEmail(inv.client_email || '');
     setInvClientAddress(inv.client_address || '');
     setInvProjectFor(inv.project_for || '');
-    setInvIssueDate(inv.issue_date);
+    setInvIssueDate(inv.issue_date || new Date().toISOString().split('T')[0]);
     setInvDueDate(inv.due_date || '');
     setInvCurrency(inv.currency || 'NGN');
     setInvStatus(inv.status || 'Sent');
@@ -479,7 +479,12 @@ export const Admin: React.FC = () => {
     setInvExtraFeeAmount(inv.extra_fee_amount || 0);
     setInvItems(
       inv.items && inv.items.length > 0
-        ? inv.items.map(item => ({ ...item, sub_description: item.sub_description || '' }))
+        ? inv.items.map((item) => ({
+            description: item.description || '',
+            sub_description: item.sub_description || '',
+            quantity: item.quantity || 1,
+            rate: item.rate || 0,
+          }))
         : [{ description: '', sub_description: '', quantity: 1, rate: 0 }]
     );
     setInvNotes(inv.notes || '');
@@ -488,7 +493,7 @@ export const Admin: React.FC = () => {
 
   const handleQuickStatusChange = async (invoiceId: string, newStatus: InvoiceStatus) => {
     setInvoices((prev) =>
-      prev.map((inv) => (inv.id === invoiceId ? { ...inv, status: newStatus } : inv))
+      prev.map((inv) => (String(inv.id) === String(invoiceId) ? { ...inv, status: newStatus } : inv))
     );
     try {
       const { error } = await supabase
@@ -505,19 +510,20 @@ export const Admin: React.FC = () => {
 
   const handleDeleteInvoice = async (id?: string) => {
     if (!id || !window.confirm('Delete invoice?')) return;
-    setInvoices((prev) => prev.filter((inv) => inv.id !== id));
+    setInvoices((prev) => prev.filter((inv) => String(inv.id) !== String(id)));
     await supabase.from('invoices').delete().eq('id', id);
+    if (editingInvoiceId === String(id)) resetInvoiceForm();
     fetchInvoices();
   };
 
   const handleInvoiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const payload = {
+
+    const payload: any = {
       invoice_number: invNumber,
       client_name: invClientName,
       client_email: invClientEmail,
-      client_address: invClientAddress,
       project_for: invProjectFor,
       issue_date: invIssueDate,
       due_date: invDueDate,
@@ -525,7 +531,6 @@ export const Admin: React.FC = () => {
       status: invStatus,
       bank_name: invBankName,
       account_number: invAccountNumber,
-      account_name: invAccountName,
       discount: invDiscount || 0,
       tax_percent: invTaxPercent || 0,
       show_vat_row: showVatRow,
@@ -535,17 +540,62 @@ export const Admin: React.FC = () => {
       notes: invNotes,
     };
 
+    if (invClientAddress !== undefined) payload.client_address = invClientAddress;
+    if (invAccountName !== undefined) payload.account_name = invAccountName;
+
     try {
       if (editingInvoiceId) {
-        await supabase.from('invoices').update(payload).eq('id', editingInvoiceId);
-        setStatusMsg({ type: 'success', text: 'Invoice updated!' });
+        const { error } = await supabase
+          .from('invoices')
+          .update(payload)
+          .eq('id', editingInvoiceId);
+
+        if (error) {
+          // If the database complains about missing client_address or account_name columns, strip and retry
+          if (error.message.includes('column') || error.code === '42703') {
+            delete payload.client_address;
+            delete payload.account_name;
+            const retry = await supabase.from('invoices').update(payload).eq('id', editingInvoiceId);
+            if (retry.error) throw retry.error;
+          } else {
+            throw error;
+          }
+        }
+
+        // Optimistically update local state immediately
+        setInvoices((prev) =>
+          prev.map((inv) =>
+            String(inv.id) === String(editingInvoiceId)
+              ? { ...inv, ...payload, id: editingInvoiceId }
+              : inv
+          )
+        );
+
+        setStatusMsg({ type: 'success', text: `Invoice ${invNumber} updated successfully!` });
       } else {
-        await supabase.from('invoices').insert([payload]);
-        setStatusMsg({ type: 'success', text: 'Invoice saved!' });
+        const { data, error } = await supabase.from('invoices').insert([payload]).select();
+        if (error) {
+          if (error.message.includes('column') || error.code === '42703') {
+            delete payload.client_address;
+            delete payload.account_name;
+            const retry = await supabase.from('invoices').insert([payload]).select();
+            if (retry.error) throw retry.error;
+            if (retry.data) setInvoices((prev) => [retry.data[0], ...prev]);
+          } else {
+            throw error;
+          }
+        } else if (data) {
+          setInvoices((prev) => [data[0], ...prev]);
+        }
+
+        setStatusMsg({ type: 'success', text: `Invoice ${invNumber} created successfully!` });
       }
-      fetchInvoices();
+
+      await fetchInvoices();
     } catch (err: any) {
-      setStatusMsg({ type: 'error', text: err.message });
+      console.error('Save Error:', err);
+      alert(`Save failed: ${err.message}`);
+      setStatusMsg({ type: 'error', text: `Error: ${err.message}` });
     } finally {
       setLoading(false);
     }
@@ -607,10 +657,10 @@ export const Admin: React.FC = () => {
   return (
     <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '24px 14px', color: '#fff', boxSizing: 'border-box', overflowX: 'hidden' }}>
       
-      {/* BULLETPROOF PRINT STYLES TO OVERRIDE TAILWIND RESET & REMOVE BLACK CONTAINERS */}
+      {/* BULLETPROOF PRINT STYLES - REMOVES THE BLACK BOTTOM BAR AND FORCES COLORS */}
       <style>{`
         @media print {
-          /* 1. Hide everything outside the active document */
+          /* 1. Only print the white document wrapper and hide all website background elements */
           body * {
             visibility: hidden !important;
           }
@@ -629,7 +679,7 @@ export const Admin: React.FC = () => {
             box-shadow: none !important;
           }
 
-          /* 2. Enforce exact colors over Tailwind print resets */
+          /* 2. Force browser print engine to preserve colors over Tailwind */
           html, body {
             background-color: #fff !important;
             color: #000 !important;
@@ -1148,6 +1198,7 @@ export const Admin: React.FC = () => {
                           <span style={{ fontWeight: 600 }}>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
                         </div>
 
+                        {/* DISCOUNT ROW WITH EXPLICIT ENFORCED GREEN PRINT CLASS */}
                         {discountAmount > 0 && (
                           <div className="force-print-green" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee', color: '#16a34a', fontWeight: 'bold' }}>
                             <span>Discount Applied</span>
@@ -1241,451 +1292,451 @@ export const Admin: React.FC = () => {
                         2. PAYMENT SCHEDULE & MILESTONES
                       </h3>
 
-                      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
-                        <thead>
-                          <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
-                            <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '28%', fontWeight: 800 }}>Milestone</th>
-                            <th style={{ textAlign: 'right', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '22%', fontWeight: 800 }}>Amount Due</th>
-                            <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '50%', fontWeight: 800 }}>Trigger/Terms</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr style={{ borderBottom: '1px solid #eee' }}>
-                            <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Commitment Deposit ({safeDepositPercent}%)</td>
-                            <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{depositAmount.toLocaleString()}</td>
-                            <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Required upon signing to lock schedule, technical crew, and reserved hardware</td>
-                          </tr>
-                          <tr style={{ borderBottom: '1px solid #eee' }}>
-                            <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Final Balance ({100 - safeDepositPercent}%)</td>
-                            <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
-                            <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>{finalPaymentTrigger}</td>
-                          </tr>
-                          <tr className="force-print-box" style={{ backgroundColor: '#f9fafb', borderTop: '1px solid #000' }}>
-                            <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Total Fee (After Discount)</td>
-                            <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 900 }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
-                            <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Referenced in Invoice: {invNumber}</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
+                      <thead>
+                        <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '28%', fontWeight: 800 }}>Milestone</th>
+                          <th style={{ textAlign: 'right', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '22%', fontWeight: 800 }}>Amount Due</th>
+                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '50%', fontWeight: 800 }}>Trigger/Terms</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr style={{ borderBottom: '1px solid #eee' }}>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Commitment Deposit ({safeDepositPercent}%)</td>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{depositAmount.toLocaleString()}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Required upon signing to lock schedule, technical crew, and reserved hardware</td>
+                        </tr>
+                        <tr style={{ borderBottom: '1px solid #eee' }}>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Final Balance ({100 - safeDepositPercent}%)</td>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>{finalPaymentTrigger}</td>
+                        </tr>
+                        <tr className="force-print-box" style={{ backgroundColor: '#f9fafb', borderTop: '1px solid #000' }}>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Total Fee (After Discount)</td>
+                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 900 }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
+                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Referenced in Invoice: {invNumber}</td>
+                        </tr>
+                      </tbody>
+                    </table>
 
-                      <p style={{ fontSize: '10.5px', color: '#444', margin: 0 }}>
-                        <strong>Settlement Details:</strong> {invBankName} | Account: {invAccountNumber} ({invAccountName}) | BN: 9926513 • TIN: 2622415188316. Late settlements exceeding 5 business days incur a 5% weekly late fee.
-                      </p>
+                    <p style={{ fontSize: '10.5px', color: '#444', margin: 0 }}>
+                      <strong>Settlement Details:</strong> {invBankName} | Account: {invAccountNumber} ({invAccountName}) | BN: 9926513 • TIN: 2622415188316. Late settlements exceeding 5 business days incur a 5% weekly late fee.
+                    </p>
+                  </div>
+
+                  {/* 3. KEY OPERATIONAL TERMS */}
+                  <div style={{ marginBottom: '22px' }}>
+                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                      3. KEY OPERATIONAL TERMS
+                    </h3>
+                    <div style={{ whiteSpace: 'pre-line', fontSize: '10.5px', lineHeight: 1.5, color: '#333' }}>
+                      {contractCustomTerms}
                     </div>
+                  </div>
 
-                    {/* 3. KEY OPERATIONAL TERMS */}
-                    <div style={{ marginBottom: '22px' }}>
-                      <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
-                        3. KEY OPERATIONAL TERMS
-                      </h3>
-                      <div style={{ whiteSpace: 'pre-line', fontSize: '10.5px', lineHeight: 1.5, color: '#333' }}>
-                        {contractCustomTerms}
+                  {/* 4. SIGNATURES & ACCEPTANCE */}
+                  <div>
+                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 10px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                      4. SIGNATURES & ACCEPTANCE
+                    </h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '12px' }}>
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
+                        <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
+                        <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: Anthony Ibuzo</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Lead Technical Director / Producer</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: {invIssueDate}</p>
                       </div>
-                    </div>
 
-                    {/* 4. SIGNATURES & ACCEPTANCE */}
-                    <div>
-                      <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 10px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
-                        4. SIGNATURES & ACCEPTANCE
-                      </h3>
-
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '12px' }}>
-                        <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
-                          <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
-                          <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
-                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: Anthony Ibuzo</p>
-                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Lead Technical Director / Producer</p>
-                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: {invIssueDate}</p>
-                        </div>
-
-                        <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
-                          <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For the Client:</p>
-                          <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
-                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: {contractSignerName || '________________________'}</p>
-                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Organization: {invClientName || 'Client'}</p>
-                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Authorized Representative</p>
-                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: ________________________</p>
-                        </div>
+                      <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
+                        <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For the Client:</p>
+                        <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: {contractSignerName || '________________________'}</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Organization: {invClientName || 'Client'}</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Authorized Representative</p>
+                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: ________________________</p>
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* SAVED INVOICES RECORDS WITH STATUS BADGES & DROPDOWNS */}
-          <div className="no-print" style={{ marginTop: '24px' }}>
-            <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px' }}>SAVED INVOICES ({invoices.length})</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {invoices.map((inv) => {
-                const badge = getStatusBadgeStyle(inv.status);
-                return (
-                  <div key={inv.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px 14px', borderRadius: '6px', border: '1px solid #222', gap: '10px' }}>
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                        <h4 style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 'bold' }}>
-                          {inv.invoice_number} • {inv.client_name}
-                        </h4>
-                        <span style={{ 
-                          fontSize: '10px', 
-                          fontWeight: 'bold', 
-                          padding: '2px 7px', 
-                          borderRadius: '4px', 
-                          backgroundColor: badge.bg, 
-                          color: badge.color, 
-                          border: `1px solid ${badge.border}`,
-                          textTransform: 'uppercase'
-                        }}>
-                          {inv.status}
-                        </span>
-                      </div>
-                      <p style={{ margin: 0, fontSize: '11.5px', color: '#888' }}>
-                        Total: <strong style={{ color: '#fff' }}>{inv.currency || 'NGN'} {(inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) || 0).toLocaleString()}</strong>
-                        {inv.project_for && <span> • For: {inv.project_for}</span>}
-                      </p>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      <select
-                        value={inv.status}
-                        onChange={(e) => handleQuickStatusChange(inv.id!, e.target.value as InvoiceStatus)}
-                        style={{
-                          padding: '5px 8px',
-                          backgroundColor: badge.bg,
-                          color: badge.color,
-                          border: `1px solid ${badge.border}`,
-                          borderRadius: '4px',
-                          fontSize: '11px',
-                          fontWeight: 'bold',
-                          cursor: 'pointer'
-                        }}
-                      >
-                        <option value="Sent" style={{ backgroundColor: '#111', color: '#facc15' }}>🟡 Pending (Sent)</option>
-                        <option value="Paid" style={{ backgroundColor: '#111', color: '#4ade80' }}>🟢 Paid</option>
-                        <option value="Part Payment" style={{ backgroundColor: '#111', color: '#ffffff' }}>⚪ Part Payment</option>
-                        <option value="Declined" style={{ backgroundColor: '#111', color: '#f87171' }}>🔴 Declined</option>
-                        <option value="Draft" style={{ backgroundColor: '#111', color: '#a1a1aa' }}>🔘 Draft</option>
-                      </select>
-
-                      <button type="button" onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Edit</button>
-                      <button type="button" onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Delete</button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* ===================== TAB 2: WEBSITE CMS ===================== */}
-      {activeTab === 'cms' && (
-        <div className="no-print">
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', backgroundColor: '#0a0a0a', padding: '6px', borderRadius: '8px', border: '1px solid #222', overflowX: 'auto' }}>
-            <button onClick={() => setCmsSubTab('portfolio')} style={{ flex: 1, minWidth: '120px', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: cmsSubTab === 'portfolio' ? '#fff' : 'transparent', color: cmsSubTab === 'portfolio' ? '#000' : '#888', border: 'none' }}>
-              🎥 Portfolio Projects ({cmsPortfolioList.length})
-            </button>
-            <button onClick={() => setCmsSubTab('gear')} style={{ flex: 1, minWidth: '120px', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: cmsSubTab === 'gear' ? '#fff' : 'transparent', color: cmsSubTab === 'gear' ? '#000' : '#888', border: 'none' }}>
-              ⚙️ Gear Kit Arsenal ({cmsGearList.length})
-            </button>
-            <button onClick={() => setCmsSubTab('timeline')} style={{ flex: 1, minWidth: '120px', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: cmsSubTab === 'timeline' ? '#fff' : 'transparent', color: cmsSubTab === 'timeline' ? '#000' : '#888', border: 'none' }}>
-              ⏱️ Timeline Experience ({cmsTimelineList.length})
-            </button>
-          </div>
-
-          {cmsSubTab === 'portfolio' && (
-            <div>
-              <form onSubmit={handlePortfolioSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
-                  {editingPortId ? 'EDIT PORTFOLIO PROJECT' : 'ADD NEW PORTFOLIO PROJECT'}
-                </h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>PROJECT TITLE</label>
-                    <input type="text" required value={portTitle} onChange={(e) => setPortTitle(e.target.value)} placeholder="e.g. WHAT A FINALIST FEELS LIKE" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+        {/* SAVED INVOICES RECORDS WITH STATUS BADGES & DROPDOWNS */}
+        <div className="no-print" style={{ marginTop: '24px' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px' }}>SAVED INVOICES ({invoices.length})</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {invoices.map((inv) => {
+              const badge = getStatusBadgeStyle(inv.status);
+              return (
+                <div key={inv.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px 14px', borderRadius: '6px', border: '1px solid #222', gap: '10px' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '13px', color: '#fff', fontWeight: 'bold' }}>
+                        {inv.invoice_number} • {inv.client_name}
+                      </h4>
+                      <span style={{ 
+                        fontSize: '10px', 
+                        fontWeight: 'bold', 
+                        padding: '2px 7px', 
+                        borderRadius: '4px', 
+                        backgroundColor: badge.bg, 
+                        color: badge.color, 
+                        border: `1px solid ${badge.border}`,
+                        textTransform: 'uppercase'
+                      }}>
+                        {inv.status}
+                      </span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '11.5px', color: '#888' }}>
+                      Total: <strong style={{ color: '#fff' }}>{inv.currency || 'NGN'} {(inv.items?.reduce((s, i) => s + (i.quantity || 0) * (i.rate || 0), 0) || 0).toLocaleString()}</strong>
+                      {inv.project_for && <span> • For: {inv.project_for}</span>}
+                    </p>
                   </div>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CATEGORY</label>
-                    <select value={portCategory} onChange={(e) => setPortCategory(e.target.value as any)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}>
-                      <option value="video">Digital Cinema / Commercial Video</option>
-                      <option value="live">Live Multi-Camera Broadcast</option>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <select
+                      value={inv.status}
+                      onChange={(e) => handleQuickStatusChange(String(inv.id), e.target.value as InvoiceStatus)}
+                      style={{
+                        padding: '5px 8px',
+                        backgroundColor: badge.bg,
+                        color: badge.color,
+                        border: `1px solid ${badge.border}`,
+                        borderRadius: '4px',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <option value="Sent" style={{ backgroundColor: '#111', color: '#facc15' }}>🟡 Pending (Sent)</option>
+                      <option value="Paid" style={{ backgroundColor: '#111', color: '#4ade80' }}>🟢 Paid</option>
+                      <option value="Part Payment" style={{ backgroundColor: '#111', color: '#ffffff' }}>⚪ Part Payment</option>
+                      <option value="Declined" style={{ backgroundColor: '#111', color: '#f87171' }}>🔴 Declined</option>
+                      <option value="Draft" style={{ backgroundColor: '#111', color: '#a1a1aa' }}>🔘 Draft</option>
                     </select>
+
+                    <button type="button" onClick={() => handleEditInvoice(inv)} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Edit</button>
+                    <button type="button" onClick={() => handleDeleteInvoice(inv.id)} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>Delete</button>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    )}
 
-                <div style={{ backgroundColor: '#18181b', padding: '12px', borderRadius: '6px', border: '1px solid #27272a', marginBottom: '14px' }}>
-                  <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
-                    VIDEO URL (Supabase Storage .mp4 or YouTube Embed)
+    {/* ===================== TAB 2: WEBSITE CMS ===================== */}
+    {activeTab === 'cms' && (
+      <div className="no-print">
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', backgroundColor: '#0a0a0a', padding: '6px', borderRadius: '8px', border: '1px solid #222', overflowX: 'auto' }}>
+          <button onClick={() => setCmsSubTab('portfolio')} style={{ flex: 1, minWidth: '120px', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: cmsSubTab === 'portfolio' ? '#fff' : 'transparent', color: cmsSubTab === 'portfolio' ? '#000' : '#888', border: 'none' }}>
+            🎥 Portfolio Projects ({cmsPortfolioList.length})
+          </button>
+          <button onClick={() => setCmsSubTab('gear')} style={{ flex: 1, minWidth: '120px', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: cmsSubTab === 'gear' ? '#fff' : 'transparent', color: cmsSubTab === 'gear' ? '#000' : '#888', border: 'none' }}>
+            ⚙️ Gear Kit Arsenal ({cmsGearList.length})
+          </button>
+          <button onClick={() => setCmsSubTab('timeline')} style={{ flex: 1, minWidth: '120px', padding: '8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', backgroundColor: cmsSubTab === 'timeline' ? '#fff' : 'transparent', color: cmsSubTab === 'timeline' ? '#000' : '#888', border: 'none' }}>
+            ⏱️ Timeline Experience ({cmsTimelineList.length})
+          </button>
+        </div>
+
+        {cmsSubTab === 'portfolio' && (
+          <div>
+            <form onSubmit={handlePortfolioSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
+                {editingPortId ? 'EDIT PORTFOLIO PROJECT' : 'ADD NEW PORTFOLIO PROJECT'}
+              </h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>PROJECT TITLE</label>
+                  <input type="text" required value={portTitle} onChange={(e) => setPortTitle(e.target.value)} placeholder="e.g. WHAT A FINALIST FEELS LIKE" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CATEGORY</label>
+                  <select value={portCategory} onChange={(e) => setPortCategory(e.target.value as any)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}>
+                    <option value="video">Digital Cinema / Commercial Video</option>
+                    <option value="live">Live Multi-Camera Broadcast</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ backgroundColor: '#18181b', padding: '12px', borderRadius: '6px', border: '1px solid #27272a', marginBottom: '14px' }}>
+                <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                  VIDEO URL (Supabase Storage .mp4 or YouTube Embed)
+                </label>
+                <input type="text" required value={portVideoSrc} onChange={(e) => setPortVideoSrc(e.target.value)} placeholder="https://..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px', marginBottom: '8px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <label style={{ fontSize: '11px', color: '#aaa', cursor: 'pointer', backgroundColor: '#27272a', padding: '6px 12px', borderRadius: '4px', border: '1px solid #3f3f46' }}>
+                    📁 Upload New Reel to Supabase Storage
+                    <input type="file" accept="video/mp4,video/quicktime" onChange={handleDirectReelUpload} style={{ display: 'none' }} />
                   </label>
-                  <input type="text" required value={portVideoSrc} onChange={(e) => setPortVideoSrc(e.target.value)} placeholder="https://..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px', marginBottom: '8px' }} />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <label style={{ fontSize: '11px', color: '#aaa', cursor: 'pointer', backgroundColor: '#27272a', padding: '6px 12px', borderRadius: '4px', border: '1px solid #3f3f46' }}>
-                      📁 Upload New Reel to Supabase Storage
-                      <input type="file" accept="video/mp4,video/quicktime" onChange={handleDirectReelUpload} style={{ display: 'none' }} />
-                    </label>
-                    {uploadingVideo && <span style={{ fontSize: '11px', color: '#38bdf8', fontStyle: 'italic' }}>Uploading to bucket...</span>}
-                  </div>
+                  {uploadingVideo && <span style={{ fontSize: '11px', color: '#38bdf8', fontStyle: 'italic' }}>Uploading to bucket...</span>}
                 </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>PRODUCTION ROLE</label>
-                    <input type="text" required value={portRole} onChange={(e) => setPortRole(e.target.value)} placeholder="e.g. Director of Photography • Lead Editor" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>EQUIPMENT / PIPELINE (Comma-separated)</label>
-                    <input type="text" value={portEquipment} onChange={(e) => setPortEquipment(e.target.value)} placeholder="Sony A7III, DaVinci Resolve Studio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  </div>
-                </div>
-
-                <div style={{ marginBottom: '12px' }}>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DESCRIPTION</label>
-                  <textarea rows={2} required value={portDesc} onChange={(e) => setPortDesc(e.target.value)} placeholder="Detailed project overview..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                  <input type="checkbox" id="verticalCheck" checked={portIsVertical} onChange={(e) => setPortIsVertical(e.target.checked)} style={{ accentColor: '#38bdf8', width: '16px', height: '16px' }} />
-                  <label htmlFor="verticalCheck" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>Vertical Video (9:16)</label>
-                </div>
-
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                    {loading ? 'SAVING...' : editingPortId ? 'UPDATE PROJECT' : 'ADD TO PORTFOLIO'}
-                  </button>
-                  {editingPortId && (
-                    <button type="button" onClick={() => setEditingPortId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                      CANCEL
-                    </button>
-                  )}
-                </div>
-              </form>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {cmsPortfolioList.map((item) => (
-                  <div key={item.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
-                    <div>
-                      <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{item.title}</h4>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Category: <strong>{item.category}</strong> | Role: {item.role}</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => {
-                        setEditingPortId(item.id || null);
-                        setPortTitle(item.title);
-                        setPortCategory(item.category);
-                        setPortVideoSrc(item.video_src);
-                        setPortRole(item.role);
-                        setPortEquipment(Array.isArray(item.equipment) ? item.equipment.join(', ') : '');
-                        setPortDesc(item.description);
-                        setPortIsVertical(item.is_vertical);
-                        window.scrollTo({ top: 300, behavior: 'smooth' });
-                      }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                      <button type="button" onClick={() => handleDeletePortfolio(Number(item.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
-                    </div>
-                  </div>
-                ))}
               </div>
-            </div>
-          )}
 
-          {cmsSubTab === 'gear' && (
-            <div>
-              <form onSubmit={handleGearSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>{editingGearId ? 'EDIT GEAR ITEM' : 'ADD NEW GEAR ITEM'}</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>HARDWARE NAME</label>
-                    <input type="text" required value={gearName} onChange={(e) => setGearName(e.target.value)} placeholder="e.g. Blackmagic ATEM 2 M/E" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CATEGORY / LABEL</label>
-                    <input type="text" required value={gearCategory} onChange={(e) => setGearCategory(e.target.value)} placeholder="e.g. Production Switchers" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>FILTER TAG</label>
-                    <select value={gearTag} onChange={(e) => setGearTag(e.target.value as any)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}>
-                      <option value="vision">Vision & Switching</option>
-                      <option value="cinema">Cinema Cameras & Rigging</option>
-                      <option value="wireless">Wireless Transmission</option>
-                      <option value="audio">Audio Chain</option>
-                      <option value="aerial">Aerial Drones</option>
-                    </select>
-                  </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>PRODUCTION ROLE</label>
+                  <input type="text" required value={portRole} onChange={(e) => setPortRole(e.target.value)} placeholder="e.g. Director of Photography • Lead Editor" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                 </div>
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DESCRIPTION</label>
-                  <textarea rows={2} required value={gearDesc} onChange={(e) => setGearDesc(e.target.value)} placeholder="Technical specs..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>EQUIPMENT / PIPELINE (Comma-separated)</label>
+                  <input type="text" value={portEquipment} onChange={(e) => setPortEquipment(e.target.value)} placeholder="Sony A7III, DaVinci Resolve Studio" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                    {loading ? 'SAVING...' : editingGearId ? 'UPDATE GEAR' : 'ADD TO ARSENAL'}
-                  </button>
-                  {editingGearId && (
-                    <button type="button" onClick={() => setEditingGearId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
-                  )}
-                </div>
-              </form>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {cmsGearList.map((g) => (
-                  <div key={g.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
-                    <div>
-                      <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{g.name}</h4>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Tag: <strong>{g.tag}</strong> | Category: {g.category}</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => {
-                        setEditingGearId(g.id || null);
-                        setGearName(g.name);
-                        setGearCategory(g.category);
-                        setGearTag(g.tag);
-                        setGearDesc(g.description);
-                      }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                      <button type="button" onClick={() => handleDeleteGear(Number(g.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
-                    </div>
-                  </div>
-                ))}
               </div>
-            </div>
-          )}
 
-          {cmsSubTab === 'timeline' && (
-            <div>
-              <form onSubmit={handleTimelineSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>{editingExpId ? 'EDIT EXPERIENCE MILESTONE' : 'ADD NEW MILESTONE'}</h2>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>TIMEFRAME</label>
-                    <input type="text" required value={expYear} onChange={(e) => setExpYear(e.target.value)} placeholder="e.g. 2023 - Present" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>ROLE TITLE</label>
-                    <input type="text" required value={expTitle} onChange={(e) => setExpTitle(e.target.value)} placeholder="e.g. Lead Technical Director" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>ORGANIZATION</label>
-                    <input type="text" required value={expCompany} onChange={(e) => setExpCompany(e.target.value)} placeholder="e.g. Pan-Atlantic University" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  </div>
-                </div>
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>RESPONSIBILITIES (One per line)</label>
-                  <textarea rows={3} required value={expResponsibilities} onChange={(e) => setExpResponsibilities(e.target.value)} placeholder="Managed 6 camera feeds..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                    {loading ? 'SAVING...' : editingExpId ? 'UPDATE MILESTONE' : 'ADD MILESTONE'}
-                  </button>
-                  {editingExpId && (
-                    <button type="button" onClick={() => setEditingExpId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
-                  )}
-                </div>
-              </form>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {cmsTimelineList.map((t) => (
-                  <div key={t.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
-                    <div>
-                      <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{t.title} ({t.year})</h4>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>{t.company}</p>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button type="button" onClick={() => {
-                        setEditingExpId(t.id || null);
-                        setExpYear(t.year);
-                        setExpTitle(t.title);
-                        setExpCompany(t.company);
-                        setExpResponsibilities(Array.isArray(t.responsibilities) ? t.responsibilities.join('\n') : '');
-                      }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                      <button type="button" onClick={() => handleDeleteTimeline(Number(t.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
-                    </div>
-                  </div>
-                ))}
+              <div style={{ marginBottom: '12px' }}>
+                <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DESCRIPTION</label>
+                <textarea rows={2} required value={portDesc} onChange={(e) => setPortDesc(e.target.value)} placeholder="Detailed project overview..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* ===================== TAB 3: CLIENT DELIVERIES ===================== */}
-      {activeTab === 'galleries' && (
-        <div className="no-print">
-          <form onSubmit={handleGallerySubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
-              {editingProjectId ? 'EDIT CLIENT GALLERY LINK' : 'CREATE NEW CLIENT DELIVERY GALLERY'}
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '14px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>CLIENT / ORGANIZATION</label>
-                <input type="text" required value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="e.g. Pan-Atlantic University" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                <input type="checkbox" id="verticalCheck" checked={portIsVertical} onChange={(e) => setPortIsVertical(e.target.checked)} style={{ accentColor: '#38bdf8', width: '16px', height: '16px' }} />
+                <label htmlFor="verticalCheck" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>Vertical Video (9:16)</label>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>PROJECT TITLE</label>
-                <input type="text" required value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder="e.g. Convocation 2026 Master Delivery" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-              </div>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '20px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>URL SLUG (tonyshotit.com/client/[slug])</label>
-                <input type="text" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="e.g. pau-convocation" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>CLIENT ACCESS PIN</label>
-                <input type="text" required value={pin} onChange={(e) => setPin(e.target.value)} placeholder="e.g. 2026" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-              </div>
-            </div>
-            <div style={{ marginBottom: '20px', borderTop: '1px solid #222', paddingTop: '16px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold' }}>VIDEO STREAMS ({videos.length})</label>
-                <button type="button" onClick={() => setVideos([...videos, { title: `Stream ${videos.length + 1}`, url: '' }])} style={{ padding: '6px 12px', fontSize: '11px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer' }}>
-                  + Add Another Video Stream
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  {loading ? 'SAVING...' : editingPortId ? 'UPDATE PROJECT' : 'ADD TO PORTFOLIO'}
                 </button>
+                {editingPortId && (
+                  <button type="button" onClick={() => setEditingPortId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                    CANCEL
+                  </button>
+                )}
               </div>
-              {videos.map((vid, idx) => (
-                <div key={idx} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
-                  <input type="text" placeholder="Title" value={vid.title} onChange={(e) => { const updated = [...videos]; updated[idx].title = e.target.value; setVideos(updated); }} style={{ flex: '1 1 140px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  <input type="text" placeholder="Direct Video URL" value={vid.url} onChange={(e) => { const updated = [...videos]; updated[idx].url = e.target.value; setVideos(updated); }} style={{ flex: '2 1 200px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  {videos.length > 1 && (
-                    <button type="button" onClick={() => setVideos(videos.filter((_, i) => i !== idx))} style={{ padding: '8px 12px', backgroundColor: '#300', color: '#f88', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✕</button>
-                  )}
+            </form>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {cmsPortfolioList.map((item) => (
+                <div key={item.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{item.title}</h4>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Category: <strong>{item.category}</strong> | Role: {item.role}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="button" onClick={() => {
+                      setEditingPortId(item.id || null);
+                      setPortTitle(item.title);
+                      setPortCategory(item.category);
+                      setPortVideoSrc(item.video_src);
+                      setPortRole(item.role);
+                      setPortEquipment(Array.isArray(item.equipment) ? item.equipment.join(', ') : '');
+                      setPortDesc(item.description);
+                      setPortIsVertical(item.is_vertical);
+                      window.scrollTo({ top: 300, behavior: 'smooth' });
+                    }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                    <button type="button" onClick={() => handleDeletePortfolio(Number(item.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                  </div>
                 </div>
               ))}
             </div>
-            <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>FULL RESOLUTION DOWNLOAD LINK</label>
-              <input type="text" value={downloadUrl} onChange={(e) => setDownloadUrl(e.target.value)} placeholder="https://drive.google.com/..." style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-            </div>
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>DIRECTOR NOTES</label>
-              <textarea rows={3} value={directorNotes} onChange={(e) => setDirectorNotes(e.target.value)} placeholder="Notes..." style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-            </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-              <button type="submit" disabled={loading} style={{ flex: 1, minWidth: '160px', padding: '12px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                {loading ? 'SAVING...' : editingProjectId ? 'UPDATE GALLERY LINK' : 'PUBLISH CLIENT GALLERY'}
-              </button>
-              {editingProjectId && (
-                <button type="button" onClick={resetGalleryForm} style={{ padding: '12px 18px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
-              )}
-            </div>
-          </form>
+          </div>
+        )}
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {projects.map((proj) => (
-              <div key={proj.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '14px', borderRadius: '6px', border: '1px solid #222', gap: '10px' }}>
+        {cmsSubTab === 'gear' && (
+          <div>
+            <form onSubmit={handleGearSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>{editingGearId ? 'EDIT GEAR ITEM' : 'ADD NEW GEAR ITEM'}</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                 <div>
-                  <h3 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', color: '#fff' }}>{proj.client_name} - {proj.project_title}</h3>
-                  <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Slug: <code style={{ color: '#38bdf8' }}>/client/{proj.slug}</code> | PIN: <strong style={{ color: '#fff' }}>{proj.pin}</strong></p>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>HARDWARE NAME</label>
+                  <input type="text" required value={gearName} onChange={(e) => setGearName(e.target.value)} placeholder="e.g. Blackmagic ATEM 2 M/E" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  <a href={`/client/${proj.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 10px', backgroundColor: '#1e293b', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '4px', fontSize: '11px', textDecoration: 'none', fontWeight: 'bold' }}>View ↗</a>
-                  <button type="button" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/client/${proj.slug}`); alert('Link copied!'); }} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#ccc', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Copy</button>
-                  <button type="button" onClick={() => handleEditProject(proj)} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
-                  <button type="button" onClick={() => handleDeleteProject(proj.id!)} style={{ padding: '6px 10px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CATEGORY / LABEL</label>
+                  <input type="text" required value={gearCategory} onChange={(e) => setGearCategory(e.target.value)} placeholder="e.g. Production Switchers" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                 </div>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>FILTER TAG</label>
+                  <select value={gearTag} onChange={(e) => setGearTag(e.target.value as any)} style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }}>
+                    <option value="vision">Vision & Switching</option>
+                    <option value="cinema">Cinema Cameras & Rigging</option>
+                    <option value="wireless">Wireless Transmission</option>
+                    <option value="audio">Audio Chain</option>
+                    <option value="aerial">Aerial Drones</option>
+                  </select>
+                </div>
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DESCRIPTION</label>
+                <textarea rows={2} required value={gearDesc} onChange={(e) => setGearDesc(e.target.value)} placeholder="Technical specs..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  {loading ? 'SAVING...' : editingGearId ? 'UPDATE GEAR' : 'ADD TO ARSENAL'}
+                </button>
+                {editingGearId && (
+                  <button type="button" onClick={() => setEditingGearId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
+                )}
+              </div>
+            </form>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {cmsGearList.map((g) => (
+                <div key={g.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{g.name}</h4>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Tag: <strong>{g.tag}</strong> | Category: {g.category}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="button" onClick={() => {
+                      setEditingGearId(g.id || null);
+                      setGearName(g.name);
+                      setGearCategory(g.category);
+                      setGearTag(g.tag);
+                      setGearDesc(g.description);
+                    }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                    <button type="button" onClick={() => handleDeleteGear(Number(g.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {cmsSubTab === 'timeline' && (
+          <div>
+            <form onSubmit={handleTimelineSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>{editingExpId ? 'EDIT EXPERIENCE MILESTONE' : 'ADD NEW MILESTONE'}</h2>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>TIMEFRAME</label>
+                  <input type="text" required value={expYear} onChange={(e) => setExpYear(e.target.value)} placeholder="e.g. 2023 - Present" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>ROLE TITLE</label>
+                  <input type="text" required value={expTitle} onChange={(e) => setExpTitle(e.target.value)} placeholder="e.g. Lead Technical Director" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>ORGANIZATION</label>
+                  <input type="text" required value={expCompany} onChange={(e) => setExpCompany(e.target.value)} placeholder="e.g. Pan-Atlantic University" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>RESPONSIBILITIES (One per line)</label>
+                <textarea rows={3} required value={expResponsibilities} onChange={(e) => setExpResponsibilities(e.target.value)} placeholder="Managed 6 camera feeds..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+                  {loading ? 'SAVING...' : editingExpId ? 'UPDATE MILESTONE' : 'ADD MILESTONE'}
+                </button>
+                {editingExpId && (
+                  <button type="button" onClick={() => setEditingExpId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
+                )}
+              </div>
+            </form>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {cmsTimelineList.map((t) => (
+                <div key={t.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: '0 0 2px 0', fontSize: '13px', color: '#fff' }}>{t.title} ({t.year})</h4>
+                    <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>{t.company}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button type="button" onClick={() => {
+                      setEditingExpId(t.id || null);
+                      setExpYear(t.year);
+                      setExpTitle(t.title);
+                      setExpCompany(t.company);
+                      setExpResponsibilities(Array.isArray(t.responsibilities) ? t.responsibilities.join('\n') : '');
+                    }} style={{ padding: '6px 12px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                    <button type="button" onClick={() => handleDeleteTimeline(Number(t.id))} style={{ padding: '6px 12px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+
+    {/* ===================== TAB 3: CLIENT DELIVERIES ===================== */}
+    {activeTab === 'galleries' && (
+      <div className="no-print">
+        <form onSubmit={handleGallerySubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '32px' }}>
+          <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
+            {editingProjectId ? 'EDIT CLIENT GALLERY LINK' : 'CREATE NEW CLIENT DELIVERY GALLERY'}
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '14px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>CLIENT / ORGANIZATION</label>
+              <input type="text" required value={clientName} onChange={(e) => setClientName(e.target.value)} placeholder="e.g. Pan-Atlantic University" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>PROJECT TITLE</label>
+              <input type="text" required value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder="e.g. Convocation 2026 Master Delivery" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '20px' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>URL SLUG (tonyshotit.com/client/[slug])</label>
+              <input type="text" required value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="e.g. pau-convocation" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>CLIENT ACCESS PIN</label>
+              <input type="text" required value={pin} onChange={(e) => setPin(e.target.value)} placeholder="e.g. 2026" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+            </div>
+          </div>
+          <div style={{ marginBottom: '20px', borderTop: '1px solid #222', paddingTop: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold' }}>VIDEO STREAMS ({videos.length})</label>
+              <button type="button" onClick={() => setVideos([...videos, { title: `Stream ${videos.length + 1}`, url: '' }])} style={{ padding: '6px 12px', fontSize: '11px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer' }}>
+                + Add Another Video Stream
+              </button>
+            </div>
+            {videos.map((vid, idx) => (
+              <div key={idx} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
+                <input type="text" placeholder="Title" value={vid.title} onChange={(e) => { const updated = [...videos]; updated[idx].title = e.target.value; setVideos(updated); }} style={{ flex: '1 1 140px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                <input type="text" placeholder="Direct Video URL" value={vid.url} onChange={(e) => { const updated = [...videos]; updated[idx].url = e.target.value; setVideos(updated); }} style={{ flex: '2 1 200px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                {videos.length > 1 && (
+                  <button type="button" onClick={() => setVideos(videos.filter((_, i) => i !== idx))} style={{ padding: '8px 12px', backgroundColor: '#300', color: '#f88', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✕</button>
+                )}
               </div>
             ))}
           </div>
+          <div style={{ marginBottom: '14px' }}>
+            <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>FULL RESOLUTION DOWNLOAD LINK</label>
+            <input type="text" value={downloadUrl} onChange={(e) => setDownloadUrl(e.target.value)} placeholder="https://drive.google.com/..." style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+          </div>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>DIRECTOR NOTES</label>
+            <textarea rows={3} value={directorNotes} onChange={(e) => setDirectorNotes(e.target.value)} placeholder="Notes..." style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+            <button type="submit" disabled={loading} style={{ flex: 1, minWidth: '160px', padding: '12px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+              {loading ? 'SAVING...' : editingProjectId ? 'UPDATE GALLERY LINK' : 'PUBLISH CLIENT GALLERY'}
+            </button>
+            {editingProjectId && (
+              <button type="button" onClick={resetGalleryForm} style={{ padding: '12px 18px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
+            )}
+          </div>
+        </form>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {projects.map((proj) => (
+            <div key={proj.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '14px', borderRadius: '6px', border: '1px solid #222', gap: '10px' }}>
+              <div>
+                <h3 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', color: '#fff' }}>{proj.client_name} - {proj.project_title}</h3>
+                <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Slug: <code style={{ color: '#38bdf8' }}>/client/{proj.slug}</code> | PIN: <strong style={{ color: '#fff' }}>{proj.pin}</strong></p>
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                <a href={`/client/${proj.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 10px', backgroundColor: '#1e293b', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '4px', fontSize: '11px', textDecoration: 'none', fontWeight: 'bold' }}>View ↗</a>
+                <button type="button" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/client/${proj.slug}`); alert('Link copied!'); }} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#ccc', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Copy</button>
+                <button type="button" onClick={() => handleEditProject(proj)} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
+                <button type="button" onClick={() => handleDeleteProject(proj.id!)} style={{ padding: '6px 10px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-    </div>
-  );
+      </div>
+    )}
+  </div>
+);
 };
 
 export default Admin;
