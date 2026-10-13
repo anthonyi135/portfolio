@@ -112,9 +112,9 @@ export const Admin: React.FC = () => {
   const [invDueDate, setInvDueDate] = useState('');
   const [invCurrency, setInvCurrency] = useState('NGN');
   const [invStatus, setInvStatus] = useState<InvoiceStatus>('Sent');
-  const [invBankName, setInvBankName] = useState('Moniepoint MFB');
-  const [invAccountNumber, setInvAccountNumber] = useState('6478474528');
-  const [invAccountName, setInvAccountName] = useState('Tonyshotit Studios - Anthony Ibuzo');
+  const [invBankName, setInvBankName] = useState('GT Bank');
+  const [invAccountNumber, setInvAccountNumber] = useState('0430859996');
+  const [invAccountName, setInvAccountName] = useState('Anthony Ibuzo');
 
   // Financial Controls
   const [invDiscount, setInvDiscount] = useState<number>(0);
@@ -486,7 +486,6 @@ export const Admin: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Instant update for status in the saved invoices list
   const handleQuickStatusChange = async (invoiceId: string, newStatus: InvoiceStatus) => {
     setInvoices((prev) =>
       prev.map((inv) => (inv.id === invoiceId ? { ...inv, status: newStatus } : inv))
@@ -552,7 +551,6 @@ export const Admin: React.FC = () => {
     }
   };
 
-  // Status badge styling helper
   const getStatusBadgeStyle = (status: InvoiceStatus) => {
     switch (status) {
       case 'Paid':
@@ -609,6 +607,33 @@ export const Admin: React.FC = () => {
   return (
     <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '24px 14px', color: '#fff', boxSizing: 'border-box', overflowX: 'hidden' }}>
       
+      {/* GLOBAL PRINT CSS INJECTION FOR FORCING COLORS */}
+      <style>{`
+        @media print {
+          body, #printable-invoice-document, #printable-contract-document {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+          .print-green {
+            color: #16a34a !important;
+            -webkit-print-color-adjust: exact !important;
+          }
+          .print-red {
+            color: #dc2626 !important;
+            -webkit-print-color-adjust: exact !important;
+          }
+          .print-blue {
+            color: #0284c7 !important;
+            -webkit-print-color-adjust: exact !important;
+          }
+          .print-bg-light {
+            background-color: #f9fafb !important;
+            -webkit-print-color-adjust: exact !important;
+          }
+        }
+      `}</style>
+
       {/* HEADER WITH BN & TIN */}
       <div className="no-print" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
@@ -712,7 +737,7 @@ export const Admin: React.FC = () => {
               />
             </div>
 
-            {/* CURRENCY, STATUS, BANK, ACCOUNT NUMBER AND NEW ACCOUNT NAME FIELD */}
+            {/* CURRENCY, STATUS, BANK, ACCOUNT NUMBER AND ACCOUNT NAME */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', marginBottom: '20px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>CURRENCY</label>
@@ -989,7 +1014,7 @@ export const Admin: React.FC = () => {
 
             <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', padding: '4px' }}>
               
-              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH TWO HORIZONTAL HEADER LINES */}
+              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH ENFORCED PRINT COLORS */}
               {printDocumentMode === 'invoice' && (
                 <div id="printable-invoice-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
                   
@@ -999,7 +1024,7 @@ export const Admin: React.FC = () => {
                       <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000', letterSpacing: '-0.5px' }}>INVOICE</h1>
                       <p style={{ margin: '6px 0 2px 0', fontSize: '13px', color: '#222' }}><strong>Invoice No:</strong> {invNumber}</p>
                       <p style={{ margin: '2px 0', fontSize: '13px', color: '#222' }}><strong>Date:</strong> {invIssueDate}</p>
-                      {invDueDate && <p style={{ margin: '2px 0', fontSize: '13px', color: '#b91c1c' }}><strong>Due Date:</strong> {invDueDate}</p>}
+                      {invDueDate && <p className="print-red" style={{ margin: '2px 0', fontSize: '13px', color: '#dc2626', fontWeight: 600 }}><strong>Due Date:</strong> {invDueDate}</p>}
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
@@ -1015,9 +1040,9 @@ export const Admin: React.FC = () => {
 
                   <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
 
-                  {/* Two-Column Parties: FROM & BILL TO (WITH MULTI-LINE ADDRESS) */}
+                  {/* Two-Column Parties: FROM & BILL TO */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                    <div style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                    <div className="print-bg-light" style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
                       <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>FROM</p>
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>Tonyshotit Studio</h3>
                       <p style={{ margin: '2px 0', fontSize: '12px' }}>Sales Rep: Anthony Ibuzo</p>
@@ -1025,7 +1050,7 @@ export const Admin: React.FC = () => {
                       <p style={{ margin: '2px 0', fontSize: '12px' }}>tonyshotit.com</p>
                     </div>
 
-                    <div style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                    <div className="print-bg-light" style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
                       <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>BILL TO</p>
                       <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>{invClientName || 'Client Name / Organization'}</h3>
                       {invClientEmail && <p style={{ margin: '2px 0', fontSize: '12px' }}>{invClientEmail}</p>}
@@ -1036,11 +1061,11 @@ export const Admin: React.FC = () => {
                         </p>
                       )}
 
-                      {invProjectFor && <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#0284c7', fontWeight: 'bold' }}>For: {invProjectFor}</p>}
+                      {invProjectFor && <p className="print-blue" style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#0284c7', fontWeight: 'bold' }}>For: {invProjectFor}</p>}
                     </div>
                   </div>
 
-                  {/* ITEMS TABLE WITH THE EXACT TWO-LINE SEPARATION (TOP AND BOTTOM BORDERS) */}
+                  {/* ITEMS TABLE WITH TWO HORIZONTAL HEADER LINES */}
                   <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
                     <thead>
                       <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
@@ -1067,11 +1092,11 @@ export const Admin: React.FC = () => {
                     </tbody>
                   </table>
 
-                  {/* Payment Details (With Relocated BN and TIN) & Totals */}
+                  {/* Payment Details & Totals */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
                     
-                    {/* Bank & Tax Remittance Details Block */}
-                    <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '14px' }}>
+                    {/* Bank & Tax Remittance Details */}
+                    <div className="print-bg-light" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '14px' }}>
                       <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold', letterSpacing: '0.5px' }}>
                         PAYMENT & REMITTANCE DETAILS
                       </h4>
@@ -1096,8 +1121,9 @@ export const Admin: React.FC = () => {
                         <span style={{ fontWeight: 600 }}>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
                       </div>
 
+                      {/* DISCOUNT ROW WITH EXPLICIT ENFORCED GREEN PRINT CLASS */}
                       {discountAmount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee', color: '#16a34a', fontWeight: 'bold' }}>
+                        <div className="print-green" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee', color: '#16a34a', fontWeight: 'bold' }}>
                           <span>Discount Applied</span>
                           <span>- {currencySymbol}{discountAmount.toLocaleString()}</span>
                         </div>
@@ -1146,7 +1172,7 @@ export const Admin: React.FC = () => {
                 </div>
               )}
 
-              {/* 2. EXACT ORIGINAL AGREEMENT PREVIEW WITH REFINED SECTIONS & SIGNATURES */}
+              {/* 2. EXACT ORIGINAL AGREEMENT PREVIEW */}
               {printDocumentMode === 'contract' && (
                 <div id="printable-contract-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
                   
@@ -1181,7 +1207,7 @@ export const Admin: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 2. PAYMENT SCHEDULE & MILESTONES TABLE (WITH TWO-LINE HEADER) */}
+                  {/* 2. PAYMENT SCHEDULE & MILESTONES TABLE */}
                   <div style={{ marginBottom: '16px' }}>
                     <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
                       2. PAYMENT SCHEDULE & MILESTONES
@@ -1259,7 +1285,7 @@ export const Admin: React.FC = () => {
             </div>
           </div>
 
-          {/* SAVED INVOICES RECORDS WITH QUICK STATUS BADGES & DROPDOWNS */}
+          {/* SAVED INVOICES RECORDS WITH STATUS BADGES & DROPDOWNS */}
           <div className="no-print" style={{ marginTop: '24px' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 'bold', marginBottom: '12px' }}>SAVED INVOICES ({invoices.length})</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1292,7 +1318,6 @@ export const Admin: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                      {/* STATUS DROPDOWN */}
                       <select
                         value={inv.status}
                         onChange={(e) => handleQuickStatusChange(inv.id!, e.target.value as InvoiceStatus)}
@@ -1340,14 +1365,13 @@ export const Admin: React.FC = () => {
             </button>
           </div>
 
-          {/* SUB-SECTION 1: PORTFOLIO CMS */}
+          {/* CMS Sub-Tabs content remains identical */}
           {cmsSubTab === 'portfolio' && (
             <div>
               <form onSubmit={handlePortfolioSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
                 <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
                   {editingPortId ? 'EDIT PORTFOLIO PROJECT' : 'ADD NEW PORTFOLIO PROJECT'}
                 </h2>
-
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                   <div>
                     <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>PROJECT TITLE</label>
@@ -1366,15 +1390,7 @@ export const Admin: React.FC = () => {
                   <label style={{ fontSize: '11px', color: '#38bdf8', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
                     VIDEO URL (Supabase Storage .mp4 or YouTube Embed)
                   </label>
-                  <input
-                    type="text"
-                    required
-                    value={portVideoSrc}
-                    onChange={(e) => setPortVideoSrc(e.target.value)}
-                    placeholder="https://baslngnfxzexrosegisj.supabase.co/storage/v1/object/public/portfolio-videos/... or YouTube Embed"
-                    style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px', marginBottom: '8px' }}
-                  />
-
+                  <input type="text" required value={portVideoSrc} onChange={(e) => setPortVideoSrc(e.target.value)} placeholder="https://..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px', fontSize: '12px', marginBottom: '8px' }} />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <label style={{ fontSize: '11px', color: '#aaa', cursor: 'pointer', backgroundColor: '#27272a', padding: '6px 12px', borderRadius: '4px', border: '1px solid #3f3f46' }}>
                       📁 Upload New Reel to Supabase Storage
@@ -1402,9 +1418,7 @@ export const Admin: React.FC = () => {
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
                   <input type="checkbox" id="verticalCheck" checked={portIsVertical} onChange={(e) => setPortIsVertical(e.target.checked)} style={{ accentColor: '#38bdf8', width: '16px', height: '16px' }} />
-                  <label htmlFor="verticalCheck" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>
-                    Vertical Video (9:16 Aspect Ratio format)
-                  </label>
+                  <label htmlFor="verticalCheck" style={{ fontSize: '12px', color: '#ccc', cursor: 'pointer' }}>Vertical Video (9:16)</label>
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -1446,14 +1460,10 @@ export const Admin: React.FC = () => {
             </div>
           )}
 
-          {/* SUB-SECTION 2: GEAR CMS */}
           {cmsSubTab === 'gear' && (
             <div>
               <form onSubmit={handleGearSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
-                  {editingGearId ? 'EDIT GEAR ITEM' : 'ADD NEW GEAR ITEM'}
-                </h2>
-
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>{editingGearId ? 'EDIT GEAR ITEM' : 'ADD NEW GEAR ITEM'}</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                   <div>
                     <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>HARDWARE NAME</label>
@@ -1474,24 +1484,19 @@ export const Admin: React.FC = () => {
                     </select>
                   </div>
                 </div>
-
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>DESCRIPTION</label>
-                  <textarea rows={2} required value={gearDesc} onChange={(e) => setGearDesc(e.target.value)} placeholder="Technical specifications..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <textarea rows={2} required value={gearDesc} onChange={(e) => setGearDesc(e.target.value)} placeholder="Technical specs..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                 </div>
-
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                     {loading ? 'SAVING...' : editingGearId ? 'UPDATE GEAR' : 'ADD TO ARSENAL'}
                   </button>
                   {editingGearId && (
-                    <button type="button" onClick={() => setEditingGearId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                      CANCEL
-                    </button>
+                    <button type="button" onClick={() => setEditingGearId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
                   )}
                 </div>
               </form>
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {cmsGearList.map((g) => (
                   <div key={g.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
@@ -1515,14 +1520,10 @@ export const Admin: React.FC = () => {
             </div>
           )}
 
-          {/* SUB-SECTION 3: TIMELINE CMS */}
           {cmsSubTab === 'timeline' && (
             <div>
               <form onSubmit={handleTimelineSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
-                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
-                  {editingExpId ? 'EDIT EXPERIENCE MILESTONE' : 'ADD NEW MILESTONE'}
-                </h2>
-
+                <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>{editingExpId ? 'EDIT EXPERIENCE MILESTONE' : 'ADD NEW MILESTONE'}</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', marginBottom: '12px' }}>
                   <div>
                     <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>TIMEFRAME</label>
@@ -1537,24 +1538,19 @@ export const Admin: React.FC = () => {
                     <input type="text" required value={expCompany} onChange={(e) => setExpCompany(e.target.value)} placeholder="e.g. Pan-Atlantic University" style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                   </div>
                 </div>
-
                 <div style={{ marginBottom: '16px' }}>
                   <label style={{ fontSize: '11px', color: '#888', display: 'block', marginBottom: '4px' }}>RESPONSIBILITIES (One per line)</label>
-                  <textarea rows={3} required value={expResponsibilities} onChange={(e) => setExpResponsibilities(e.target.value)} placeholder="Managed 6 camera feeds...&#10;Operated ATEM 2 M/E switcher..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <textarea rows={3} required value={expResponsibilities} onChange={(e) => setExpResponsibilities(e.target.value)} placeholder="Managed 6 camera feeds..." style={{ width: '100%', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                 </div>
-
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button type="submit" disabled={loading} style={{ flex: 1, padding: '10px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                     {loading ? 'SAVING...' : editingExpId ? 'UPDATE MILESTONE' : 'ADD MILESTONE'}
                   </button>
                   {editingExpId && (
-                    <button type="button" onClick={() => setEditingExpId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                      CANCEL
-                    </button>
+                    <button type="button" onClick={() => setEditingExpId(null)} style={{ padding: '10px 16px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
                   )}
                 </div>
               </form>
-
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {cmsTimelineList.map((t) => (
                   <div key={t.id} style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#111', padding: '12px', borderRadius: '6px', border: '1px solid #222', gap: '8px' }}>
@@ -1587,7 +1583,6 @@ export const Admin: React.FC = () => {
             <h2 style={{ fontSize: '1.1rem', fontWeight: 'bold', marginBottom: '16px', color: '#38bdf8' }}>
               {editingProjectId ? 'EDIT CLIENT GALLERY LINK' : 'CREATE NEW CLIENT DELIVERY GALLERY'}
             </h2>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>CLIENT / ORGANIZATION</label>
@@ -1598,7 +1593,6 @@ export const Admin: React.FC = () => {
                 <input type="text" required value={projectTitle} onChange={(e) => setProjectTitle(e.target.value)} placeholder="e.g. Convocation 2026 Master Delivery" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px', marginBottom: '20px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>URL SLUG (tonyshotit.com/client/[slug])</label>
@@ -1609,7 +1603,6 @@ export const Admin: React.FC = () => {
                 <input type="text" required value={pin} onChange={(e) => setPin(e.target.value)} placeholder="e.g. 2026" style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
               </div>
             </div>
-
             <div style={{ marginBottom: '20px', borderTop: '1px solid #222', paddingTop: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <label style={{ fontSize: '11px', color: '#aaa', fontWeight: 'bold' }}>VIDEO STREAMS ({videos.length})</label>
@@ -1617,44 +1610,33 @@ export const Admin: React.FC = () => {
                   + Add Another Video Stream
                 </button>
               </div>
-
               {videos.map((vid, idx) => (
                 <div key={idx} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
-                  <input type="text" placeholder="Title (e.g. Day 1 Morning Session)" value={vid.title} onChange={(e) => { const updated = [...videos]; updated[idx].title = e.target.value; setVideos(updated); }} style={{ flex: '1 1 140px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  <input type="text" placeholder="Direct Video URL (.mp4 or embed)" value={vid.url} onChange={(e) => { const updated = [...videos]; updated[idx].url = e.target.value; setVideos(updated); }} style={{ flex: '2 1 200px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" placeholder="Title" value={vid.title} onChange={(e) => { const updated = [...videos]; updated[idx].title = e.target.value; setVideos(updated); }} style={{ flex: '1 1 140px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" placeholder="Video URL" value={vid.url} onChange={(e) => { const updated = [...videos]; updated[idx].url = e.target.value; setVideos(updated); }} style={{ flex: '2 1 200px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                   {videos.length > 1 && (
                     <button type="button" onClick={() => setVideos(videos.filter((_, i) => i !== idx))} style={{ padding: '8px 12px', backgroundColor: '#300', color: '#f88', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✕</button>
                   )}
                 </div>
               ))}
             </div>
-
             <div style={{ marginBottom: '14px' }}>
-              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>FULL RESOLUTION DOWNLOAD LINK (Google Drive / Dropbox ZIP)</label>
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>FULL RESOLUTION DOWNLOAD LINK</label>
               <input type="text" value={downloadUrl} onChange={(e) => setDownloadUrl(e.target.value)} placeholder="https://drive.google.com/..." style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
             </div>
-
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>DIRECTOR NOTES & HANDOFF INSTRUCTIONS</label>
-              <textarea rows={3} value={directorNotes} onChange={(e) => setDirectorNotes(e.target.value)} placeholder="Notes for the client regarding download expiry, revisions, or color profiles..." style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+              <label style={{ display: 'block', fontSize: '11px', color: '#aaa', marginBottom: '4px' }}>DIRECTOR NOTES</label>
+              <textarea rows={3} value={directorNotes} onChange={(e) => setDirectorNotes(e.target.value)} placeholder="Notes..." style={{ width: '100%', boxSizing: 'border-box', padding: '10px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
             </div>
-
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
               <button type="submit" disabled={loading} style={{ flex: 1, minWidth: '160px', padding: '12px', backgroundColor: '#fff', color: '#000', fontWeight: 'bold', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                 {loading ? 'SAVING...' : editingProjectId ? 'UPDATE GALLERY LINK' : 'PUBLISH CLIENT GALLERY'}
               </button>
               {editingProjectId && (
-                <button type="button" onClick={resetGalleryForm} style={{ padding: '12px 18px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-                  CANCEL
-                </button>
+                <button type="button" onClick={resetGalleryForm} style={{ padding: '12px 18px', backgroundColor: '#333', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>CANCEL</button>
               )}
             </div>
           </form>
-
-          {/* PUBLISHED LIST */}
-          <h2 style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '16px', borderBottom: '1px solid #222', paddingBottom: '8px' }}>
-            ACTIVE CLIENT GALLERIES ({projects.length})
-          </h2>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {projects.map((proj) => (
@@ -1664,9 +1646,7 @@ export const Admin: React.FC = () => {
                   <p style={{ margin: 0, fontSize: '11px', color: '#888' }}>Slug: <code style={{ color: '#38bdf8' }}>/client/{proj.slug}</code> | PIN: <strong style={{ color: '#fff' }}>{proj.pin}</strong></p>
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                  <a href={`/client/${proj.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 10px', backgroundColor: '#1e293b', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '4px', fontSize: '11px', textDecoration: 'none', fontWeight: 'bold' }}>
-                    View ↗
-                  </a>
+                  <a href={`/client/${proj.slug}`} target="_blank" rel="noopener noreferrer" style={{ padding: '6px 10px', backgroundColor: '#1e293b', color: '#38bdf8', border: '1px solid #0284c7', borderRadius: '4px', fontSize: '11px', textDecoration: 'none', fontWeight: 'bold' }}>View ↗</a>
                   <button type="button" onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/client/${proj.slug}`); alert('Link copied!'); }} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#ccc', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Copy</button>
                   <button type="button" onClick={() => handleEditProject(proj)} style={{ padding: '6px 10px', backgroundColor: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Edit</button>
                   <button type="button" onClick={() => handleDeleteProject(proj.id!)} style={{ padding: '6px 10px', backgroundColor: '#300', color: '#f88', border: '1px solid #500', borderRadius: '4px', cursor: 'pointer', fontSize: '11px' }}>Delete</button>
