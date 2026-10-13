@@ -607,29 +607,55 @@ export const Admin: React.FC = () => {
   return (
     <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '24px 14px', color: '#fff', boxSizing: 'border-box', overflowX: 'hidden' }}>
       
-      {/* GLOBAL PRINT CSS INJECTION FOR FORCING COLORS */}
+      {/* BULLETPROOF PRINT STYLES TO OVERRIDE TAILWIND RESET & REMOVE BLACK CONTAINERS */}
       <style>{`
         @media print {
-          body, #printable-invoice-document, #printable-contract-document {
+          /* 1. Hide everything outside the active document */
+          body * {
+            visibility: hidden !important;
+          }
+          #print-document-wrapper,
+          #print-document-wrapper * {
+            visibility: visible !important;
+          }
+          #print-document-wrapper {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+            box-shadow: none !important;
+          }
+
+          /* 2. Enforce exact colors over Tailwind print resets */
+          html, body {
+            background-color: #fff !important;
+            color: #000 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-            color-adjust: exact !important;
           }
-          .print-green {
+          .force-print-green {
             color: #16a34a !important;
             -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
-          .print-red {
+          .force-print-red {
             color: #dc2626 !important;
             -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
-          .print-blue {
+          .force-print-blue {
             color: #0284c7 !important;
             -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
-          .print-bg-light {
+          .force-print-box {
             background-color: #f9fafb !important;
+            border: 1px solid #e5e7eb !important;
             -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
@@ -1003,9 +1029,9 @@ export const Admin: React.FC = () => {
             </div>
           </div>
 
-          {/* VISIBLE DOCUMENT PREVIEW */}
+          {/* VISIBLE DOCUMENT PREVIEW WRAPPER */}
           <div style={{ marginTop: '24px', marginBottom: '36px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <h3 style={{ fontSize: '0.95rem', fontWeight: 'bold', color: '#38bdf8', margin: 0 }}>
                 DOCUMENT PREVIEW: {printDocumentMode === 'invoice' ? 'OFFICIAL INVOICE' : 'PRODUCTION SERVICES AGREEMENT'}
               </h3>
@@ -1014,269 +1040,272 @@ export const Admin: React.FC = () => {
 
             <div style={{ overflowX: 'auto', backgroundColor: '#fff', borderRadius: '6px', boxShadow: '0 8px 30px rgba(0,0,0,0.6)', padding: '4px' }}>
               
-              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH ENFORCED PRINT COLORS */}
+              {/* 1. EXACT ORIGINAL INVOICE PREVIEW WITH PRINT ENFORCEMENT */}
               {printDocumentMode === 'invoice' && (
-                <div id="printable-invoice-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
-                  
-                  {/* Clean Top Header */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                    <div>
-                      <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000', letterSpacing: '-0.5px' }}>INVOICE</h1>
-                      <p style={{ margin: '6px 0 2px 0', fontSize: '13px', color: '#222' }}><strong>Invoice No:</strong> {invNumber}</p>
-                      <p style={{ margin: '2px 0', fontSize: '13px', color: '#222' }}><strong>Date:</strong> {invIssueDate}</p>
-                      {invDueDate && <p className="print-red" style={{ margin: '2px 0', fontSize: '13px', color: '#dc2626', fontWeight: 600 }}><strong>Due Date:</strong> {invDueDate}</p>}
-                    </div>
-
-                    <div style={{ textAlign: 'right' }}>
-                      <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: '#000' }}>TONYSHOTIT</h2>
-                      <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#444' }}>anthony@tonyshotit.com</p>
-                      <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#444' }}>tonyshotit.com</p>
-                    </div>
-                  </div>
-
-                  <p style={{ fontSize: '11px', color: '#555', margin: '0 0 20px 0', fontStyle: 'italic' }}>
-                    Thank you for choosing Tonyshotit Studio - Professional Video & Broadcast Solutions.
-                  </p>
-
-                  <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
-
-                  {/* Two-Column Parties: FROM & BILL TO */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                    <div className="print-bg-light" style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                      <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>FROM</p>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>Tonyshotit Studio</h3>
-                      <p style={{ margin: '2px 0', fontSize: '12px' }}>Sales Rep: Anthony Ibuzo</p>
-                      <p style={{ margin: '2px 0', fontSize: '12px' }}>anthony@tonyshotit.com</p>
-                      <p style={{ margin: '2px 0', fontSize: '12px' }}>tonyshotit.com</p>
-                    </div>
-
-                    <div className="print-bg-light" style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
-                      <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>BILL TO</p>
-                      <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>{invClientName || 'Client Name / Organization'}</h3>
-                      {invClientEmail && <p style={{ margin: '2px 0', fontSize: '12px' }}>{invClientEmail}</p>}
-                      
-                      {invClientAddress && invClientAddress.trim() && (
-                        <p style={{ margin: '4px 0 2px 0', fontSize: '11.5px', color: '#4b5563', whiteSpace: 'pre-line', lineHeight: 1.4 }}>
-                          {invClientAddress.trim()}
-                        </p>
-                      )}
-
-                      {invProjectFor && <p className="print-blue" style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#0284c7', fontWeight: 'bold' }}>For: {invProjectFor}</p>}
-                    </div>
-                  </div>
-
-                  {/* ITEMS TABLE WITH TWO HORIZONTAL HEADER LINES */}
-                  <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
-                    <thead>
-                      <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
-                        <th style={{ textAlign: 'center', padding: '8px 6px', fontSize: '11px', textTransform: 'uppercase', width: '5%', fontWeight: 800 }}>#</th>
-                        <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '55%', fontWeight: 800 }}>ITEM DESCRIPTION</th>
-                        <th style={{ textAlign: 'center', padding: '8px 6px', fontSize: '11px', textTransform: 'uppercase', width: '8%', fontWeight: 800 }}>QTY</th>
-                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '16%', fontWeight: 800 }}>UNIT PRICE</th>
-                        <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '16%', fontWeight: 800 }}>AMOUNT</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {invItems.map((item, idx) => (
-                        <tr key={idx} style={{ borderBottom: '1px solid #e5e5e5' }}>
-                          <td style={{ textAlign: 'center', padding: '12px 6px', fontSize: '12px', color: '#444' }}>{idx + 1}</td>
-                          <td style={{ padding: '12px 10px', fontSize: '12px' }}>
-                            <strong style={{ display: 'block', color: '#000' }}>{item.description || 'Service line item'}</strong>
-                            {item.sub_description && <div style={{ fontSize: '11px', color: '#555', marginTop: '2px', lineHeight: 1.4 }}>{item.sub_description}</div>}
-                          </td>
-                          <td style={{ textAlign: 'center', padding: '12px 6px', fontSize: '12px' }}>{item.quantity}</td>
-                          <td style={{ textAlign: 'right', padding: '12px 10px', fontSize: '12px' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
-                          <td style={{ textAlign: 'right', padding: '12px 10px', fontSize: '12px', fontWeight: 'bold' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-
-                  {/* Payment Details & Totals */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
+                <div id="print-document-wrapper">
+                  <div id="printable-invoice-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
                     
-                    {/* Bank & Tax Remittance Details */}
-                    <div className="print-bg-light" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '14px' }}>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold', letterSpacing: '0.5px' }}>
-                        PAYMENT & REMITTANCE DETAILS
-                      </h4>
-                      <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Bank Name:</strong> {invBankName}</p>
-                      <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
-                      <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
+                    {/* Clean Top Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                      <div>
+                        <h1 style={{ fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#000', letterSpacing: '-0.5px' }}>INVOICE</h1>
+                        <p style={{ margin: '6px 0 2px 0', fontSize: '13px', color: '#222' }}><strong>Invoice No:</strong> {invNumber}</p>
+                        <p style={{ margin: '2px 0', fontSize: '13px', color: '#222' }}><strong>Date:</strong> {invIssueDate}</p>
+                        {invDueDate && <p className="force-print-red" style={{ margin: '2px 0', fontSize: '13px', color: '#dc2626', fontWeight: 600 }}><strong>Due Date:</strong> {invDueDate}</p>}
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <h2 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: '#000' }}>TONYSHOTIT</h2>
+                        <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#444' }}>anthony@tonyshotit.com</p>
+                        <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#444' }}>tonyshotit.com</p>
+                      </div>
+                    </div>
+
+                    <p style={{ fontSize: '11px', color: '#555', margin: '0 0 20px 0', fontStyle: 'italic' }}>
+                      Thank you for choosing Tonyshotit Studio - Professional Video & Broadcast Solutions.
+                    </p>
+
+                    <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '20px' }} />
+
+                    {/* Two-Column Parties: FROM & BILL TO */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                      <div className="force-print-box" style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                        <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>FROM</p>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>Tonyshotit Studio</h3>
+                        <p style={{ margin: '2px 0', fontSize: '12px' }}>Sales Rep: Anthony Ibuzo</p>
+                        <p style={{ margin: '2px 0', fontSize: '12px' }}>anthony@tonyshotit.com</p>
+                        <p style={{ margin: '2px 0', fontSize: '12px' }}>tonyshotit.com</p>
+                      </div>
+
+                      <div className="force-print-box" style={{ backgroundColor: '#f9fafb', padding: '12px 14px', borderRadius: '4px', border: '1px solid #e5e7eb' }}>
+                        <p style={{ fontSize: '10px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 4px 0' }}>BILL TO</p>
+                        <h3 style={{ fontSize: '1.05rem', fontWeight: 'bold', margin: '0 0 2px 0' }}>{invClientName || 'Client Name / Organization'}</h3>
+                        {invClientEmail && <p style={{ margin: '2px 0', fontSize: '12px' }}>{invClientEmail}</p>}
+                        
+                        {invClientAddress && invClientAddress.trim() && (
+                          <p style={{ margin: '4px 0 2px 0', fontSize: '11.5px', color: '#4b5563', whiteSpace: 'pre-line', lineHeight: 1.4 }}>
+                            {invClientAddress.trim()}
+                          </p>
+                        )}
+
+                        {invProjectFor && <p className="force-print-blue" style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#0284c7', fontWeight: 'bold' }}>For: {invProjectFor}</p>}
+                      </div>
+                    </div>
+
+                    {/* ITEMS TABLE WITH TWO HORIZONTAL HEADER LINES */}
+                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '24px' }}>
+                      <thead>
+                        <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
+                          <th style={{ textAlign: 'center', padding: '8px 6px', fontSize: '11px', textTransform: 'uppercase', width: '5%', fontWeight: 800 }}>#</th>
+                          <th style={{ textAlign: 'left', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '55%', fontWeight: 800 }}>ITEM DESCRIPTION</th>
+                          <th style={{ textAlign: 'center', padding: '8px 6px', fontSize: '11px', textTransform: 'uppercase', width: '8%', fontWeight: 800 }}>QTY</th>
+                          <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '16%', fontWeight: 800 }}>UNIT PRICE</th>
+                          <th style={{ textAlign: 'right', padding: '8px 10px', fontSize: '11px', textTransform: 'uppercase', width: '16%', fontWeight: 800 }}>AMOUNT</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {invItems.map((item, idx) => (
+                          <tr key={idx} style={{ borderBottom: '1px solid #e5e5e5' }}>
+                            <td style={{ textAlign: 'center', padding: '12px 6px', fontSize: '12px', color: '#444' }}>{idx + 1}</td>
+                            <td style={{ padding: '12px 10px', fontSize: '12px' }}>
+                              <strong style={{ display: 'block', color: '#000' }}>{item.description || 'Service line item'}</strong>
+                              {item.sub_description && <div style={{ fontSize: '11px', color: '#555', marginTop: '2px', lineHeight: 1.4 }}>{item.sub_description}</div>}
+                            </td>
+                            <td style={{ textAlign: 'center', padding: '12px 6px', fontSize: '12px' }}>{item.quantity}</td>
+                            <td style={{ textAlign: 'right', padding: '12px 10px', fontSize: '12px' }}>{currencySymbol}{(item.rate || 0).toLocaleString()}</td>
+                            <td style={{ textAlign: 'right', padding: '12px 10px', fontSize: '12px', fontWeight: 'bold' }}>{currencySymbol}{((item.quantity || 0) * (item.rate || 0)).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Payment Details & Totals */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '28px' }}>
                       
-                      <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #d1d5db' }}>
-                        <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#1f2937' }}>
-                          <strong>Business Reg (BN):</strong> 9926513
-                        </p>
-                        <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#1f2937' }}>
-                          <strong>Tax ID (TIN):</strong> 2622415188316
-                        </p>
+                      {/* Bank & Tax Remittance Details */}
+                      <div className="force-print-box" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '4px', padding: '14px' }}>
+                        <h4 style={{ margin: '0 0 8px 0', fontSize: '11px', textTransform: 'uppercase', color: '#111', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+                          PAYMENT & REMITTANCE DETAILS
+                        </h4>
+                        <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Bank Name:</strong> {invBankName}</p>
+                        <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Number:</strong> {invAccountNumber}</p>
+                        <p style={{ margin: '3px 0', fontSize: '12px' }}><strong>Account Name:</strong> {invAccountName}</p>
+                        
+                        <div style={{ marginTop: '10px', paddingTop: '8px', borderTop: '1px dashed #d1d5db' }}>
+                          <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#1f2937' }}>
+                            <strong>Business Reg (BN):</strong> 9926513
+                          </p>
+                          <p style={{ margin: '2px 0', fontSize: '11.5px', color: '#1f2937' }}>
+                            <strong>Tax ID (TIN):</strong> 2622415188316
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Totals Breakdown */}
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
+                          <span style={{ color: '#555' }}>Subtotal</span>
+                          <span style={{ fontWeight: 600 }}>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
+                        </div>
+
+                        {discountAmount > 0 && (
+                          <div className="force-print-green" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee', color: '#16a34a', fontWeight: 'bold' }}>
+                            <span>Discount Applied</span>
+                            <span>- {currencySymbol}{discountAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        {showVatRow && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
+                            <span style={{ color: '#555' }}>VAT ({safeTaxPercent}%)</span>
+                            <span>{safeTaxPercent > 0 ? `${currencySymbol}${taxAmount.toLocaleString()}` : '0.00 (Small Business Exempt)'}</span>
+                          </div>
+                        )}
+
+                        {extraFeeAmount > 0 && (
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
+                            <span style={{ color: '#555' }}>{invExtraFeeLabel || 'Transportation and Logistics'}</span>
+                            <span style={{ fontWeight: 600 }}>{currencySymbol}{extraFeeAmount.toLocaleString()}</span>
+                          </div>
+                        )}
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 900, padding: '10px 0', borderBottom: '2px solid #000' }}>
+                          <span>GRAND TOTAL</span>
+                          <span>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</span>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Totals Breakdown */}
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
-                        <span style={{ color: '#555' }}>Subtotal</span>
-                        <span style={{ fontWeight: 600 }}>{currencySymbol}{servicesSubtotal.toLocaleString()}</span>
+                    {/* Notes */}
+                    {invNotes && (
+                      <div style={{ marginBottom: '20px' }}>
+                        <p style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 2px 0' }}>NOTES</p>
+                        <p style={{ fontSize: '12px', color: '#333', margin: 0, lineHeight: 1.5 }}>{invNotes}</p>
                       </div>
+                    )}
 
-                      {/* DISCOUNT ROW WITH EXPLICIT ENFORCED GREEN PRINT CLASS */}
-                      {discountAmount > 0 && (
-                        <div className="print-green" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee', color: '#16a34a', fontWeight: 'bold' }}>
-                          <span>Discount Applied</span>
-                          <span>- {currencySymbol}{discountAmount.toLocaleString()}</span>
-                        </div>
-                      )}
-
-                      {showVatRow && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
-                          <span style={{ color: '#555' }}>VAT ({safeTaxPercent}%)</span>
-                          <span>{safeTaxPercent > 0 ? `${currencySymbol}${taxAmount.toLocaleString()}` : '0.00 (Small Business Exempt)'}</span>
-                        </div>
-                      )}
-
-                      {extraFeeAmount > 0 && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '4px 0', borderBottom: '1px solid #eee' }}>
-                          <span style={{ color: '#555' }}>{invExtraFeeLabel || 'Transportation and Logistics'}</span>
-                          <span style={{ fontWeight: 600 }}>{currencySymbol}{extraFeeAmount.toLocaleString()}</span>
-                        </div>
-                      )}
-
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '15px', fontWeight: 900, padding: '10px 0', borderBottom: '2px solid #000' }}>
-                        <span>GRAND TOTAL</span>
-                        <span>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</span>
+                    {/* Terms & Conditions */}
+                    {includeTerms && (
+                      <div style={{ fontSize: '10px', color: '#555', borderTop: '1px solid #eee', paddingTop: '14px', lineHeight: 1.5 }}>
+                        <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#222' }}>TERMS & CONDITIONS</p>
+                        <p style={{ margin: '0 0 2px 0' }}><strong>Payment Milestones:</strong> An advance commitment deposit is required to confirm booking and mobilize crew/equipment. The remaining balance is strictly due within 24 hours of project completion / final deliverable handoff.</p>
+                        <p style={{ margin: '0 0 2px 0' }}><strong>Invoice Validity:</strong> This invoice and reserved equipment/dates remain valid until the specified Due Date. Once the due date has passed, this invoice becomes null and void, subject to schedule availability and price re-evaluation.</p>
+                        <p style={{ margin: '0 0 2px 0' }}><strong>Revisions & Scope:</strong> Agreed deliverables include complimentary review cycles. Additional days, overtime hours, or scope modifications outside the agreed line items will be billed separately.</p>
+                        <p style={{ margin: '0 0 2px 0' }}><strong>Asset Ownership:</strong> All hardware, broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.</p>
+                        <p style={{ margin: '0 0 2px 0' }}><strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.</p>
                       </div>
-                    </div>
+                    )}
                   </div>
-
-                  {/* Notes */}
-                  {invNotes && (
-                    <div style={{ marginBottom: '20px' }}>
-                      <p style={{ fontSize: '11px', textTransform: 'uppercase', color: '#666', fontWeight: 'bold', margin: '0 0 2px 0' }}>NOTES</p>
-                      <p style={{ fontSize: '12px', color: '#333', margin: 0, lineHeight: 1.5 }}>{invNotes}</p>
-                    </div>
-                  )}
-
-                  {/* Terms & Conditions */}
-                  {includeTerms && (
-                    <div style={{ fontSize: '10px', color: '#555', borderTop: '1px solid #eee', paddingTop: '14px', lineHeight: 1.5 }}>
-                      <p style={{ margin: '0 0 4px 0', fontWeight: 'bold', color: '#222' }}>TERMS & CONDITIONS</p>
-                      <p style={{ margin: '0 0 2px 0' }}><strong>Payment Milestones:</strong> An advance commitment deposit is required to confirm booking and mobilize crew/equipment. The remaining balance is strictly due within 24 hours of project completion / final deliverable handoff.</p>
-                      <p style={{ margin: '0 0 2px 0' }}><strong>Invoice Validity:</strong> This invoice and reserved equipment/dates remain valid until the specified Due Date. Once the due date has passed, this invoice becomes null and void, subject to schedule availability and price re-evaluation.</p>
-                      <p style={{ margin: '0 0 2px 0' }}><strong>Revisions & Scope:</strong> Agreed deliverables include complimentary review cycles. Additional days, overtime hours, or scope modifications outside the agreed line items will be billed separately.</p>
-                      <p style={{ margin: '0 0 2px 0' }}><strong>Asset Ownership:</strong> All hardware, broadcast recordings, raw footage, and final video deliverables remain the property of Tonyshotit Studio until the final balance is settled in full.</p>
-                      <p style={{ margin: '0 0 2px 0' }}><strong>Cancellation Policy:</strong> Cancellations made within 48 hours of call time forfeit the initial commitment deposit to cover equipment holding and crew retainers.</p>
-                    </div>
-                  )}
                 </div>
               )}
 
               {/* 2. EXACT ORIGINAL AGREEMENT PREVIEW */}
               {printDocumentMode === 'contract' && (
-                <div id="printable-contract-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
-                  
-                  {/* Agreement Header */}
-                  <div style={{ marginBottom: '14px' }}>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 6px 0', textTransform: 'uppercase', color: '#000', letterSpacing: '-0.3px' }}>
-                      {contractTitle}
-                    </h1>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#444' }}>
-                      <span>TONYSHOTIT STUDIO • TONYSHOTIT.COM • ANTHONY@TONYSHOTIT.COM</span>
-                      <span>Ref: <strong>{invNumber}</strong> • Date: <strong>{invIssueDate}</strong></span>
-                    </div>
-                  </div>
-
-                  <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '18px' }} />
-
-                  {/* Intro Clause */}
-                  <p style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#222', marginBottom: '16px' }}>
-                    This Agreement is entered into as of <strong>{invIssueDate}</strong> by and between <strong>Tonyshotit Studio</strong>, represented by Anthony Ibuzo (the "Producer/Supplier"), and <strong>{invClientName || 'Client'}</strong> ({invClientEmail || 'client email'}) (the "Client").
-                  </p>
-
-                  {/* 1. PROJECT SCOPE & DELIVERABLES */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
-                      1. PROJECT SCOPE & DELIVERABLES
-                    </h3>
-                    <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Project / Event:</strong> {invProjectFor || 'Commercial Video Production'}</p>
-                    <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Dates & Fulfillment Window:</strong> {contractFulfillmentWindow}</p>
-                    <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Scope of Service:</strong> {contractScope}</p>
-                    <div style={{ whiteSpace: 'pre-line', fontSize: '11.5px', marginTop: '4px', lineHeight: 1.5 }}>
-                      {contractDeliverables}
-                    </div>
-                  </div>
-
-                  {/* 2. PAYMENT SCHEDULE & MILESTONES TABLE */}
-                  <div style={{ marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
-                      2. PAYMENT SCHEDULE & MILESTONES
-                    </h3>
-
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
-                      <thead>
-                        <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
-                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '28%', fontWeight: 800 }}>Milestone</th>
-                          <th style={{ textAlign: 'right', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '22%', fontWeight: 800 }}>Amount Due</th>
-                          <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '50%', fontWeight: 800 }}>Trigger/Terms</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Commitment Deposit ({safeDepositPercent}%)</td>
-                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{depositAmount.toLocaleString()}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Required upon signing to lock schedule, technical crew, and reserved hardware</td>
-                        </tr>
-                        <tr style={{ borderBottom: '1px solid #eee' }}>
-                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Final Balance ({100 - safeDepositPercent}%)</td>
-                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>{finalPaymentTrigger}</td>
-                        </tr>
-                        <tr style={{ backgroundColor: '#f9fafb', borderTop: '1px solid #000' }}>
-                          <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Total Fee (After Discount)</td>
-                          <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 900 }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
-                          <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Referenced in Invoice: {invNumber}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-
-                    <p style={{ fontSize: '10.5px', color: '#444', margin: 0 }}>
-                      <strong>Settlement Details:</strong> {invBankName} | Account: {invAccountNumber} ({invAccountName}) | BN: 9926513 • TIN: 2622415188316. Late settlements exceeding 5 business days incur a 5% weekly late fee.
-                    </p>
-                  </div>
-
-                  {/* 3. KEY OPERATIONAL TERMS */}
-                  <div style={{ marginBottom: '22px' }}>
-                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
-                      3. KEY OPERATIONAL TERMS
-                    </h3>
-                    <div style={{ whiteSpace: 'pre-line', fontSize: '10.5px', lineHeight: 1.5, color: '#333' }}>
-                      {contractCustomTerms}
-                    </div>
-                  </div>
-
-                  {/* 4. SIGNATURES & ACCEPTANCE */}
-                  <div>
-                    <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 10px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
-                      4. SIGNATURES & ACCEPTANCE
-                    </h3>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '12px' }}>
-                      <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
-                        <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
-                        <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
-                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: Anthony Ibuzo</p>
-                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Lead Technical Director / Producer</p>
-                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: {invIssueDate}</p>
+                <div id="print-document-wrapper">
+                  <div id="printable-contract-document" style={{ minWidth: '720px', backgroundColor: '#fff', color: '#000', padding: '50px 44px', fontFamily: 'Arial, sans-serif', boxSizing: 'border-box' }}>
+                    
+                    {/* Agreement Header */}
+                    <div style={{ marginBottom: '14px' }}>
+                      <h1 style={{ fontSize: '1.5rem', fontWeight: 900, margin: '0 0 6px 0', textTransform: 'uppercase', color: '#000', letterSpacing: '-0.3px' }}>
+                        {contractTitle}
+                      </h1>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#444' }}>
+                        <span>TONYSHOTIT STUDIO • TONYSHOTIT.COM • ANTHONY@TONYSHOTIT.COM</span>
+                        <span>Ref: <strong>{invNumber}</strong> • Date: <strong>{invIssueDate}</strong></span>
                       </div>
+                    </div>
 
-                      <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
-                        <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For the Client:</p>
-                        <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
-                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: {contractSignerName || '________________________'}</p>
-                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Organization: {invClientName || 'Client'}</p>
-                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Authorized Representative</p>
-                        <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: ________________________</p>
+                    <hr style={{ border: 'none', borderTop: '2px solid #000', marginBottom: '18px' }} />
+
+                    {/* Intro Clause */}
+                    <p style={{ fontSize: '11.5px', lineHeight: 1.5, color: '#222', marginBottom: '16px' }}>
+                      This Agreement is entered into as of <strong>{invIssueDate}</strong> by and between <strong>Tonyshotit Studio</strong>, represented by Anthony Ibuzo (the "Producer/Supplier"), and <strong>{invClientName || 'Client'}</strong> ({invClientEmail || 'client email'}) (the "Client").
+                    </p>
+
+                    {/* 1. PROJECT SCOPE & DELIVERABLES */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                        1. PROJECT SCOPE & DELIVERABLES
+                      </h3>
+                      <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Project / Event:</strong> {invProjectFor || 'Commercial Video Production'}</p>
+                      <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Dates & Fulfillment Window:</strong> {contractFulfillmentWindow}</p>
+                      <p style={{ margin: '0 0 3px 0', fontSize: '11.5px' }}>• <strong>Scope of Service:</strong> {contractScope}</p>
+                      <div style={{ whiteSpace: 'pre-line', fontSize: '11.5px', marginTop: '4px', lineHeight: 1.5 }}>
+                        {contractDeliverables}
+                      </div>
+                    </div>
+
+                    {/* 2. PAYMENT SCHEDULE & MILESTONES TABLE */}
+                    <div style={{ marginBottom: '16px' }}>
+                      <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                        2. PAYMENT SCHEDULE & MILESTONES
+                      </h3>
+
+                      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px' }}>
+                        <thead>
+                          <tr style={{ borderTop: '2px solid #000', borderBottom: '2px solid #000', color: '#000' }}>
+                            <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '28%', fontWeight: 800 }}>Milestone</th>
+                            <th style={{ textAlign: 'right', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '22%', fontWeight: 800 }}>Amount Due</th>
+                            <th style={{ textAlign: 'left', padding: '6px 8px', fontSize: '10.5px', textTransform: 'uppercase', width: '50%', fontWeight: 800 }}>Trigger/Terms</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr style={{ borderBottom: '1px solid #eee' }}>
+                            <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Commitment Deposit ({safeDepositPercent}%)</td>
+                            <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{depositAmount.toLocaleString()}</td>
+                            <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Required upon signing to lock schedule, technical crew, and reserved hardware</td>
+                          </tr>
+                          <tr style={{ borderBottom: '1px solid #eee' }}>
+                            <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Final Balance ({100 - safeDepositPercent}%)</td>
+                            <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 'bold' }}>{currencySymbol}{balanceAmount.toLocaleString()}</td>
+                            <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>{finalPaymentTrigger}</td>
+                          </tr>
+                          <tr className="force-print-box" style={{ backgroundColor: '#f9fafb', borderTop: '1px solid #000' }}>
+                            <td style={{ padding: '6px 8px', fontSize: '11px', fontWeight: 'bold' }}>Total Fee (After Discount)</td>
+                            <td style={{ padding: '6px 8px', fontSize: '11px', textAlign: 'right', fontWeight: 900 }}>{currencySymbol}{invoiceGrandTotal.toLocaleString()}</td>
+                            <td style={{ padding: '6px 8px', fontSize: '10.5px' }}>Referenced in Invoice: {invNumber}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <p style={{ fontSize: '10.5px', color: '#444', margin: 0 }}>
+                        <strong>Settlement Details:</strong> {invBankName} | Account: {invAccountNumber} ({invAccountName}) | BN: 9926513 • TIN: 2622415188316. Late settlements exceeding 5 business days incur a 5% weekly late fee.
+                      </p>
+                    </div>
+
+                    {/* 3. KEY OPERATIONAL TERMS */}
+                    <div style={{ marginBottom: '22px' }}>
+                      <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 6px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                        3. KEY OPERATIONAL TERMS
+                      </h3>
+                      <div style={{ whiteSpace: 'pre-line', fontSize: '10.5px', lineHeight: 1.5, color: '#333' }}>
+                        {contractCustomTerms}
+                      </div>
+                    </div>
+
+                    {/* 4. SIGNATURES & ACCEPTANCE */}
+                    <div>
+                      <h3 style={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', margin: '0 0 10px 0', borderBottom: '1px solid #ddd', paddingBottom: '3px' }}>
+                        4. SIGNATURES & ACCEPTANCE
+                      </h3>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '30px', marginTop: '12px' }}>
+                        <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
+                          <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For Tonyshotit Studio:</p>
+                          <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: Anthony Ibuzo</p>
+                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Lead Technical Director / Producer</p>
+                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: {invIssueDate}</p>
+                        </div>
+
+                        <div style={{ borderTop: '1px solid #000', paddingTop: '6px' }}>
+                          <p style={{ margin: '0 0 2px 0', fontSize: '11px', fontWeight: 'bold' }}>For the Client:</p>
+                          <p style={{ margin: '14px 0 2px 0', fontSize: '11px' }}>Signature: ______________________________</p>
+                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Name: {contractSignerName || '________________________'}</p>
+                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Organization: {invClientName || 'Client'}</p>
+                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Title: Authorized Representative</p>
+                          <p style={{ margin: '2px 0', fontSize: '11px' }}>Date: ________________________</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1365,7 +1394,6 @@ export const Admin: React.FC = () => {
             </button>
           </div>
 
-          {/* CMS Sub-Tabs content remains identical */}
           {cmsSubTab === 'portfolio' && (
             <div>
               <form onSubmit={handlePortfolioSubmit} style={{ backgroundColor: '#111', padding: '16px', borderRadius: '8px', border: '1px solid #222', marginBottom: '24px' }}>
@@ -1613,7 +1641,7 @@ export const Admin: React.FC = () => {
               {videos.map((vid, idx) => (
                 <div key={idx} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '10px', alignItems: 'center' }}>
                   <input type="text" placeholder="Title" value={vid.title} onChange={(e) => { const updated = [...videos]; updated[idx].title = e.target.value; setVideos(updated); }} style={{ flex: '1 1 140px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
-                  <input type="text" placeholder="Video URL" value={vid.url} onChange={(e) => { const updated = [...videos]; updated[idx].url = e.target.value; setVideos(updated); }} style={{ flex: '2 1 200px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
+                  <input type="text" placeholder="Direct Video URL" value={vid.url} onChange={(e) => { const updated = [...videos]; updated[idx].url = e.target.value; setVideos(updated); }} style={{ flex: '2 1 200px', boxSizing: 'border-box', padding: '8px', backgroundColor: '#000', border: '1px solid #333', color: '#fff', borderRadius: '4px' }} />
                   {videos.length > 1 && (
                     <button type="button" onClick={() => setVideos(videos.filter((_, i) => i !== idx))} style={{ padding: '8px 12px', backgroundColor: '#300', color: '#f88', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✕</button>
                   )}
