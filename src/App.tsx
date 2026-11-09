@@ -6,10 +6,9 @@ import Timeline from './components/Timeline';
 import GearKit from './components/GearKit';
 import Footer from './components/Footer';
 import AboutMe from './components/AboutMe';
-import { Admin } from './components/Admin';
 import ClientPortal from './components/ClientPortal';
-import { Analytics } from "@vercel/analytics/react"
-import { SpeedInsights } from "@vercel/speed-insights/react"
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function App() {
   return (
@@ -28,9 +27,6 @@ function App() {
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/experience" element={<Timeline />} />
             <Route path="/gear" element={<GearKit />} />
-            
-            {/* New Routes */}
-            <Route path="/admin" element={<Admin />} />
             <Route path="/client/:slug" element={<ClientPortal />} />
           </Routes>
         </main>
