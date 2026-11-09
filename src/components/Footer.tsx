@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { Youtube, Instagram, Music, Mail, ArrowUp, Lock } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Youtube, Instagram, Music, Mail, ArrowUp } from 'lucide-react';
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -107,9 +106,10 @@ const Footer = () => {
               TONYSHOTIT STUDIOS
             </p>
             <p className="text-gray-500 text-xs leading-relaxed">
-              RC/BN: <span className="text-gray-400 font-medium">9926513</span> • TIN: <span className="text-gray-400 font-medium">2622415188316</span>
+              RC/BN: <span className="text-gray-400 font-medium">9926513</span> • TIN:{' '}
+              <span className="text-gray-400 font-medium">2622415188316</span>
               <br className="hidden sm:inline" />
-              {' '}• Plot 5 Otuyelu Close, Mende, Maryland, Lagos, Nigeria
+              {' '}Plot 5 Otuyelu Close, Mende, Maryland, Lagos, Nigeria
             </p>
             <p className="text-gray-600 text-[11px] pt-1">
               © {new Date().getFullYear()} Tonyshotit Studios. All rights reserved.
@@ -117,11 +117,6 @@ const Footer = () => {
           </div>
 
           <div className="flex items-center gap-6 self-end md:self-auto">
-            <Link className="flex items-center gap-1.5 text-xs text-gray-700 hover:text-gray-400 transition-colors duration-300" title="Admin Studio" to="/admin">
-              <Lock className="w-3.5 h-3.5"/>
-              <span>Admin Studio</span>
-            </Link>
-
             <button
               onClick={scrollToTop}
               className="group flex items-center gap-2 text-gray-400 hover:text-blue-400 transition-colors duration-300"
