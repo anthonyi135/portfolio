@@ -3,7 +3,11 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Radio, Film, ArrowRight, ShieldCheck, ChevronDown, X } from 'lucide-react';
 
-export const Hero: React.FC = () => {
+interface HeroProps {
+  onOpenBooking?: () => void;
+}
+
+export const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
   const [isShowreelOpen, setIsShowreelOpen] = useState(false);
   const [isIframeLoaded, setIsIframeLoaded] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -22,7 +26,6 @@ export const Hero: React.FC = () => {
     setMounted(true);
   }, []);
 
-  // Open handler: mount backdrop first, then render iframe
   const handleOpenShowreel = useCallback(() => {
     setIsShowreelOpen(true);
     requestAnimationFrame(() => {
@@ -32,7 +35,6 @@ export const Hero: React.FC = () => {
     });
   }, []);
 
-  // Optimized Close handler: unmount heavy iframe first to prevent main-thread freeze
   const handleCloseShowreel = useCallback(() => {
     setIsIframeLoaded(false);
     requestAnimationFrame(() => {
@@ -40,7 +42,6 @@ export const Hero: React.FC = () => {
     });
   }, []);
 
-  // Prevent scroll when open
   useEffect(() => {
     if (isShowreelOpen) {
       document.body.style.overflow = 'hidden';
@@ -52,7 +53,6 @@ export const Hero: React.FC = () => {
     };
   }, [isShowreelOpen]);
 
-  // Close on ESC
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') handleCloseShowreel();
@@ -143,13 +143,14 @@ export const Hero: React.FC = () => {
             Watch Showreel
           </button>
 
-          <a
-            href="mailto:anthony@tonyshotit.com"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold text-xs tracking-wider uppercase hover:text-white hover:bg-zinc-800 hover:border-zinc-700 transition-all duration-300"
+          <button
+            type="button"
+            onClick={onOpenBooking}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-300 font-bold text-xs tracking-wider uppercase hover:text-white hover:bg-zinc-800 hover:border-zinc-700 transition-all duration-300 cursor-pointer"
           >
             Request Production Quote
             <ArrowRight className="w-3.5 h-3.5" />
-          </a>
+          </button>
         </div>
 
         {/* Scroll Prompt Arrow */}

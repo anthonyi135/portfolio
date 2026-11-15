@@ -3,7 +3,11 @@ import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
-const Header = () => {
+interface HeaderProps {
+  onOpenBooking: () => void;
+}
+
+const Header = ({ onOpenBooking }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -11,6 +15,7 @@ const Header = () => {
     { label: 'PORTFOLIO', path: '/portfolio' },
     { label: 'EXPERIENCE', path: '/experience' },
     { label: 'GEAR KIT', path: '/gear' },
+    { label: 'BTS & SOCIALS', path: '/socials' },
   ];
 
   return (
@@ -47,7 +52,7 @@ const Header = () => {
         </Link>
 
         {/* Desktop Nav Links */}
-        <nav className="hidden md:flex items-center gap-8 pl-8 border-l border-zinc-800/80">
+        <nav className="hidden md:flex items-center gap-7 pl-8 border-l border-zinc-800/80">
           {navLinks.map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -72,13 +77,14 @@ const Header = () => {
 
         {/* Right Action CTA Button (Desktop) */}
         <div className="hidden md:flex items-center gap-4">
-          <a
-            href="mailto:anthony@tonyshotit.com"
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-zinc-800 bg-white/5 hover:bg-white hover:text-black text-zinc-300 font-bold text-[10px] tracking-widest transition-all duration-300"
+          <button
+            type="button"
+            onClick={onOpenBooking}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-zinc-800 bg-white/5 hover:bg-white hover:text-black text-zinc-300 font-bold text-[10px] tracking-widest transition-all duration-300 cursor-pointer"
           >
             <span>BOOK PRODUCTION</span>
             <ArrowUpRight className="w-3.5 h-3.5" />
-          </a>
+          </button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -112,14 +118,17 @@ const Header = () => {
             </Link>
           ))}
           <div className="pt-2">
-            <a
-              href="mailto:anthony@tonyshotit.com"
-              onClick={() => setIsMenuOpen(false)}
-              className="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-lg bg-white text-black font-bold text-xs tracking-widest uppercase"
+            <button
+              type="button"
+              onClick={() => {
+                setIsMenuOpen(false);
+                onOpenBooking();
+              }}
+              className="w-full inline-flex items-center justify-center gap-2 py-3.5 rounded-lg bg-white text-black font-bold text-xs tracking-widest uppercase cursor-pointer"
             >
               <span>INQUIRE / BOOK PRODUCTION</span>
               <ArrowUpRight className="w-4 h-4" />
-            </a>
+            </button>
           </div>
         </motion.div>
       )}
