@@ -79,7 +79,7 @@ const Socials = () => {
           </p>
         </motion.div>
 
-        {/* DUAL INSTAGRAM SPOTLIGHT CARDS (STAR OF THE SHOW) */}
+        {/* DUAL INSTAGRAM SPOTLIGHT CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
           {/* Card 1: Personal Creator Brand (@_anthony_i_) */}
           <motion.a
@@ -144,7 +144,7 @@ const Socials = () => {
             </div>
 
             <div className="pt-4 border-t border-zinc-900 flex items-center justify-between text-xs text-zinc-400">
-              <span className="font-mono text-pink-400 font-semibold">ACTIVE COMMUNITY • 960+ FOLLOWERS</span>
+              <span className="font-mono text-pink-400 font-semibold">PERSONAL CREATOR HANDLE</span>
               <span className="group-hover:text-white transition-colors font-semibold">
                 View Instagram Profile →
               </span>
@@ -279,7 +279,7 @@ const Socials = () => {
           </div>
         </div>
 
-        {/* UNDERSTATED SECONDARY PLATFORMS BAR (LOW-KEY AS REQUESTED) */}
+        {/* UNDERSTATED SECONDARY PLATFORMS BAR */}
         <div className="border-t border-zinc-900 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
           <span className="font-mono uppercase tracking-widest text-[11px]">
             Other Platforms & Archives:
