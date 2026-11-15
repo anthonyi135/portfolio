@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Header from './components/Header';
 import Hero from './components/Hero';
+import ProductionTiers from './components/ProductionTiers';
 import Portfolio from './components/Portfolio';
 import Timeline from './components/Timeline';
 import GearKit from './components/GearKit';
@@ -14,19 +15,35 @@ import NotFound from './components/NotFound';
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+  }, [pathname]);
+  return null;
+};
+
 function App() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+  const [selectedBookingService, setSelectedBookingService] = useState<string | undefined>(undefined);
+
+  const openBookingWithService = (service?: string) => {
+    setSelectedBookingService(service);
+    setIsBookingOpen(true);
+  };
 
   return (
     <Router>
+      <ScrollToTop />
       <div className="min-h-screen bg-black flex flex-col justify-between">
-        <Header onOpenBooking={() => setIsBookingOpen(true)} />
+        <Header onOpenBooking={() => openBookingWithService()} />
         
         <main className="flex-grow pt-20">
           <Routes>
             <Route path="/" element={
               <>
-                <Hero onOpenBooking={() => setIsBookingOpen(true)} />
+                <Hero onOpenBooking={() => openBookingWithService()} />
+                <ProductionTiers onSelectTier={(service) => openBookingWithService(service)} />
                 <AboutMe />
               </>
             } />
@@ -40,7 +57,11 @@ function App() {
         </main>
 
         <Footer />
-        <BookingDrawer isOpen={isBookingOpen} onClose={() => setIsBookingOpen(false)} />
+        <BookingDrawer
+          isOpen={isBookingOpen}
+          onClose={() => setIsBookingOpen(false)}
+          initialService={selectedBookingService}
+        />
       </div>
       <Analytics />
       <SpeedInsights />

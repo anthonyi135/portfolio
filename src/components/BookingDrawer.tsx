@@ -19,7 +19,10 @@ import { supabase } from '../lib/supabase';
 interface BookingDrawerProps {
   isOpen: boolean;
   onClose: () => void;
+  initialService?: string;
 }
+
+const WEB3FORMS_ACCESS_KEY = 'ee7b9d7e-5d1c-481b-9bec-acd42959854f';
 
 const SERVICE_OPTIONS = [
   {
@@ -52,7 +55,7 @@ const SERVICE_OPTIONS = [
   },
 ];
 
-const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
+const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose, initialService }) => {
   const [mounted, setMounted] = useState(false);
   const [serviceType, setServiceType] = useState(SERVICE_OPTIONS[0].id);
   const [clientName, setClientName] = useState('');
@@ -68,6 +71,12 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (initialService) {
+      setServiceType(initialService);
+    }
+  }, [initialService]);
 
   useEffect(() => {
     if (isOpen) {
@@ -93,6 +102,7 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
     setSubmitting(true);
 
     try {
+      // 1. Save lead to Supabase Admin Dashboard
       await supabase.from('booking_inquiries').insert([
         {
           client_name: clientName,
@@ -105,10 +115,32 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
           project_details: projectDetails,
         },
       ]);
+
+      // 2. Fire instant email alert via Web3Forms
+      await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_ACCESS_KEY,
+          subject: `New Production Inquiry: ${serviceType} — ${organization || clientName}`,
+          from_name: 'Tonyshotit Studios Booking Desk',
+          name: clientName,
+          email: clientEmail,
+          organization: organization || 'N/A',
+          phone: clientPhone || 'N/A',
+          service_scope: serviceType,
+          target_date: eventDate || 'TBD',
+          venue_location: location || 'Lagos',
+          project_brief: projectDetails,
+        }),
+      });
+
       setSubmitted(true);
     } catch (err) {
       console.error('Booking submission error:', err);
-      // Still show confirmation state so user can follow up via direct mailto/WhatsApp if needed
       setSubmitted(true);
     } finally {
       setSubmitting(false);
@@ -165,7 +197,6 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
             className="relative w-full max-w-xl bg-[#09090b] border-l border-zinc-800/90 h-full overflow-y-auto p-6 sm:p-8 text-white shadow-2xl flex flex-col justify-between"
           >
             <div>
-              {/* Drawer Top Bar */}
               <div className="flex items-start justify-between gap-4 pb-6 border-b border-zinc-900">
                 <div>
                   <span className="inline-block text-[10px] font-mono uppercase tracking-[0.25em] text-sky-400 mb-1.5">
@@ -197,7 +228,7 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
                   <h3 className="text-2xl font-black text-white">Brief Received</h3>
                   <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
                     Thank you, <span className="text-white font-semibold">{clientName}</span>. Your{' '}
-                    <span className="text-sky-400 font-semibold">{serviceType}</span> inquiry has been logged with Tonyshotit Studios. Anthony will review availability and send a formal quote within 24 hours.
+                    <span className="text-sky-400 font-semibold">{serviceType}</span> inquiry has been dispatched directly to Anthony Ibuzo. You will receive a formal availability & rate response within 24 hours.
                   </p>
 
                   <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -219,7 +250,6 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
                 </motion.div>
               ) : (
                 <form onSubmit={handleSubmit} className="py-6 space-y-6">
-                  {/* Pillar Selector */}
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-3">
                       1. Select Production Scope
@@ -252,7 +282,6 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
 
-                  {/* Contact Details */}
                   <div className="space-y-3.5">
                     <label className="block text-[11px] font-bold uppercase tracking-widest text-zinc-400">
                       2. Client / Organization Details
@@ -293,7 +322,6 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
 
-                  {/* Event Date & Location */}
                   <div className="space-y-3.5">
                     <label className="block text-[11px] font-bold uppercase tracking-widest text-zinc-400">
                       3. Schedule & Venue
@@ -321,7 +349,6 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
                     </div>
                   </div>
 
-                  {/* Project Brief */}
                   <div>
                     <label className="block text-[11px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
                       4. Project Brief & Deliverables
@@ -336,7 +363,6 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
                     />
                   </div>
 
-                  {/* Submit & Direct Email Fallback */}
                   <div className="space-y-3 pt-2">
                     <button
                       type="submit"
@@ -362,7 +388,6 @@ const BookingDrawer: React.FC<BookingDrawerProps> = ({ isOpen, onClose }) => {
               )}
             </div>
 
-            {/* Footer Compliance Tag */}
             <div className="pt-4 border-t border-zinc-900 flex items-center justify-between text-[10px] font-mono text-zinc-500">
               <span>TONYSHOTIT STUDIOS • RC 9926513</span>
               <span>LAGOS, NIGERIA</span>

@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   Instagram,
@@ -11,9 +12,10 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
+import { supabase } from '../lib/supabase';
 
 interface BtsReel {
-  id: string;
+  id: string | number;
   title: string;
   tag: string;
   caption: string;
@@ -21,7 +23,7 @@ interface BtsReel {
   igUrl: string;
 }
 
-const featuredReels: BtsReel[] = [
+const defaultReels: BtsReel[] = [
   {
     id: 'reel-1',
     title: 'WHAT A FINALIST FEELS LIKE',
@@ -52,13 +54,42 @@ const featuredReels: BtsReel[] = [
 ];
 
 const Socials = () => {
+  const [reelsList, setReelsList] = useState<BtsReel[]>(defaultReels);
+
+  useEffect(() => {
+    const fetchBtsReels = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('bts_reels')
+          .select('*')
+          .order('id', { ascending: false });
+
+        if (error) throw error;
+        if (data && data.length > 0) {
+          setReelsList(
+            data.map((r) => ({
+              id: r.id,
+              title: r.title,
+              tag: r.tag,
+              caption: r.caption,
+              videoSrc: r.video_src,
+              igUrl: r.ig_url || 'https://www.instagram.com/_anthony_i_/',
+            }))
+          );
+        }
+      } catch (err) {
+        console.log('Using default BTS reels fallback:', err);
+      }
+    };
+
+    fetchBtsReels();
+  }, []);
+
   return (
     <section className="relative min-h-screen bg-black text-white py-20 sm:py-28 px-4 overflow-hidden">
-      {/* Subtle Ambient Glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[750px] h-[350px] bg-gradient-to-r from-pink-500/10 via-sky-500/10 to-purple-500/10 blur-[130px] rounded-full pointer-events-none" />
 
       <div className="relative max-w-6xl mx-auto z-10">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -81,7 +112,6 @@ const Socials = () => {
 
         {/* DUAL INSTAGRAM SPOTLIGHT CARDS */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-20">
-          {/* Card 1: Personal Creator Brand (@_anthony_i_) */}
           <motion.a
             href="https://www.instagram.com/_anthony_i_/"
             target="_blank"
@@ -151,7 +181,6 @@ const Socials = () => {
             </div>
           </motion.a>
 
-          {/* Card 2: Official Studio Brand (@_tonyshotit) */}
           <motion.a
             href="https://www.instagram.com/_tonyshotit/"
             target="_blank"
@@ -216,7 +245,7 @@ const Socials = () => {
           </motion.a>
         </div>
 
-        {/* FEATURED VERTICAL REELS PREVIEW (PLAYS DIRECTLY ON SITE) */}
+        {/* FEATURED VERTICAL REELS PREVIEW */}
         <div className="mb-20">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
             <div>
@@ -238,7 +267,7 @@ const Socials = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {featuredReels.map((reel, idx) => (
+            {reelsList.map((reel, idx) => (
               <motion.div
                 key={reel.id}
                 initial={{ opacity: 0, y: 20 }}
